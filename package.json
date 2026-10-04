@@ -1,0 +1,32 @@
+{
+  "name": "neural-city-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEURAL CITY — AI-Driven Multi-Agent Civilization Simulation Engine",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "simulation",
+    "ai",
+    "shared"
+  ],
+  "scripts": {
+    "dev:server": "npm --workspace=@neural-city/server run dev",
+    "dev:client": "npm --workspace=@neural-city/client run dev",
+    "start:server": "npm --workspace=@neural-city/server run start",
+    "build:client": "npm --workspace=@neural-city/client run build",
+    "test:simulation": "npm --workspace=@neural-city/simulation run test",
+    "test": "npm --workspace=@neural-city/simulation run test"
+  },
+  "keywords": [
+    "neural-city",
+    "simulation",
+    "multi-agent",
+    "ai",
+    "threejs",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT"
+}

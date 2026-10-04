@@ -1,0 +1,18 @@
+{
+  "name": "@neural-city/simulation",
+  "version": "0.1.0",
+  "description": "NEURAL CITY — Core Deterministic Simulation Engine",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "neural-city",
+    "simulation-engine",
+    "world-state",
+    "deterministic"
+  ],
+  "author": "",
+  "license": "MIT"
+}
