@@ -1,3 +1,5 @@
+import api from './api.js';
+
 /**
  * Helper to generate preview cities when creating a world.
  */
