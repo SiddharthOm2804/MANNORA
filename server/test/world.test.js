@@ -5,7 +5,7 @@ import app from '../src/app.js';
 import { connectDB, disconnectDB } from '../src/config/db.js';
 import { World } from '../src/models/World.js';
 
-describe('World Creation & Management API', () => {
+describe('World Creation & Management API (with Error Refinement)', () => {
   let server;
   let baseUrl;
   let createdWorldId;
@@ -26,7 +26,7 @@ describe('World Creation & Management API', () => {
     await disconnectDB();
   });
 
-  test('POST /api/worlds creates a structured virtual civilization', async () => {
+  test('1. Valid request: POST /api/worlds creates a structured virtual civilization', async () => {
     const payload = {
       name: 'Test Sector 99 // Nova Prime',
       description: 'Automated test civilization for Phase 3 validation.',
@@ -109,7 +109,7 @@ describe('World Creation & Management API', () => {
     assert.equal(json.data.simulationSettings.speed, 5);
   });
 
-  test('POST /api/worlds rejects creation when name is missing', async () => {
+  test('2. Validation failure: rejects creation when name is missing or invalid', async () => {
     const res = await fetch(baseUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -119,9 +119,63 @@ describe('World Creation & Management API', () => {
     assert.equal(res.status, 400);
     const json = await res.json();
     assert.equal(json.success, false);
+    assert.match(json.message, /name is required/i);
   });
 
-  test('DELETE /api/worlds/:id deletes the world successfully', async () => {
+  test('2. Validation failure: rejects invalid numeric range on PATCH', async () => {
+    const res = await fetch(`${baseUrl}/${createdWorldId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ population: -50 }),
+    });
+
+    assert.equal(res.status, 400);
+    const json = await res.json();
+    assert.equal(json.success, false);
+  });
+
+  test('3. Invalid ID: returns HTTP 400 for malformed Mongo ObjectID', async () => {
+    const resGet = await fetch(`${baseUrl}/invalid-hex-id-999`);
+    assert.equal(resGet.status, 400);
+    const jsonGet = await resGet.json();
+    assert.equal(jsonGet.success, false);
+    assert.match(jsonGet.message, /Invalid World ID/i);
+
+    const resPatch = await fetch(`${baseUrl}/invalid-hex-id-999`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ population: 2000 }),
+    });
+    assert.equal(resPatch.status, 400);
+
+    const resDelete = await fetch(`${baseUrl}/invalid-hex-id-999`, {
+      method: 'DELETE',
+    });
+    assert.equal(resDelete.status, 400);
+  });
+
+  test('4. Missing world: returns HTTP 404 for valid ObjectID of non-existent world', async () => {
+    const nonExistentId = '507f1f77bcf86cd799439011';
+
+    const resGet = await fetch(`${baseUrl}/${nonExistentId}`);
+    assert.equal(resGet.status, 404);
+    const jsonGet = await resGet.json();
+    assert.equal(jsonGet.success, false);
+
+    const resPatch = await fetch(`${baseUrl}/${nonExistentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ population: 2000 }),
+    });
+    assert.equal(resPatch.status, 404);
+
+    const resDelete = await fetch(`${baseUrl}/${nonExistentId}`, {
+      method: 'DELETE',
+    });
+    assert.equal(resDelete.status, 404);
+  });
+
+  test('5. DELETE /api/worlds/:id deletes the world successfully', async () => {
     const res = await fetch(`${baseUrl}/${createdWorldId}`, {
       method: 'DELETE',
     });

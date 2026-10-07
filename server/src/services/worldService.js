@@ -55,7 +55,10 @@ export class WorldService {
    */
   async createWorld(worldData) {
     if (!worldData.name || typeof worldData.name !== 'string') {
-      throw new Error('World name is required and must be a string');
+      const error = new Error('World name is required and must be a string');
+      error.name = 'ValidationError';
+      error.status = 400;
+      throw error;
     }
 
     const population = Number(worldData.population) || 1000;
@@ -146,7 +149,10 @@ export class WorldService {
    */
   async getWorldById(id) {
     if (!isValidMongoId(id)) {
-      throw new Error(`Invalid World ID format: ${id}`);
+      const error = new Error(`Invalid World ID format: ${id}`);
+      error.name = 'CastError';
+      error.status = 400;
+      throw error;
     }
     return await World.findById(id);
   }
@@ -159,7 +165,10 @@ export class WorldService {
    */
   async updateWorld(id, updateData) {
     if (!isValidMongoId(id)) {
-      throw new Error(`Invalid World ID format: ${id}`);
+      const error = new Error(`Invalid World ID format: ${id}`);
+      error.name = 'CastError';
+      error.status = 400;
+      throw error;
     }
 
     const updated = await World.findByIdAndUpdate(
@@ -169,7 +178,10 @@ export class WorldService {
     );
 
     if (!updated) {
-      throw new Error(`World with ID ${id} not found`);
+      const error = new Error(`World with ID ${id} not found`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
     }
 
     return updated;
@@ -182,12 +194,18 @@ export class WorldService {
    */
   async deleteWorld(id) {
     if (!isValidMongoId(id)) {
-      throw new Error(`Invalid World ID format: ${id}`);
+      const error = new Error(`Invalid World ID format: ${id}`);
+      error.name = 'CastError';
+      error.status = 400;
+      throw error;
     }
 
     const result = await World.findByIdAndDelete(id);
     if (!result) {
-      throw new Error(`World with ID ${id} not found`);
+      const error = new Error(`World with ID ${id} not found`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
     }
 
     return true;

@@ -1,6 +1,55 @@
 import { worldService } from '../services/worldService.js';
 
 /**
+ * Categorizes and formats errors appropriately:
+ * - ValidationError / CastError -> HTTP 400 (Bad Request)
+ * - NotFoundError -> HTTP 404 (Not Found)
+ * - Unexpected system/infrastructure errors -> delegates to centralized errorHandler via next(error)
+ * @param {Error} error
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+const handleControllerError = (error, res, next) => {
+  // Mongoose Schema Validation Error or client input validation
+  if (
+    error.name === 'ValidationError' ||
+    error.status === 400 ||
+    error.message?.includes('required') ||
+    error.message?.includes('cannot exceed') ||
+    error.message?.includes('must be at least')
+  ) {
+    const errorDetails = error.errors
+      ? Object.values(error.errors).map((e) => e.message)
+      : undefined;
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Validation failed',
+      ...(errorDetails && { errors: errorDetails }),
+    });
+  }
+
+  // Mongoose CastError or Invalid Mongo ObjectId
+  if (error.name === 'CastError' || error.message?.includes('Invalid World ID format')) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Invalid ID format',
+    });
+  }
+
+  // Resource Not Found
+  if (error.name === 'NotFoundError' || error.status === 404 || error.message?.includes('not found')) {
+    return res.status(404).json({
+      success: false,
+      message: error.message || 'Resource not found',
+    });
+  }
+
+  // Delegate unexpected internal errors to central error middleware (HTTP 500)
+  next(error);
+};
+
+/**
  * Controller handling World REST endpoints.
  */
 export const createWorld = async (req, res, next) => {
@@ -12,10 +61,7 @@ export const createWorld = async (req, res, next) => {
       data: world,
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Failed to create world',
-    });
+    handleControllerError(error, res, next);
   }
 };
 
@@ -49,10 +95,7 @@ export const getWorldById = async (req, res, next) => {
       data: world,
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    handleControllerError(error, res, next);
   }
 };
 
@@ -67,10 +110,7 @@ export const updateWorld = async (req, res, next) => {
       data: updated,
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    handleControllerError(error, res, next);
   }
 };
 
@@ -84,10 +124,7 @@ export const deleteWorld = async (req, res, next) => {
       message: `World ${id} deleted successfully`,
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    handleControllerError(error, res, next);
   }
 };
 
