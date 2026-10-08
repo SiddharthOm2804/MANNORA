@@ -127,6 +127,16 @@ export class RandomEngine {
   }
 
   /**
+   * Generates a float in range [min, max)
+   * @param {number} min
+   * @param {number} max
+   * @returns {number}
+   */
+  range(min, max) {
+    return min + this.nextFloat() * (max - min);
+  }
+
+  /**
    * Generates a normally distributed random number using Box-Muller transform
    * @param {number} [mean=0]
    * @param {number} [stdDev=1]
@@ -139,6 +149,40 @@ export class RandomEngine {
     while (v === 0) v = this.nextFloat();
     const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
     return num * stdDev + mean;
+  }
+
+  /**
+   * Select an item from a list based on relative weights
+   * @template T
+   * @param {T[]} items
+   * @param {number[]} weights
+   * @returns {T|null}
+   */
+  weightedChoice(items, weights) {
+    if (!items || items.length === 0 || !weights || weights.length !== items.length) {
+      return null;
+    }
+    const totalWeight = weights.reduce((sum, w) => sum + Math.max(0, w), 0);
+    if (totalWeight <= 0) return this.choice(items);
+
+    let threshold = this.range(0, totalWeight);
+    for (let i = 0; i < items.length; i++) {
+      const w = Math.max(0, weights[i]);
+      if (threshold < w) {
+        return items[i];
+      }
+      threshold -= w;
+    }
+    return items[items.length - 1];
+  }
+
+  /**
+   * Fork a new deterministic RandomEngine derived from this PRNG stream
+   * @returns {RandomEngine}
+   */
+  fork() {
+    const childSeed = (this.nextInt(1, 2147483647) ^ (this.currentSeed >>> 1)) >>> 0;
+    return new RandomEngine(childSeed);
   }
 }
 

@@ -18,6 +18,7 @@
     "build:client": "npm --workspace=@neural-city/client run build",
     "test:server": "npm --workspace=@neural-city/server run test",
     "test:simulation": "npm --workspace=@neural-city/simulation run test",
+    "simulate": "npm --workspace=@neural-city/simulation run simulate",
     "test": "npm run test:simulation && npm run test:server"
   },
   "keywords": [

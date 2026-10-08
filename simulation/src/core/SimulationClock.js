@@ -1,16 +1,21 @@
 /**
  * SimulationClock manages discrete ticks, simulated time progression,
- * fixed delta timesteps, and playback controls.
+ * fixed delta timesteps, diurnal cycles (simulation day & simulation hour), and playback controls.
  */
 export class SimulationClock {
   /**
    * @param {Object} [options]
    * @param {number} [options.tickRate=10] - Ticks per second (Hz)
-   * @param {number} [options.timeScale=1.0] - Time multiplier
+   * @param {number} [options.timeScale=1.0] - Time speed multiplier
+   * @param {number} [options.ticksPerHour=1] - Number of ticks representing one simulation hour
+   * @param {number} [options.hoursPerDay=24] - Number of simulation hours in a day
    */
   constructor(options = {}) {
     this.tickRate = options.tickRate || 10;
     this.timeScale = options.timeScale || 1.0;
+    this.ticksPerHour = options.ticksPerHour || 1;
+    this.hoursPerDay = options.hoursPerDay || 24;
+
     this.currentTick = 0;
     this.isRunning = false;
     this.isPaused = false;
@@ -27,19 +32,54 @@ export class SimulationClock {
   }
 
   /**
+   * Current simulation day (1-indexed, starts at Day 1)
+   * @returns {number}
+   */
+  get simulationDay() {
+    const ticksPerDay = this.ticksPerHour * this.hoursPerDay;
+    return Math.floor(this.currentTick / ticksPerDay) + 1;
+  }
+
+  /**
+   * Current simulation hour within the day (0 to 23)
+   * @returns {number}
+   */
+  get simulationHour() {
+    const totalHours = Math.floor(this.currentTick / this.ticksPerHour);
+    return totalHours % this.hoursPerDay;
+  }
+
+  /**
    * Advances the simulation clock by 1 discrete tick
-   * @returns {{ tick: number, delta: number, simulatedTime: number }}
+   * @returns {{ tick: number, day: number, hour: number, delta: number, simulatedTime: number, dayChanged: boolean, hourChanged: boolean }}
    */
   tick() {
+    const prevDay = this.simulationDay;
+    const prevHour = this.simulationHour;
+
     this.currentTick += 1;
     const effectiveDelta = this.fixedDelta * this.timeScale;
     this.elapsedSimulatedTime += effectiveDelta;
 
+    const currentDay = this.simulationDay;
+    const currentHour = this.simulationHour;
+
     return {
       tick: this.currentTick,
+      day: currentDay,
+      hour: currentHour,
       delta: effectiveDelta,
       simulatedTime: this.elapsedSimulatedTime,
+      dayChanged: currentDay !== prevDay,
+      hourChanged: currentHour !== prevHour,
     };
+  }
+
+  /**
+   * Explicit step one tick (alias for tick)
+   */
+  step() {
+    return this.tick();
   }
 
   /**
@@ -79,9 +119,11 @@ export class SimulationClock {
    * Resume clock progression if paused
    */
   resume() {
-    if (this.isRunning && this.isPaused) {
+    if (this.isPaused) {
       this.isPaused = false;
-      this.lastRealTimestamp = Date.now();
+      if (this.isRunning) {
+        this.lastRealTimestamp = Date.now();
+      }
     }
   }
 
@@ -118,7 +160,7 @@ export class SimulationClock {
   }
 
   /**
-   * Set simulation speed multiplier
+   * Set simulation speed multiplier / time scale
    * @param {number} scale
    */
   setTimeScale(scale) {
@@ -127,11 +169,21 @@ export class SimulationClock {
   }
 
   /**
+   * Speed control helper alias
+   * @param {number} multiplier
+   */
+  setSpeed(multiplier) {
+    this.setTimeScale(multiplier);
+  }
+
+  /**
    * Returns current clock status
    */
   getStatus() {
     return {
       currentTick: this.currentTick,
+      simulationDay: this.simulationDay,
+      simulationHour: this.simulationHour,
       tickRate: this.tickRate,
       timeScale: this.timeScale,
       isRunning: this.isRunning,

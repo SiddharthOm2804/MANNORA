@@ -5,7 +5,12 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "simulate": "node src/cli.js",
+    "start": "node src/cli.js"
+  },
+  "bin": {
+    "neural-sim": "./src/cli.js"
   },
   "keywords": [
     "neural-city",
