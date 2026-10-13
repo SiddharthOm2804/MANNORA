@@ -13,6 +13,12 @@ export { RandomEngine } from './core/RandomEngine.js';
 // Modular Subsystems
 export { EventSystem } from './events/EventSystem.js';
 export { AgentSystem } from './agents/AgentSystem.js';
+export { AgentEngine } from './agents/AgentEngine.js';
+export { Agent } from './agents/Agent.js';
+export { NeedsSystem } from './agents/NeedsSystem.js';
+export { GoalSystem } from './agents/GoalSystem.js';
+export { DecisionEngine } from './agents/DecisionEngine.js';
+export { MemorySystem } from './agents/MemorySystem.js';
 export { EconomySystem } from './economy/EconomySystem.js';
 export { ResourceSystem } from './resources/ResourceSystem.js';
 export { PopulationSystem } from './society/PopulationSystem.js';
@@ -30,6 +36,12 @@ export default {
   RandomEngine: (await import('./core/RandomEngine.js')).RandomEngine,
   EventSystem: (await import('./events/EventSystem.js')).EventSystem,
   AgentSystem: (await import('./agents/AgentSystem.js')).AgentSystem,
+  AgentEngine: (await import('./agents/AgentEngine.js')).AgentEngine,
+  Agent: (await import('./agents/Agent.js')).Agent,
+  NeedsSystem: (await import('./agents/NeedsSystem.js')).NeedsSystem,
+  GoalSystem: (await import('./agents/GoalSystem.js')).GoalSystem,
+  DecisionEngine: (await import('./agents/DecisionEngine.js')).DecisionEngine,
+  MemorySystem: (await import('./agents/MemorySystem.js')).MemorySystem,
   EconomySystem: (await import('./economy/EconomySystem.js')).EconomySystem,
   ResourceSystem: (await import('./resources/ResourceSystem.js')).ResourceSystem,
   PopulationSystem: (await import('./society/PopulationSystem.js')).PopulationSystem,

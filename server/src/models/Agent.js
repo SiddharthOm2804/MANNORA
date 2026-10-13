@@ -195,9 +195,75 @@ export const AgentSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['CITIZEN', 'MERCHANT', 'GOVERNOR', 'ENGINEER', 'OBSERVER', 'SCIENTIST'],
       default: 'CITIZEN',
       trim: true,
+    },
+    age: {
+      type: Number,
+      default: 30,
+      min: [0, 'Age cannot be negative'],
+    },
+    occupation: {
+      type: String,
+      default: 'citizen',
+      trim: true,
+    },
+    income: {
+      type: Number,
+      default: 25,
+      min: [0, 'Income cannot be negative'],
+    },
+    skills: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({
+        farming: 0.5,
+        engineering: 0.5,
+        commerce: 0.5,
+        science: 0.5,
+        administration: 0.5,
+        craftsmanship: 0.5,
+      }),
+    },
+    needs: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({
+        hunger: 10,
+        rest: 90,
+        social: 70,
+        safety: 85,
+        fulfillment: 60,
+        health: 100,
+      }),
+    },
+    goals: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({
+        activeGoal: null,
+        goalHistory: [],
+      }),
+    },
+    relationships: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({}),
+    },
+    inventory: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({
+        food: 2,
+        goods: 0,
+      }),
+    },
+    employerId: {
+      type: String,
+      default: null,
+    },
+    residenceId: {
+      type: String,
+      default: null,
+    },
+    businessId: {
+      type: String,
+      default: null,
     },
     state: {
       type: AgentStateSchema,
