@@ -20,6 +20,10 @@ export { GoalSystem } from './agents/GoalSystem.js';
 export { DecisionEngine } from './agents/DecisionEngine.js';
 export { MemorySystem } from './agents/MemorySystem.js';
 export { EconomySystem } from './economy/EconomySystem.js';
+export { EconomyEngine } from './economy/EconomyEngine.js';
+export { MarketEngine } from './economy/MarketEngine.js';
+export { JobSystem } from './economy/JobSystem.js';
+export { FinanceSystem } from './economy/FinanceSystem.js';
 export { ResourceSystem } from './resources/ResourceSystem.js';
 export { PopulationSystem } from './society/PopulationSystem.js';
 export { BuildingSystem } from './buildings/BuildingSystem.js';
@@ -43,6 +47,10 @@ export default {
   DecisionEngine: (await import('./agents/DecisionEngine.js')).DecisionEngine,
   MemorySystem: (await import('./agents/MemorySystem.js')).MemorySystem,
   EconomySystem: (await import('./economy/EconomySystem.js')).EconomySystem,
+  EconomyEngine: (await import('./economy/EconomyEngine.js')).EconomyEngine,
+  MarketEngine: (await import('./economy/MarketEngine.js')).MarketEngine,
+  JobSystem: (await import('./economy/JobSystem.js')).JobSystem,
+  FinanceSystem: (await import('./economy/FinanceSystem.js')).FinanceSystem,
   ResourceSystem: (await import('./resources/ResourceSystem.js')).ResourceSystem,
   PopulationSystem: (await import('./society/PopulationSystem.js')).PopulationSystem,
   BuildingSystem: (await import('./buildings/BuildingSystem.js')).BuildingSystem,

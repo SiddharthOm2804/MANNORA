@@ -44,3 +44,32 @@ Snapshotting and history ring-buffer manager.
 ### `RandomEngine`
 32-bit Mulberry32 PRNG ensuring deterministic behavior across environments.
 - Methods: `nextFloat()`, `nextInt(min, max)`, `nextBool(prob)`, `choice(arr)`, `shuffle(arr)`, `sample(arr, n)`, `gaussian(mean, stdDev)`.
+
+---
+
+## 2. Phase 6 Civilization Economy Subsystems
+
+The civilization economy executes at **Priority 30** in the deterministic simulation pipeline:
+
+### `EconomyEngine`
+Central coordinator managing macro production, labor demand, tax revenues, commodity inflation, and model-grounded GDP.
+- Evaluates dynamic commodity pricing from `MarketEngine`.
+- Balances commercial & industrial business operations (revenue, wages, maintenance, net profit).
+- Computes simulation-grounded metrics: GDP, unemployment rate, average citizen wealth, average income, inflation rate, and resource availability score.
+
+### `MarketEngine`
+Models supply, demand, and dynamic price discovery across six resource commodities (`energy`, `minerals`, `water`, `agriculture`, `technology`, `rawMaterials`).
+- Adjusts prices in response to buffer depletion (shortage) or accumulation (surplus).
+- Incorporates commodity-specific price elasticity curves (inelastic necessities vs elastic technology goods).
+
+### `JobSystem`
+Maintains the civilization labor market and occupational mobility:
+- Matches unemployed or underemployed citizens with building vacancies based on skill affinity and proximity.
+- Calculates tailored salaries based on occupational benchmarks, skills, and productivity traits.
+- Tracks labor supply vs. employer demand and municipal unemployment rates.
+
+### `FinanceSystem`
+Executes fiscal accounting for government and commercial institutions:
+- Municipal taxation on worker income and commercial enterprise profits.
+- Accrues yield on citizen liquid savings to model capital retention.
+- Evaluates municipal fiscal solvency and business net profit margins.

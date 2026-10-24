@@ -1,5 +1,3 @@
-import api from './api.js';
-
 /**
  * Helper to generate preview cities when creating a world.
  */
@@ -16,8 +14,8 @@ export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldNa
 
   for (let i = 0; i < cityCount; i++) {
     const isCapital = i === 0;
-    const pop = isCapital 
-      ? Math.floor(totalPopulation * capitalShare) 
+    const pop = isCapital
+      ? Math.floor(totalPopulation * capitalShare)
       : (i === cityCount - 1 ? totalPopulation - cities.reduce((acc, c) => acc + c.population, 0) : secondaryPopPerCity);
 
     const prefix = prefixes[i % prefixes.length];

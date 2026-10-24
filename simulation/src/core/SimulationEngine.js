@@ -78,6 +78,7 @@ export class SimulationEngine extends EventEmitter {
     this.agentSystem = new AgentSystem();
     this.agentEngine = this.agentSystem.agentEngine;
     this.economySystem = new EconomySystem();
+    this.economyEngine = this.economySystem.economyEngine;
     this.resourceSystem = new ResourceSystem();
     this.populationSystem = new PopulationSystem();
     this.buildingSystem = new BuildingSystem();

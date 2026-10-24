@@ -119,6 +119,30 @@ const EconomyConfigurationSchema = new mongoose.Schema(
       type: [String],
       default: ['Energy', 'Manufacturing', 'Advanced Technology'],
     },
+    gdp: {
+      type: Number,
+      default: 100000,
+    },
+    unemployment: {
+      type: Number,
+      default: 0.05,
+    },
+    averageIncome: {
+      type: Number,
+      default: 30,
+    },
+    averageWealth: {
+      type: Number,
+      default: 120,
+    },
+    inflation: {
+      type: Number,
+      default: 0.02,
+    },
+    businessCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { _id: false }
 );
