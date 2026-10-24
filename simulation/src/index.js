@@ -31,6 +31,9 @@ export { CommunityEngine } from './society/CommunityEngine.js';
 export { SocialDynamics } from './society/SocialDynamics.js';
 export { BuildingSystem } from './buildings/BuildingSystem.js';
 export { MetricsSystem } from './metrics/MetricsSystem.js';
+export { GovernmentEngine } from './government/GovernmentEngine.js';
+export { PolicyEngine } from './government/PolicyEngine.js';
+export { PublicServiceEngine } from './government/PublicServiceEngine.js';
 
 // Headless Runner
 export { runHeadlessSimulation } from './cli.js';
@@ -61,4 +64,7 @@ export default {
   SocialDynamics: (await import('./society/SocialDynamics.js')).SocialDynamics,
   BuildingSystem: (await import('./buildings/BuildingSystem.js')).BuildingSystem,
   MetricsSystem: (await import('./metrics/MetricsSystem.js')).MetricsSystem,
+  GovernmentEngine: (await import('./government/GovernmentEngine.js')).GovernmentEngine,
+  PolicyEngine: (await import('./government/PolicyEngine.js')).PolicyEngine,
+  PublicServiceEngine: (await import('./government/PublicServiceEngine.js')).PublicServiceEngine,
 };

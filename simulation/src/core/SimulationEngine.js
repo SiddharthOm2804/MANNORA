@@ -11,6 +11,7 @@ import { ResourceSystem } from '../resources/ResourceSystem.js';
 import { PopulationSystem } from '../society/PopulationSystem.js';
 import { BuildingSystem } from '../buildings/BuildingSystem.js';
 import { MetricsSystem } from '../metrics/MetricsSystem.js';
+import { GovernmentEngine } from '../government/GovernmentEngine.js';
 
 /**
  * SimulationEngine is the central deterministic coordinator of NEURAL CITY's civilization simulation.
@@ -82,6 +83,7 @@ export class SimulationEngine extends EventEmitter {
     this.resourceSystem = new ResourceSystem();
     this.populationSystem = new PopulationSystem();
     this.buildingSystem = new BuildingSystem();
+    this.governmentEngine = new GovernmentEngine();
     this.metricsSystem = new MetricsSystem();
 
     // 1. EVENTS (Priority 10)
@@ -98,6 +100,11 @@ export class SimulationEngine extends EventEmitter {
     this.registerSystem('economy', (state, delta, random, clockInfo) => {
       this.economySystem.update(state, delta, random, clockInfo);
     }, 30);
+
+    // 3.5. GOVERNMENT (Priority 35: Taxation, Policies, Public Services)
+    this.registerSystem('government', (state, delta, random, clockInfo) => {
+      this.governmentEngine.update(state, delta, random, clockInfo);
+    }, 35);
 
     // 4. RESOURCES (Priority 40)
     this.registerSystem('resources', (state, delta, random, clockInfo) => {

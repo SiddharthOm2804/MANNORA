@@ -12,7 +12,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   Terminal,
-  Globe
+  Globe,
+  Landmark
 } from 'lucide-react';
 
 /**
@@ -51,18 +52,25 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
       tag: '04',
     },
     {
+      to: '/government',
+      label: 'Civic Governance',
+      shortLabel: 'Government',
+      icon: <Landmark className="w-4 h-4 shrink-0" />,
+      tag: '05',
+    },
+    {
       to: '/timeline',
       label: 'Temporal Timeline',
       shortLabel: 'Timeline',
       icon: <GitBranch className="w-4 h-4 shrink-0" />,
-      tag: '05',
+      tag: '06',
     },
     {
       to: '/settings',
       label: 'Laboratory Settings',
       shortLabel: 'Settings',
       icon: <Settings className="w-4 h-4 shrink-0" />,
-      tag: '06',
+      tag: '07',
     },
   ];
 
