@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { ENV } from './config/env.js';
 import healthRoutes from './routes/healthRoutes.js';
 import worldRoutes from './routes/worldRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -62,6 +63,7 @@ app.get('/', (req, res) => {
 // Mount Routes
 app.use('/api', healthRoutes);
 app.use('/api/worlds', worldRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Error Handling
 app.use(notFoundHandler);

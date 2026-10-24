@@ -13,15 +13,19 @@ import {
   CheckCircle2, 
   ChevronRight,
   Shield,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import Panel from '../components/common/Panel';
 import StatusIndicator from '../components/common/StatusIndicator';
+import { aiService } from '../services/aiService';
 
 export default function AgentExplorer() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
   const [selectedAgentId, setSelectedAgentId] = useState('agt_001');
+  const [aiReflection, setAiReflection] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const agents = [
     {
@@ -233,14 +237,62 @@ export default function AgentExplorer() {
             title={activeAgent.name}
             subtitle={`Role: ${activeAgent.role} • Location: ${activeAgent.sector}`}
             actions={
-              <StatusIndicator
-                status={activeAgent.status === 'active' ? 'simulating' : 'idle'}
-                label={activeAgent.status.toUpperCase()}
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    setIsAiLoading(true);
+                    const res = await aiService.getCitizenReflection(activeAgent.id, {
+                      name: activeAgent.name,
+                      role: activeAgent.role,
+                      citizenState: {
+                        occupation: activeAgent.role,
+                        wealth: activeAgent.wealth,
+                        healthState: { health: activeAgent.happiness, happiness: activeAgent.happiness },
+                        personalityTraits: activeAgent.traits,
+                      },
+                    });
+                    if (res.success && res.data) {
+                      setAiReflection(res.data);
+                    }
+                    setIsAiLoading(false);
+                  }}
+                  disabled={isAiLoading}
+                  className="px-2.5 py-1 rounded bg-purple-950/80 hover:bg-purple-900 border border-purple-800 text-purple-300 font-mono text-[11px] flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  <Sparkles className="w-3 h-3 text-purple-400" />
+                  <span>{isAiLoading ? 'Synthesizing...' : 'AI Cognitive Reflection'}</span>
+                </button>
+                <StatusIndicator
+                  status={activeAgent.status === 'active' ? 'simulating' : 'idle'}
+                  label={activeAgent.status.toUpperCase()}
+                />
+              </div>
             }
           >
             <div className="space-y-5 text-xs font-mono">
               
+              {/* AI Cognitive Reflection Box (Phase 9) */}
+              {aiReflection && (
+                <div className="p-3.5 rounded-lg bg-gradient-to-r from-purple-950/40 to-slate-900 border border-purple-800/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-purple-300 font-mono flex items-center gap-1.5 font-bold uppercase">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Citizen AI Reasoning Assistant // Phase 9</span>
+                    </span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-900/60 text-purple-200 border border-purple-700 uppercase">
+                      {aiReflection.source || 'llm_cognitive_assistant'}
+                    </span>
+                  </div>
+                  <p className="text-slate-200 text-xs italic font-sans">
+                    "{aiReflection.reflection}"
+                  </p>
+                  <div className="flex items-center justify-between text-[10px] pt-1 border-t border-purple-900/60 text-slate-400">
+                    <span>Mood: <strong className="text-purple-300 capitalize">{aiReflection.mood || 'determined'}</strong></span>
+                    <span>Focus: <strong className="text-slate-300">{aiReflection.priorityGoal || 'Self-Sustenance'}</strong></span>
+                  </div>
+                </div>
+              )}
+
               {/* Current Autonomous Action */}
               <div className="p-3 rounded-lg bg-[#080a11] border border-slate-800 space-y-1">
                 <div className="text-[10px] text-slate-400 uppercase tracking-wider">

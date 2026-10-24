@@ -20,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "@neural-city/simulation": "file:../simulation",
+    "@neural-city/ai": "file:../ai",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
