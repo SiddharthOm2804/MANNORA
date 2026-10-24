@@ -257,25 +257,34 @@ export class DecisionEngine {
       };
     }
 
-    // =========================================================================
-    // 7. SOCIAL: INTERACT WITH CITIZEN (Social need low or high social affinity)
-    // =========================================================================
-    if ((needs.social < 45 || traits.socialAffinity >= 0.7) && !isNight) {
-      // Find nearby agent within interaction distance
-      const nearbyPartner = nearbyAgents.find((a) => a.id !== agent.id && distanceTo(a.location) <= 4.0);
+    if ((needs.social < 55 || traits.socialAffinity >= 0.6) && !isNight) {
+      // Prioritize partners who have existing family/friend ties or shared community
+      const sortedPartners = [...nearbyAgents]
+        .filter((a) => a.id !== agent.id)
+        .sort((a, b) => {
+          const relA = agent.relationships?.get?.(a.id);
+          const relB = agent.relationships?.get?.(b.id);
+          const strengthA = relA ? (relA.strength ?? 0.5) : 0.1;
+          const strengthB = relB ? (relB.strength ?? 0.5) : 0.1;
+          return strengthB - strengthA;
+        });
+
+      // Find nearby agent within immediate interaction radius
+      const nearbyPartner = sortedPartners.find((a) => distanceTo(a.location) <= 4.0);
 
       if (nearbyPartner) {
+        const bond = agent.relationships?.get?.(nearbyPartner.id);
         return {
           type: DecisionEngine.ACTIONS.INTERACT,
-          target: { agentId: nearbyPartner.id, name: nearbyPartner.name },
-          payload: { partnerTraits: nearbyPartner.personalityTraits },
-          reason: `Engaging in dialogue with citizen ${nearbyPartner.name || nearbyPartner.id}`,
+          target: { agentId: nearbyPartner.id, name: nearbyPartner.name, role: bond?.role },
+          payload: { partnerTraits: nearbyPartner.personalityTraits, bondStrength: bond?.strength },
+          reason: `Engaging in dialogue with ${bond?.type || 'citizen'} ${nearbyPartner.name || nearbyPartner.id}`,
         };
       }
 
-      // If partner is slightly further away, travel toward them
-      const candidatePartner = nearbyAgents.find((a) => a.id !== agent.id);
-      if (candidatePartner && distanceTo(candidatePartner.location) <= 15.0) {
+      // If partner is further away, travel toward close friend or community member
+      const candidatePartner = sortedPartners[0];
+      if (candidatePartner && distanceTo(candidatePartner.location) <= 18.0) {
         return {
           type: DecisionEngine.ACTIONS.TRAVEL,
           target: {

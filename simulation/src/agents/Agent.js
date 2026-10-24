@@ -131,6 +131,11 @@ export class Agent {
     this.employerId = config.employerId || null;
     this.residenceId = config.residenceId || null;
     this.businessId = config.businessId || null;
+
+    // Community Memberships
+    this.communityIds = Array.isArray(config.communityIds)
+      ? [...config.communityIds]
+      : (config.communityIds ? [config.communityIds] : []);
   }
 
   // =========================================================================
@@ -792,6 +797,7 @@ export class Agent {
       employerId: this.employerId,
       residenceId: this.residenceId,
       businessId: this.businessId,
+      communityIds: [...this.communityIds],
       // Backward compatibility aliases
       role: this.occupation,
       coordinates: { x: this.location.x, y: this.location.y },

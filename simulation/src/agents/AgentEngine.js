@@ -1,4 +1,5 @@
 import { Agent } from './Agent.js';
+import { SocialDynamics } from '../society/SocialDynamics.js';
 
 /**
  * AgentEngine is the central multi-agent coordinator for citizen populations in NEURAL CITY.
@@ -8,6 +9,7 @@ import { Agent } from './Agent.js';
  *   → selects action → action changes world → memory updated).
  * - Spatial querying & proximity indexing for purposeful interactions.
  * - Population generation, demographic synchronization, and socio-economic aggregation.
+ * - Coordinates social dynamics: relationships, communities, and social network metrics.
  */
 export class AgentEngine {
   /**
@@ -17,6 +19,7 @@ export class AgentEngine {
     /** @type {Map<string, Agent>} */
     this.agents = new Map();
     this.isInitialized = false;
+    this.socialDynamics = config.socialDynamics || new SocialDynamics();
   }
 
   /**
@@ -172,6 +175,9 @@ export class AgentEngine {
       unemploymentRate,
       actionDistribution: actionCounts,
     };
+
+    // 5. Update Social Dynamics (Relationships, Communities, Mutual Aid, Network Analytics)
+    this.socialDynamics.update(worldState, this, delta, random, clockInfo);
   }
 
   /**
