@@ -694,18 +694,33 @@ export class Agent {
 
     const newAffinity = Math.max(-100, Math.min(100, existing.affinity + affinityDelta));
     const newTrust = Math.max(0, Math.min(100, existing.trust + trustDelta));
-    const interactionsCount = existing.interactionsCount + 1;
+    const interactionsCount = (existing.interactionsCount || 0) + 1;
 
-    let relType = 'acquaintance';
-    if (newAffinity >= 60) relType = 'friend';
-    if (newAffinity >= 85) relType = 'confidant';
-    if (newAffinity <= -40) relType = 'rival';
+    let relType = existing.type || 'friendship';
+    let role = existing.role || 'acquaintance';
+
+    if (relType === 'friendship' || relType === 'acquaintance') {
+      if (newAffinity >= 85) role = 'confidant';
+      else if (newAffinity >= 50) role = 'friend';
+      else if (newAffinity <= -40) role = 'rival';
+      else role = 'acquaintance';
+    }
+
+    // Normalized strength computation [0.0, 1.0]
+    const normAffinity = Math.max(0, Math.min(1, (newAffinity + 100) / 200));
+    const normTrust = Math.max(0, Math.min(1, newTrust / 100));
+    const normFam = Math.min(1, Math.log10(interactionsCount + 1) / 1.5);
+    const familyBonus = relType === 'family' ? 0.25 : 0.0;
+    const strength = Number(Math.max(0.0, Math.min(1.0, (normAffinity * 0.35) + (normTrust * 0.35) + (normFam * 0.3) + familyBonus)).toFixed(3));
 
     this.relationships.set(targetAgentId, {
+      ...existing,
       affinity: newAffinity,
       trust: newTrust,
       interactionsCount,
       type: relType,
+      role,
+      strength,
       lastInteractionTick: tick,
     });
   }

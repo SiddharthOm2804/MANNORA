@@ -26,6 +26,9 @@ export { JobSystem } from './economy/JobSystem.js';
 export { FinanceSystem } from './economy/FinanceSystem.js';
 export { ResourceSystem } from './resources/ResourceSystem.js';
 export { PopulationSystem } from './society/PopulationSystem.js';
+export { RelationshipEngine } from './society/RelationshipEngine.js';
+export { CommunityEngine } from './society/CommunityEngine.js';
+export { SocialDynamics } from './society/SocialDynamics.js';
 export { BuildingSystem } from './buildings/BuildingSystem.js';
 export { MetricsSystem } from './metrics/MetricsSystem.js';
 
@@ -53,6 +56,9 @@ export default {
   FinanceSystem: (await import('./economy/FinanceSystem.js')).FinanceSystem,
   ResourceSystem: (await import('./resources/ResourceSystem.js')).ResourceSystem,
   PopulationSystem: (await import('./society/PopulationSystem.js')).PopulationSystem,
+  RelationshipEngine: (await import('./society/RelationshipEngine.js')).RelationshipEngine,
+  CommunityEngine: (await import('./society/CommunityEngine.js')).CommunityEngine,
+  SocialDynamics: (await import('./society/SocialDynamics.js')).SocialDynamics,
   BuildingSystem: (await import('./buildings/BuildingSystem.js')).BuildingSystem,
   MetricsSystem: (await import('./metrics/MetricsSystem.js')).MetricsSystem,
 };

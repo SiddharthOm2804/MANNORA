@@ -221,7 +221,7 @@ export class SocialDynamics {
         for (const bond of bonds) {
           // Transmission probability scales with relationship strength
           const transmitChance = bond.strength * 0.6;
-          const roll = random ? random.random() : 0.2;
+          const roll = random?.nextFloat ? random.nextFloat() : (random?.random ? random.random() : Math.random());
           if (roll <= transmitChance && !news.reach.has(bond.targetId)) {
             news.reach.add(bond.targetId);
             const targetAgent = agents.find((a) => a.id === bond.targetId);
