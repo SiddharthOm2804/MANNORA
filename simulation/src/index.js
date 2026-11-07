@@ -11,6 +11,9 @@ export { StateManager } from './core/StateManager.js';
 export { RandomEngine } from './core/RandomEngine.js';
 
 // Modular Subsystems
+export { EventEngine } from './events/EventEngine.js';
+export { EventQueue } from './events/EventQueue.js';
+export { EVENT_TYPES, EVENT_DEFINITIONS, EVENT_SEVERITY, EVENT_CATEGORIES } from './events/EventTypes.js';
 export { EventSystem } from './events/EventSystem.js';
 export { AgentSystem } from './agents/AgentSystem.js';
 export { AgentEngine } from './agents/AgentEngine.js';
@@ -44,6 +47,8 @@ export default {
   SimulationClock: (await import('./core/SimulationClock.js')).SimulationClock,
   StateManager: (await import('./core/StateManager.js')).StateManager,
   RandomEngine: (await import('./core/RandomEngine.js')).RandomEngine,
+  EventEngine: (await import('./events/EventEngine.js')).EventEngine,
+  EventQueue: (await import('./events/EventQueue.js')).EventQueue,
   EventSystem: (await import('./events/EventSystem.js')).EventSystem,
   AgentSystem: (await import('./agents/AgentSystem.js')).AgentSystem,
   AgentEngine: (await import('./agents/AgentEngine.js')).AgentEngine,

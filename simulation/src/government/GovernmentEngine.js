@@ -66,7 +66,8 @@ export class GovernmentEngine {
       (pop.happiness * 0.35) +
       (worldState.metrics?.stability ?? 80) * 0.25 -
       taxPenalty -
-      deficitPenalty
+      deficitPenalty +
+      (policyModifiers.approvalDelta || 0)
     );
 
     const targetApproval = Math.max(10, Math.min(100, Math.round(rawApproval)));

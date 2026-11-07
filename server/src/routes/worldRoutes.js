@@ -12,6 +12,7 @@ import {
   stepSimulation,
   saveCheckpoint,
   stopSimulation,
+  injectEvent,
 } from '../controllers/simulationController.js';
 
 const router = Router();
@@ -38,6 +39,9 @@ router.post('/:id/checkpoint', saveCheckpoint);
 
 // POST /api/worlds/:id/stop - Stop active simulation
 router.post('/:id/stop', stopSimulation);
+
+// POST /api/worlds/:id/inject-event - Manually trigger / inject simulation event
+router.post('/:id/inject-event', injectEvent);
 
 // GET /api/worlds/:id - Get single world details
 router.get('/:id', getWorldById);

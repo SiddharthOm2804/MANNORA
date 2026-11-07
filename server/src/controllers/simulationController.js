@@ -82,16 +82,46 @@ export const stopSimulation = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      message: `Simulation for world ${id} stopped`,
       data: result,
     });
   } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
     next(error);
   }
 };
 
+export const injectEvent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const eventPayload = req.body || {};
+
+    const result = simulationBridgeService.injectSimulationEvent(id, eventPayload);
+
+    res.status(200).json({
+      success: true,
+      message: `Event '${result.event.title || result.event.type}' injected into world ${id}`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    next(error);
+  }
+};
 export default {
   launchSimulation,
   stepSimulation,
   saveCheckpoint,
   stopSimulation,
+  injectEvent,
 };

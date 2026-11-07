@@ -172,6 +172,38 @@ export class SimulationBridgeService {
   }
 
   /**
+   * Inject an event into an active simulation.
+   * @param {string} worldId
+   * @param {Object} eventOptions
+   */
+  injectSimulationEvent(worldId, eventOptions = {}) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const currentState = sim.engine.stateManager.getCurrentState();
+    const event = sim.engine.eventEngine.injectEvent(currentState, eventOptions);
+
+    eventPublisher.publish(worldId, {
+      type: 'EVENT_INJECTED',
+      tick: currentState.tick,
+      payload: event,
+    });
+
+    return {
+      success: true,
+      worldId,
+      tick: currentState.tick,
+      event,
+      activeEvents: currentState.getActiveEvents(),
+    };
+  }
+
+  /**
    * Stop an active simulation and optionally save checkpoint to DB.
    * @param {string} worldId
    * @param {boolean} [persistCheckpoint=true]

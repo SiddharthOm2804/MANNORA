@@ -23,6 +23,7 @@ import {
 import Panel from '../components/common/Panel';
 import StatusIndicator from '../components/common/StatusIndicator';
 import TimelineControl from '../components/common/TimelineControl';
+import EventInjectionUI from '../components/common/EventInjectionUI';
 import { CityScene } from '../components/three';
 import { worldService } from '../services/worldService';
 
@@ -36,6 +37,9 @@ export default function Simulation() {
   const [viewMode, setViewMode] = useState('3d'); // '3d' | 'matrix'
   const [activeLayer, setActiveLayer] = useState('density');
   const [isLoading, setIsLoading] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [activeEvents, setActiveEvents] = useState([]);
+  const [isInjectingEvent, setIsInjectingEvent] = useState(false);
 
   // Selected Entity state: { type: 'district' | 'building' | 'citizen', data: Object }
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -108,6 +112,39 @@ export default function Simulation() {
     setClockHour(8);
   };
 
+  const handleInjectEvent = async (eventData) => {
+    setIsInjectingEvent(true);
+    try {
+      if (activeWorld?._id) {
+        const res = await worldService.injectEvent(activeWorld._id, eventData);
+        if (res.success && res.data) {
+          setActiveEvents(res.data.activeEvents || [res.data.event]);
+          // Refresh world state
+          const updatedWorld = await worldService.getWorldById(activeWorld._id);
+          if (updatedWorld.success && updatedWorld.data) {
+            setWorlds((prev) =>
+              prev.map((w) => (w._id === activeWorld._id ? updatedWorld.data : w))
+            );
+          }
+        }
+        return res;
+      } else {
+        // Local simulation fallback
+        const mockEvt = {
+          id: `evt_local_${Date.now()}`,
+          ...eventData,
+          remainingTicks: eventData.duration || 10,
+          startedAtTick: tick,
+          status: 'ACTIVE',
+        };
+        setActiveEvents((prev) => [mockEvt, ...prev]);
+        return { success: true, data: { event: mockEvt } };
+      }
+    } finally {
+      setIsInjectingEvent(false);
+    }
+  };
+
   // Automated clock advancement when playing
   useEffect(() => {
     if (!isRunning) return;
@@ -141,8 +178,16 @@ export default function Simulation() {
           </p>
         </div>
 
-        {/* View Controls & World Switcher */}
+        {/* View Controls & World Switcher & Event Injector Button */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsEventModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-950/80 to-amber-950/80 hover:from-red-900/90 hover:to-amber-900/90 text-amber-300 border border-amber-600/50 hover:border-amber-500 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+            <span>Inject Event</span>
+          </button>
+
           {worlds.length > 1 && (
             <select
               value={selectedWorldId || ''}
@@ -359,6 +404,58 @@ export default function Simulation() {
             )}
           </Panel>
 
+          {/* Active Events & Crises HUD Card */}
+          <Panel
+            tag="EVENTS.ACTIVE"
+            title="Systemic Crises & Shocks"
+            subtitle={`${activeEvents.length > 0 ? `${activeEvents.length} active crises impacting civilization` : 'Nominal civilization equilibrium'}`}
+            actions={
+              <button
+                onClick={() => setIsEventModalOpen(true)}
+                className="text-[11px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold"
+              >
+                <span>+ Inject Event</span>
+              </button>
+            }
+          >
+            {activeEvents.length > 0 ? (
+              <div className="space-y-2.5 text-xs font-mono">
+                {activeEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    className="p-3 rounded-lg bg-red-950/20 border border-red-800/40 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white flex items-center gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                        {evt.title || evt.type}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-950 text-red-300 border border-red-800">
+                        {evt.remainingTicks ?? evt.duration} Ticks Left
+                      </span>
+                    </div>
+                    {evt.cause && (
+                      <p className="text-[11px] text-slate-400 font-sans leading-tight">
+                        <strong className="text-slate-300">Cause:</strong> {evt.cause}
+                      </p>
+                    )}
+                    <div className="text-[10px] text-cyan-400 flex items-center justify-between pt-1 border-t border-red-900/30">
+                      <span>Recovery: {evt.recoveryBehavior || 'GRADUAL_RESTORATION'}</span>
+                      <span className="text-slate-500 font-mono-data">Severity: {evt.severity || 3}/5</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg bg-[#070912] border border-slate-800/60 text-center space-y-1 text-xs font-mono">
+                <div className="text-emerald-400 font-semibold">No Active Crisis Shocks</div>
+                <p className="text-[11px] text-slate-400 font-sans">
+                  Use the <strong>Inject Event</strong> interface to trigger systemic disturbances (shortages, crashes, disasters, outbreaks) and watch the simulation respond.
+                </p>
+              </div>
+            )}
+          </Panel>
+
           {/* Camera Shortcuts */}
           <Panel
             tag="CAMERA.NAV"
@@ -399,6 +496,15 @@ export default function Simulation() {
         </div>
 
       </div>
+
+      {/* Phase 11 Event Injection UI Modal */}
+      <EventInjectionUI
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        onInjectEvent={handleInjectEvent}
+        isInjecting={isInjectingEvent}
+        activeEvents={activeEvents}
+      />
     </div>
   );
 }

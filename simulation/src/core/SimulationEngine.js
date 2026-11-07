@@ -76,6 +76,7 @@ export class SimulationEngine extends EventEmitter {
    */
   _registerDefaultPipelines() {
     this.eventSystem = new EventSystem();
+    this.eventEngine = this.eventSystem.eventEngine;
     this.agentSystem = new AgentSystem();
     this.agentEngine = this.agentSystem.agentEngine;
     this.economySystem = new EconomySystem();

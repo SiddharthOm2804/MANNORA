@@ -123,6 +123,27 @@ export const worldService = {
   },
 
   /**
+   * Inject a simulation event manually into a running world.
+   * @param {string} worldId
+   * @param {Object} eventData
+   */
+  async injectEvent(worldId, eventData) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/inject-event`, eventData);
+      return {
+        success: true,
+        data: response.data?.data,
+        message: response.data?.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to inject event',
+      };
+    }
+  },
+
+  /**
    * Delete world by ID.
    * @param {string} id
    */
