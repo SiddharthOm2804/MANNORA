@@ -144,6 +144,63 @@ export const worldService = {
   },
 
   /**
+   * Time Machine API Methods (Phase 12)
+   */
+  async captureSnapshot(worldId, options = {}) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/snapshots`, options);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async restoreSnapshot(worldId, snapshotId) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/snapshots/${snapshotId}/restore`);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async rewindSimulation(worldId, targetTick) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/rewind`, { targetTick });
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async jumpToDay(worldId, day) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/jump-to-day`, { day });
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async createBranch(worldId, branchOptions) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/branches`, branchOptions);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async runComparison(worldId, comparisonParams) {
+    try {
+      const response = await api.post(`/worlds/${worldId}/compare`, comparisonParams);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  /**
    * Delete world by ID.
    * @param {string} id
    */

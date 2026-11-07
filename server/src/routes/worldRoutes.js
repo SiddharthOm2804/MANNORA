@@ -13,6 +13,12 @@ import {
   saveCheckpoint,
   stopSimulation,
   injectEvent,
+  captureSnapshot,
+  restoreSnapshot,
+  rewindSimulation,
+  jumpToDay,
+  createBranch,
+  runComparison,
 } from '../controllers/simulationController.js';
 
 const router = Router();
@@ -42,6 +48,14 @@ router.post('/:id/stop', stopSimulation);
 
 // POST /api/worlds/:id/inject-event - Manually trigger / inject simulation event
 router.post('/:id/inject-event', injectEvent);
+
+// Time Machine Routes (Phase 12)
+router.post('/:id/snapshots', captureSnapshot);
+router.post('/:id/snapshots/:snapshotId/restore', restoreSnapshot);
+router.post('/:id/rewind', rewindSimulation);
+router.post('/:id/jump-to-day', jumpToDay);
+router.post('/:id/branches', createBranch);
+router.post('/:id/compare', runComparison);
 
 // GET /api/worlds/:id - Get single world details
 router.get('/:id', getWorldById);

@@ -12,6 +12,7 @@ import { PopulationSystem } from '../society/PopulationSystem.js';
 import { BuildingSystem } from '../buildings/BuildingSystem.js';
 import { MetricsSystem } from '../metrics/MetricsSystem.js';
 import { GovernmentEngine } from '../government/GovernmentEngine.js';
+import { TimeMachine } from '../time/TimeMachine.js';
 
 /**
  * SimulationEngine is the central deterministic coordinator of NEURAL CITY's civilization simulation.
@@ -60,6 +61,9 @@ export class SimulationEngine extends EventEmitter {
 
     /** @type {Map<string, { name: string, priority: number, update: Function }>} */
     this.subsystems = new Map();
+
+    // Time Machine Coordinator (Phase 12)
+    this.timeMachine = new TimeMachine(this);
 
     // Register standard pipeline systems if enabled
     if (this.config.useDefaultSystems) {

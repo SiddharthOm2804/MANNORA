@@ -204,6 +204,147 @@ export class SimulationBridgeService {
   }
 
   /**
+   * Capture a historical checkpoint snapshot.
+   * @param {string} worldId
+   * @param {Object} [options]
+   */
+  captureSnapshot(worldId, options = {}) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const snapshot = sim.engine.timeMachine.captureSnapshot(options.label || 'Manual Snapshot', options.metadata || {});
+    return {
+      success: true,
+      worldId,
+      snapshot,
+    };
+  }
+
+  /**
+   * Restore a historical snapshot.
+   * @param {string} worldId
+   * @param {string} snapshotId
+   */
+  restoreSnapshot(worldId, snapshotId) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const restoredState = sim.engine.timeMachine.restoreSnapshot(snapshotId);
+    return {
+      success: true,
+      worldId,
+      tick: restoredState.tick,
+      worldState: restoredState.serialize(),
+    };
+  }
+
+  /**
+   * Rewind simulation to tick or delta.
+   * @param {string} worldId
+   * @param {number} targetTick
+   */
+  rewindSimulation(worldId, targetTick) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const rolledState = sim.engine.timeMachine.rewind(targetTick);
+    return {
+      success: true,
+      worldId,
+      tick: rolledState.tick,
+      worldState: rolledState.serialize(),
+    };
+  }
+
+  /**
+   * Jump directly to a simulation day.
+   * @param {string} worldId
+   * @param {number} day
+   */
+  jumpToDay(worldId, day) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const state = sim.engine.timeMachine.jumpToDay(day);
+    return {
+      success: true,
+      worldId,
+      day: sim.engine.clock.simulationDay,
+      tick: state.tick,
+      worldState: state.serialize(),
+    };
+  }
+
+  /**
+   * Create a counterfactual branch from a snapshot or current state.
+   * @param {string} worldId
+   * @param {Object} branchOptions
+   */
+  createBranch(worldId, branchOptions = {}) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const branch = sim.engine.timeMachine.createBranch(branchOptions);
+    return {
+      success: true,
+      worldId,
+      branch: {
+        id: branch.id,
+        name: branch.name,
+        forkTick: branch.forkTick,
+        mutationsApplied: branch.mutationsApplied,
+      },
+    };
+  }
+
+  /**
+   * Run a counterfactual comparative experiment.
+   * @param {string} worldId
+   * @param {Object} experimentParams
+   */
+  runCounterfactualComparison(worldId, experimentParams = {}) {
+    const sim = this.activeSimulations.get(worldId);
+    if (!sim) {
+      const error = new Error(`Simulation for world ${worldId} is not running`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+
+    const report = sim.engine.timeMachine.runCounterfactualExperiment(experimentParams);
+    return {
+      success: true,
+      worldId,
+      report,
+    };
+  }
+
+  /**
    * Stop an active simulation and optionally save checkpoint to DB.
    * @param {string} worldId
    * @param {boolean} [persistCheckpoint=true]

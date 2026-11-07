@@ -10,6 +10,12 @@ export { SimulationClock } from './core/SimulationClock.js';
 export { StateManager } from './core/StateManager.js';
 export { RandomEngine } from './core/RandomEngine.js';
 
+// Time Machine Components (Phase 12)
+export { TimeMachine } from './time/TimeMachine.js';
+export { SnapshotSystem } from './time/SnapshotSystem.js';
+export { BranchEngine } from './time/BranchEngine.js';
+export { CounterfactualEngine } from './time/CounterfactualEngine.js';
+
 // Modular Subsystems
 export { EventEngine } from './events/EventEngine.js';
 export { EventQueue } from './events/EventQueue.js';
@@ -47,6 +53,10 @@ export default {
   SimulationClock: (await import('./core/SimulationClock.js')).SimulationClock,
   StateManager: (await import('./core/StateManager.js')).StateManager,
   RandomEngine: (await import('./core/RandomEngine.js')).RandomEngine,
+  TimeMachine: (await import('./time/TimeMachine.js')).TimeMachine,
+  SnapshotSystem: (await import('./time/SnapshotSystem.js')).SnapshotSystem,
+  BranchEngine: (await import('./time/BranchEngine.js')).BranchEngine,
+  CounterfactualEngine: (await import('./time/CounterfactualEngine.js')).CounterfactualEngine,
   EventEngine: (await import('./events/EventEngine.js')).EventEngine,
   EventQueue: (await import('./events/EventQueue.js')).EventQueue,
   EventSystem: (await import('./events/EventSystem.js')).EventSystem,

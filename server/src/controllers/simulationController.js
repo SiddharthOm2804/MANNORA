@@ -118,10 +118,126 @@ export const injectEvent = async (req, res, next) => {
     next(error);
   }
 };
+
+export const captureSnapshot = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = simulationBridgeService.captureSnapshot(id, req.body || {});
+
+    res.status(200).json({
+      success: true,
+      message: `Snapshot captured for world ${id}`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const restoreSnapshot = async (req, res, next) => {
+  try {
+    const { id, snapshotId } = req.params;
+    const result = simulationBridgeService.restoreSnapshot(id, snapshotId);
+
+    res.status(200).json({
+      success: true,
+      message: `State restored from snapshot ${snapshotId}`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const rewindSimulation = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { targetTick } = req.body || {};
+    const result = simulationBridgeService.rewindSimulation(id, targetTick);
+
+    res.status(200).json({
+      success: true,
+      message: `Simulation rewound to tick ${result.tick}`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const jumpToDay = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { day } = req.body || {};
+    const result = simulationBridgeService.jumpToDay(id, Number(day));
+
+    res.status(200).json({
+      success: true,
+      message: `Jumped to Day ${result.day} (Tick ${result.tick})`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const createBranch = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = simulationBridgeService.createBranch(id, req.body || {});
+
+    res.status(200).json({
+      success: true,
+      message: `Branch '${result.branch.name}' created`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const runComparison = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = simulationBridgeService.runCounterfactualComparison(id, req.body || {});
+
+    res.status(200).json({
+      success: true,
+      message: `Counterfactual experiment executed for branch`,
+      data: result,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
 export default {
   launchSimulation,
   stepSimulation,
   saveCheckpoint,
   stopSimulation,
   injectEvent,
+  captureSnapshot,
+  restoreSnapshot,
+  rewindSimulation,
+  jumpToDay,
+  createBranch,
+  runComparison,
 };
