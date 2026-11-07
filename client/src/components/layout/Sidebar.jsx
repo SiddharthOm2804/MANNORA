@@ -25,49 +25,49 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
   const navItems = [
     {
       to: '/dashboard',
-      label: 'World Dashboard',
-      shortLabel: 'Dashboard',
+      label: 'City Overview',
+      shortLabel: 'Overview',
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />,
       tag: '01',
     },
     {
       to: '/simulation',
-      label: 'Simulation Engine',
-      shortLabel: 'Simulation',
+      label: '3D City View',
+      shortLabel: '3D City',
       icon: <Play className="w-4 h-4 shrink-0" />,
       tag: '02',
     },
     {
       to: '/agents',
-      label: 'Agent Explorer',
-      shortLabel: 'Agents',
+      label: 'Manage People',
+      shortLabel: 'People',
       icon: <Users className="w-4 h-4 shrink-0" />,
       tag: '03',
     },
     {
       to: '/analytics',
-      label: 'Analytics & Telemetry',
-      shortLabel: 'Analytics',
+      label: 'City Reports',
+      shortLabel: 'Reports',
       icon: <BarChart3 className="w-4 h-4 shrink-0" />,
       tag: '04',
     },
     {
       to: '/government',
-      label: 'Civic Governance',
-      shortLabel: 'Government',
+      label: 'Government Rules',
+      shortLabel: 'Rules',
       icon: <Landmark className="w-4 h-4 shrink-0" />,
       tag: '05',
     },
     {
       to: '/timeline',
-      label: 'Temporal Timeline',
+      label: 'Time Machine',
       shortLabel: 'Timeline',
       icon: <GitBranch className="w-4 h-4 shrink-0" />,
       tag: '06',
     },
     {
       to: '/settings',
-      label: 'Laboratory Settings',
+      label: 'City Settings',
       shortLabel: 'Settings',
       icon: <Settings className="w-4 h-4 shrink-0" />,
       tag: '07',
@@ -96,10 +96,10 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
             {!isCollapsed && (
               <div className="min-w-0">
                 <span className="font-mono text-sm font-bold tracking-wider text-white flex items-center gap-1.5">
-                  NEURAL CITY
+                  MANNORA
                 </span>
                 <span className="text-[10px] font-mono text-cyan-400 block tracking-widest">
-                  LAB CONSOLE
+                  VIRTUAL CITY
                 </span>
               </div>
             )}
@@ -122,7 +122,7 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
         <nav className="p-2 space-y-1">
           {!isCollapsed && (
             <div className="px-3 pt-3 pb-1 text-[10px] font-mono text-slate-400 tracking-wider font-semibold">
-              LABORATORY MODULES
+              CITY FEATURES
             </div>
           )}
 
@@ -168,23 +168,23 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
       <div className="p-3 border-t border-[#1a2233] space-y-2">
         <NavLink
           to="/create-world"
-          title={isCollapsed ? 'Initialize World Matrix' : undefined}
+          title={isCollapsed ? 'Create New City' : undefined}
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg bg-cyan-950/60 border border-cyan-800/50 hover:bg-cyan-900/60 text-cyan-300 font-mono text-xs transition-colors ${
             isCollapsed ? 'justify-center px-0' : ''
           }`}
         >
           <PlusCircle className="w-4 h-4 text-cyan-400 shrink-0" />
           {!isCollapsed && (
-            <span className="truncate font-medium">New Simulation</span>
+            <span className="truncate font-medium">Create New City</span>
           )}
         </NavLink>
 
         {!isCollapsed && (
           <div className="px-2 pt-1 flex items-center justify-between text-[10px] font-mono text-slate-400">
-            <span>ENGINE v0.2</span>
+            <span>MANNORA 2.0</span>
             <span className="text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-              READY
+              SYSTEM READY
             </span>
           </div>
         )}

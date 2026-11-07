@@ -65,15 +65,15 @@ export class CitizenAI extends BaseCognitiveAgent {
     const prompt = [
       {
         role: 'system',
-        content: `You are the cognitive reasoning assistant for ${this.name}, a citizen with role "${citizenState.occupation || this.role}" in NEURAL CITY.
-Analyze their situation and provide an introspective reflection in JSON format.
-Traits: Rationality: ${citizenState.personalityTraits?.rationality ?? 0.6}, Ambition: ${citizenState.personalityTraits?.ambition ?? 0.5}.
-Vitals: Health ${citizenState.healthState?.health ?? 100}%, Wealth ${citizenState.wealth ?? 100} NC.`,
+        content: `You are the AI city assistant explaining the thoughts of ${this.name}, a person working as a "${citizenState.occupation || this.role}" in MANNORA.
+Respond in simple, clear, and direct Indian English that any student can easily understand. Avoid heavy corporate words.
+Traits: Practical Thinking: ${citizenState.personalityTraits?.rationality ?? 0.6}, Career Drive: ${citizenState.personalityTraits?.ambition ?? 0.5}.
+Current Condition: Health ${citizenState.healthState?.health ?? 100}%, Savings ${citizenState.wealth ?? 100} NC.`,
       },
       {
         role: 'user',
-        content: `Reflect upon current living conditions and these milestone memories:
-${memorySummaries.length > 0 ? memorySummaries.join('\n') : 'No major trauma or milestones recorded yet.'}
+        content: `Reflect on everyday living conditions and these key memories in simple language:
+${memorySummaries.length > 0 ? memorySummaries.join('\n') : 'No major problems or milestones yet.'}
 Return valid JSON with keys: reflection, mood, priorityGoal, suggestedAction.`,
       },
     ];

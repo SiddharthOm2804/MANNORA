@@ -25,33 +25,17 @@ export class DeterministicRuleFallbackProvider extends ILLMProvider {
 
     const lower = promptStr.toLowerCase();
 
-    // 1. Citizen AI Reasoning / Reflection
-    if (lower.includes('citizen') || lower.includes('reflection') || lower.includes('personal plan')) {
-      return {
-        text: JSON.stringify({
-          reflection: 'Recent events have altered my priorities. I must balance my basic needs with long-term financial security and maintain close ties with my community.',
-          mood: 'determined',
-          priorityGoal: 'Maintain economic self-sufficiency and foster neighborhood bonds',
-          suggestedAction: 'Work consistent hours and allocate disposable savings to mutual aid.',
-          confidence: 0.88,
-        }),
-        raw: { model: 'fallback-rules-v1', mode: 'citizen' },
-        usage: { promptTokens: promptStr.length, completionTokens: 48, totalTokens: promptStr.length + 48 },
-        fallback: true,
-      };
-    }
-
-    // 2. Government Policy / Governance AI
+    // 1. Government Policy / Governance AI
     if (lower.includes('government') || lower.includes('policy') || lower.includes('council')) {
       return {
         text: JSON.stringify({
-          assessment: 'Civic indicators reflect balanced stability with localized resource and employment sensitivities.',
+          assessment: 'The city is currently stable, but we must watch resource supplies and worker salaries closely.',
           recommendations: [
-            'Adjust municipal tax rate dynamically to preserve treasury reserves while supporting low-income households.',
-            'Target industrial and utility subsidies to resolve critical bottlenecks in energy and potable water.',
-            'Fund community mutual aid programs to bolster social cohesion and elevate citizen satisfaction.',
+            'Keep taxes fair so families have enough money to live comfortably while city funds stay healthy.',
+            'Provide support to water and electricity utilities so supplies never run out.',
+            'Support local community programs to keep public happiness and peace high.',
           ],
-          projectedImpact: 'Estimated +4% increase in civilization stability over 100 ticks.',
+          projectedImpact: 'Estimated +4% increase in citizen satisfaction over the next 100 days.',
           confidence: 0.92,
         }),
         raw: { model: 'fallback-rules-v1', mode: 'government' },
@@ -60,14 +44,30 @@ export class DeterministicRuleFallbackProvider extends ILLMProvider {
       };
     }
 
+    // 2. Citizen AI Reasoning / Reflection
+    if (lower.includes('citizen') || lower.includes('reflection') || lower.includes('personal plan')) {
+      return {
+        text: JSON.stringify({
+          reflection: 'Recent events have changed my priorities. I need to make sure my basic needs are met, save some money, and stay in touch with friends and neighbors.',
+          mood: 'determined',
+          priorityGoal: 'Earn steady income and maintain good relationships with neighbors',
+          suggestedAction: 'Work regular shifts at my job and save money for emergencies.',
+          confidence: 0.88,
+        }),
+        raw: { model: 'fallback-rules-v1', mode: 'citizen' },
+        usage: { promptTokens: promptStr.length, completionTokens: 48, totalTokens: promptStr.length + 48 },
+        fallback: true,
+      };
+    }
+
     // 3. Analyst AI Simulation Telemetry / Forecast
     if (lower.includes('analyst') || lower.includes('telemetry') || lower.includes('diagnostic')) {
       return {
         text: JSON.stringify({
-          executiveSummary: 'Simulation metrics demonstrate healthy systemic equilibrium across population dynamics, resource consumption, and market pricing.',
+          executiveSummary: 'The city economy is running smoothly with steady goods production, fair prices, and stable population.',
           keyRisks: [
-            'Potential inflation drift if agricultural or energy deficits persist beyond safety reserves.',
-            'Labor market tightness in technical occupations.',
+            'Market prices may increase if food or electricity stock drops too low.',
+            'High demand for technical workers in factories.',
           ],
           systemHealthScore: 86,
           anomaliesDetected: 0,

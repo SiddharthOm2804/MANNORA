@@ -126,13 +126,13 @@ export default function AgentExplorer() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Users className="w-3.5 h-3.5" />
-            <span>MULTI-AGENT POPULATION REGISTRY</span>
+            <span>CITY RESIDENTS & CITIZENS</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Cognitive Agent Explorer
+            Manage People
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Real-time inspection of autonomous cognitive states, memory buffers, and emergent behavior trees.
+            Inspect individual computer-controlled citizens, their basic needs, daily activities, memories, and personal goals.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function AgentExplorer() {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search agent ID or name..."
+              placeholder="Search person by name or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-[#0e121d] border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-48 sm:w-60"
@@ -154,11 +154,11 @@ export default function AgentExplorer() {
             onChange={(e) => setSelectedRole(e.target.value)}
             className="bg-[#0e121d] border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-300 focus:outline-none"
           >
-            <option value="ALL">All Roles</option>
-            <option value="CITIZEN">Citizens</option>
-            <option value="MERCHANT">Merchants</option>
-            <option value="GOVERNOR">Governors</option>
-            <option value="OBSERVER">Observers</option>
+            <option value="ALL">All Jobs</option>
+            <option value="CITIZEN">Residents</option>
+            <option value="MERCHANT">Merchants & Shopkeepers</option>
+            <option value="GOVERNOR">City Leaders</option>
+            <option value="OBSERVER">Scientists & Observers</option>
           </select>
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function AgentExplorer() {
         {/* Agent Roster List (5 Cols) */}
         <div className="lg:col-span-5 space-y-3">
           <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider px-1">
-            Population Roster ({filteredAgents.length} Agents)
+            List of People ({filteredAgents.length} Citizens)
           </div>
 
           <div className="space-y-2">
@@ -233,9 +233,9 @@ export default function AgentExplorer() {
         {/* Detailed Agent Cognitive Dossier (7 Cols) */}
         <div className="lg:col-span-7 space-y-5">
           <Panel
-            tag={`DOSSIER // ${activeAgent.id}`}
+            tag={`PERSON // ${activeAgent.id}`}
             title={activeAgent.name}
-            subtitle={`Role: ${activeAgent.role} • Location: ${activeAgent.sector}`}
+            subtitle={`Job: ${activeAgent.role} • Living in: ${activeAgent.sector}`}
             actions={
               <div className="flex items-center gap-2">
                 <button
@@ -260,7 +260,7 @@ export default function AgentExplorer() {
                   className="px-2.5 py-1 rounded bg-purple-950/80 hover:bg-purple-900 border border-purple-800 text-purple-300 font-mono text-[11px] flex items-center gap-1.5 transition-colors disabled:opacity-50"
                 >
                   <Sparkles className="w-3 h-3 text-purple-400" />
-                  <span>{isAiLoading ? 'Synthesizing...' : 'AI Cognitive Reflection'}</span>
+                  <span>{isAiLoading ? 'Thinking...' : 'Ask AI What They Feel'}</span>
                 </button>
                 <StatusIndicator
                   status={activeAgent.status === 'active' ? 'simulating' : 'idle'}
@@ -277,18 +277,18 @@ export default function AgentExplorer() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-purple-300 font-mono flex items-center gap-1.5 font-bold uppercase">
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                      <span>Citizen AI Reasoning Assistant // Phase 9</span>
+                      <span>AI Person Assistant Reflection</span>
                     </span>
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-900/60 text-purple-200 border border-purple-700 uppercase">
-                      {aiReflection.source || 'llm_cognitive_assistant'}
+                      {aiReflection.source || 'AI Assistant'}
                     </span>
                   </div>
                   <p className="text-slate-200 text-xs italic font-sans">
                     "{aiReflection.reflection}"
                   </p>
                   <div className="flex items-center justify-between text-[10px] pt-1 border-t border-purple-900/60 text-slate-400">
-                    <span>Mood: <strong className="text-purple-300 capitalize">{aiReflection.mood || 'determined'}</strong></span>
-                    <span>Focus: <strong className="text-slate-300">{aiReflection.priorityGoal || 'Self-Sustenance'}</strong></span>
+                    <span>Current Feeling: <strong className="text-purple-300 capitalize">{aiReflection.mood || 'determined'}</strong></span>
+                    <span>Top Focus: <strong className="text-slate-300">{aiReflection.priorityGoal || 'Take Care of Family'}</strong></span>
                   </div>
                 </div>
               )}
@@ -296,7 +296,7 @@ export default function AgentExplorer() {
               {/* Current Autonomous Action */}
               <div className="p-3 rounded-lg bg-[#080a11] border border-slate-800 space-y-1">
                 <div className="text-[10px] text-slate-400 uppercase tracking-wider">
-                  Active Cognitive Action
+                  Current Activity
                 </div>
                 <div className="text-sm font-bold text-cyan-300 font-mono">
                   {activeAgent.currentAction}
@@ -306,25 +306,25 @@ export default function AgentExplorer() {
               {/* Cognitive Vitals Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
-                  <div className="text-[10px] text-slate-400">SATISFACTION</div>
+                  <div className="text-[10px] text-slate-400">HAPPINESS</div>
                   <div className="text-base font-bold text-white font-mono-data mt-0.5">
                     {activeAgent.happiness}%
                   </div>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
-                  <div className="text-[10px] text-slate-400">ENERGY RESERVES</div>
+                  <div className="text-[10px] text-slate-400">ENERGY LEVEL</div>
                   <div className="text-base font-bold text-white font-mono-data mt-0.5">
                     {activeAgent.energy}%
                   </div>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
-                  <div className="text-[10px] text-slate-400">ACCUMULATED WEALTH</div>
+                  <div className="text-[10px] text-slate-400">SAVINGS</div>
                   <div className="text-base font-bold text-emerald-400 font-mono-data mt-0.5">
-                    {activeAgent.wealth.toLocaleString()} NC
+                    {activeAgent.wealth.toLocaleString()} ₹ NC
                   </div>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
-                  <div className="text-[10px] text-slate-400">RATIONALITY INDEX</div>
+                  <div className="text-[10px] text-slate-400">PRACTICAL THINKING</div>
                   <div className="text-base font-bold text-cyan-400 font-mono-data mt-0.5">
                     {(activeAgent.traits.rationality * 100).toFixed(0)}%
                   </div>
@@ -334,7 +334,7 @@ export default function AgentExplorer() {
               {/* Active Goal Tree */}
               <div className="space-y-2">
                 <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                  Goal Hierarchy & Intentions
+                  Personal Goals
                 </div>
                 {activeAgent.goals.map((goal, idx) => (
                   <div
@@ -345,7 +345,7 @@ export default function AgentExplorer() {
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">
                         {goal.level}
                       </span>
-                      <span className="text-cyan-400 font-mono-data">{goal.progress}% complete</span>
+                      <span className="text-cyan-400 font-mono-data">{goal.progress}% completed</span>
                     </div>
                     <div className="text-white text-xs font-sans">{goal.title}</div>
                     <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
@@ -361,7 +361,7 @@ export default function AgentExplorer() {
               {/* Working Memory Stream Buffer */}
               <div className="space-y-2">
                 <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                  Working Memory Stream Buffer (Latest Observations)
+                  Recent Memories & Experiences
                 </div>
                 <div className="space-y-1.5">
                   {activeAgent.workingMemory.map((mem, i) => (

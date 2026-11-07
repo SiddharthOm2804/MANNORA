@@ -207,12 +207,12 @@ export default function EventInjectionUI({
             </div>
             <div>
               <div className="flex items-center gap-2 text-[11px] text-cyan-400">
-                <span className="font-bold">PHASE 11 // EVENT ENGINE</span>
+                <span className="font-bold">MANNORA // EMERGENCY SIMULATOR</span>
                 <span className="text-slate-600">|</span>
-                <span className="text-slate-400 uppercase tracking-widest text-[10px]">Stochastic Injection Matrix</span>
+                <span className="text-slate-400 uppercase tracking-widest text-[10px]">Test City Emergencies</span>
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight">
-                Simulated Event & Shock Injection
+                Trigger City Event or Emergency
               </h2>
             </div>
           </div>
@@ -230,8 +230,8 @@ export default function EventInjectionUI({
           {/* Left Event Archetype List (5 Cols) */}
           <div className="md:col-span-5 p-4 border-r border-[#1a2233] overflow-y-auto space-y-2 bg-[#080a12]/60">
             <div className="text-[10px] uppercase text-slate-400 tracking-wider font-semibold mb-2 flex items-center justify-between">
-              <span>Select Canonical Archetype</span>
-              <span className="text-cyan-400">{CANONICAL_EVENTS.length} Types</span>
+              <span>Choose Type of Event</span>
+              <span className="text-cyan-400">{CANONICAL_EVENTS.length} Events Available</span>
             </div>
 
             {CANONICAL_EVENTS.map((item) => {
@@ -291,9 +291,9 @@ export default function EventInjectionUI({
               {/* Severity Slider */}
               <div className="space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Severity Tier [1 - 5]:</span>
+                  <span className="text-slate-400">Impact Level [1 - 5]:</span>
                   <span className="text-cyan-300 font-bold font-mono-data">
-                    Level {severity} {severity >= 4 ? '(Critical Shock)' : severity === 3 ? '(Substantial)' : '(Moderate)'}
+                    Level {severity} {severity >= 4 ? '(Critical Emergency)' : severity === 3 ? '(Substantial Impact)' : '(Moderate)'}
                   </span>
                 </div>
                 <input
@@ -309,8 +309,8 @@ export default function EventInjectionUI({
               {/* Duration Ticks */}
               <div className="space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Duration (Ticks / Hours):</span>
-                  <span className="text-emerald-400 font-bold font-mono-data">{duration} Ticks</span>
+                  <span className="text-slate-400">How long it lasts (Simulation Steps):</span>
+                  <span className="text-emerald-400 font-bold font-mono-data">{duration} Steps</span>
                 </div>
                 <input
                   type="range"
@@ -324,12 +324,12 @@ export default function EventInjectionUI({
 
               {/* Cause Description */}
               <div className="space-y-1.5">
-                <label className="text-slate-400 block">Exogenous Root Cause / Trigger Rationale:</label>
+                <label className="text-slate-400 block">Why did this happen? (Reason):</label>
                 <textarea
                   rows={2}
                   value={cause || currentTemplate.cause}
                   onChange={(e) => setCause(e.target.value)}
-                  placeholder="Describe the cause of the simulated crisis..."
+                  placeholder="Enter reason for this city event..."
                   className="w-full bg-[#070910] border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-600 font-mono resize-none"
                 />
               </div>
@@ -338,20 +338,20 @@ export default function EventInjectionUI({
               <div className="p-3.5 rounded-lg bg-[#070912] border border-cyan-900/40 space-y-2">
                 <div className="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Subsystem Propagation Cascade</span>
+                  <span>How This Event Affects the Whole City</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
                   <div className="p-2 rounded bg-black/40 border border-slate-800">
-                    <span className="text-cyan-400 font-bold">1. Resources:</span> Supply & deficit shocks
+                    <span className="text-cyan-400 font-bold">1. Resources:</span> Drops water, power, or food
                   </div>
                   <div className="p-2 rounded bg-black/40 border border-slate-800">
-                    <span className="text-amber-400 font-bold">2. Economy:</span> Dynamic prices & treasury
+                    <span className="text-amber-400 font-bold">2. Money:</span> Increases market prices & drains treasury
                   </div>
                   <div className="p-2 rounded bg-black/40 border border-slate-800">
-                    <span className="text-violet-400 font-bold">3. Agents:</span> Drives, anxiety & health
+                    <span className="text-violet-400 font-bold">3. People:</span> Hunger, stress & health decrease
                   </div>
                   <div className="p-2 rounded bg-black/40 border border-slate-800">
-                    <span className="text-emerald-400 font-bold">4. Government:</span> Approval & public services
+                    <span className="text-emerald-400 font-bold">4. Government:</span> Citizen satisfaction drops
                   </div>
                 </div>
               </div>
@@ -377,7 +377,7 @@ export default function EventInjectionUI({
         <div className="px-6 py-3.5 bg-[#07090f] border-t border-[#1a2233] flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Info className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Events deterministically mutate state across all engine pipelines.</span>
+            <span>Events genuinely change simulation data; values are not merely visual.</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -393,7 +393,7 @@ export default function EventInjectionUI({
               className="px-5 py-2 rounded-lg bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all disabled:opacity-50 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{isInjecting ? 'Propagating Shock...' : `Trigger ${currentTemplate.title}`}</span>
+              <span>{isInjecting ? 'Simulating Impact...' : `Start ${currentTemplate.title}`}</span>
             </button>
           </div>
         </div>

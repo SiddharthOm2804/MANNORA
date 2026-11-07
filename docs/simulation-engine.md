@@ -1,75 +1,77 @@
-# Simulation Engine Specification
+# City Simulation Engine Specification
 
-**NEURAL CITY — Core Deterministic Civilization Engine**  
-**Package:** `@neural-city/simulation`
-
----
-
-## 1. Core Modules
-
-The engine comprises five foundational primitives:
-
-### `SimulationEngine`
-The orchestrator managing engine lifecycle, continuous execution, tick steps, and subsystem dispatch.
-- **`init(worldConfig)`**: Initializes initial state and resets clock.
-- **`step()`**: Executes a single discrete tick:
-  1. Advances `SimulationClock`.
-  2. Clones previous state for mutation.
-  3. Dispatches registered subsystems in priority order.
-  4. Commits new state to `StateManager`.
-  5. Emits `tick` event.
-- **`start()` / `pause()` / `resume()` / `stop()` / `reset()`: Clock lifecycle controls.
-- **`rollback(tick)`**: Rewinds world state to an earlier historical checkpoint.
-
-### `WorldState`
-The canonical data container for civilization state at tick `t`.
-- **`tick`**: Current tick integer.
-- **`dimensions`**: Grid size `{ width, height }`.
-- **`metrics`**: Global indicators (population, energy, treasury, happiness, health).
-- **`entities`**: Map of entity ID to entity payload.
-- **`metadata`**: World parameters, seed, timestamps.
-- **`clone()` & `serialize()` / `deserialize()`**: Fast cloning for immutable history.
-
-### `SimulationClock`
-Discrete timing mechanism decoupled from system wall clock.
-- **`tickRate`**: Ticks per second (TPS). Default: 10 Hz.
-- **`timeScale`**: Speed multiplier (1.0x, 2.0x, etc.).
-- **`fixedDelta`**: `1 / tickRate`.
-
-### `StateManager`
-Snapshotting and history ring-buffer manager.
-- Retains up to `maxHistory` checkpoints.
-- Supports historical retrieval and state rollback.
-
-### `RandomEngine`
-32-bit Mulberry32 PRNG ensuring deterministic behavior across environments.
-- Methods: `nextFloat()`, `nextInt(min, max)`, `nextBool(prob)`, `choice(arr)`, `shuffle(arr)`, `sample(arr, n)`, `gaussian(mean, stdDev)`.
+> **MANNORA — Core Deterministic Simulation Engine**  
+> **Package:** `@neural-city/simulation` *(Project: MANNORA)*
 
 ---
 
-## 2. Phase 6 Civilization Economy Subsystems
+## 1. How the Engine Works
 
-The civilization economy executes at **Priority 30** in the deterministic simulation pipeline:
+The MANNORA simulation engine is the core brain of the virtual city. It updates the entire city step by step without relying on real-world system clocks or external network services.
 
-### `EconomyEngine`
-Central coordinator managing macro production, labor demand, tax revenues, commodity inflation, and model-grounded GDP.
-- Evaluates dynamic commodity pricing from `MarketEngine`.
-- Balances commercial & industrial business operations (revenue, wages, maintenance, net profit).
-- Computes simulation-grounded metrics: GDP, unemployment rate, average citizen wealth, average income, inflation rate, and resource availability score.
+Every step (tick) represents one discrete time unit (such as a simulated day or hour).
 
-### `MarketEngine`
-Models supply, demand, and dynamic price discovery across six resource commodities (`energy`, `minerals`, `water`, `agriculture`, `technology`, `rawMaterials`).
-- Adjusts prices in response to buffer depletion (shortage) or accumulation (surplus).
-- Incorporates commodity-specific price elasticity curves (inelastic necessities vs elastic technology goods).
+### Core Engine Modules:
 
-### `JobSystem`
-Maintains the civilization labor market and occupational mobility:
-- Matches unemployed or underemployed citizens with building vacancies based on skill affinity and proximity.
-- Calculates tailored salaries based on occupational benchmarks, skills, and productivity traits.
-- Tracks labor supply vs. employer demand and municipal unemployment rates.
+1. **`SimulationEngine` (City Simulation Manager)**:
+   - Starts, pauses, resumes, and stops the city.
+   - Runs each simulation step: advances the clock, updates people's choices, calculates factory profits, and saves the new city state.
+   - Supports `rollback(day)` to rewind time to an earlier day.
 
-### `FinanceSystem`
-Executes fiscal accounting for government and commercial institutions:
-- Municipal taxation on worker income and commercial enterprise profits.
-- Accrues yield on citizen liquid savings to model capital retention.
-- Evaluates municipal fiscal solvency and business net profit margins.
+2. **`WorldState` (City Condition at Current Day)**:
+   - Contains all the actual data of the city at day $t$:
+     - Current day number (`tick`)
+     - City metrics: total population, energy, water, money in city bank, citizen happiness
+     - All citizens and their positions, jobs, and health
+     - Resource reserves (food, water, electricity, materials)
+
+3. **`SimulationClock` (Simulation Clock)**:
+   - Controls how fast the city runs (for example: 10 steps per second).
+   - Speed can be changed from normal (1.0x) to fast (5.0x or 10.0x) without affecting the math or correctness.
+
+4. **`StateManager` (Saved Snapshots Manager)**:
+   - Stores exact copies of previous days in memory.
+   - When you rewind to Day 50, `StateManager` restores the exact state of every citizen and bank balance from that day.
+
+5. **`RandomEngine` (Deterministic Random Number Generator)**:
+   - Uses the Mulberry32 algorithm.
+   - Given the same starting seed (e.g. `83917492`), every decision and event happens in the exact same sequence every time.
+
+---
+
+## 2. City Economy Systems
+
+The economy runs automatically during every simulation step:
+
+1. **`EconomyEngine` (City Economy Coordinator)**:
+   - Calculates total goods produced (GDP), average citizen salaries, and overall unemployment.
+   - Monitors business health and bankruptcy.
+
+2. **`MarketEngine` (Supply and Demand Market)**:
+   - Dynamically calculates the price of food, electricity, water, minerals, and technology.
+   - When drinking water is scarce, prices automatically rise according to economic formulas.
+   - When supplies are plentiful, prices drop back to normal.
+
+3. **`JobSystem` (Jobs and Hiring System)**:
+   - Connects unemployed citizens with vacant factory and office jobs based on skills and location.
+   - Calculates daily wages paid by businesses to workers.
+
+4. **`FinanceSystem` (City Banking and Taxes)**:
+   - Collects income tax from workers to fund the city government.
+   - Pays interest on citizen savings and tracks business profits.
+
+---
+
+## 3. Event Engine (Phase 11)
+
+The Event Engine manages city emergencies:
+- Events include: water shortage, power grid failure, economic downturn, or disease outbreak.
+- When an event occurs, it does not just show a UI message; it directly alters simulation variables (e.g., cutting water reserves by 50%).
+- The rest of the engine naturally responds: prices rise, public health drops, and citizens adjust their daily spending.
+
+---
+
+## 4. Time Machine & Branching (Phase 12)
+
+- **`BranchEngine`**: Creates an alternate timeline from any historical snapshot.
+- **`CounterfactualEngine`**: Compares the original city with the branched city to see which policies performed better over time.

@@ -103,21 +103,21 @@ export default function Analytics() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>CIVILIZATION ECONOMY TELEMETRY // PHASE 6</span>
+            <span>CITY REPORTS & STATISTICS // PHASE 6</span>
             {activeWorld && (
               <>
                 <span className="text-slate-600">|</span>
                 <span className="text-slate-400 font-mono text-[10px] uppercase">
-                  SIMULATION MODEL METRICS
+                  SIMULATION DATA
                 </span>
               </>
             )}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Civilization Economy & Market Lab
+            City Economy & Market Reports
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Model-grounded telemetry for production, labor, commodity pricing, and business solvency.
+            Reports showing city production, jobs, market prices, and business profit.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function Analytics() {
             className="px-3 py-1.5 rounded-lg bg-[#0e121d] hover:bg-[#161c2e] border border-slate-700/80 text-slate-200 font-mono text-xs flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Export Data</span>
+            <span>Download Report</span>
           </button>
         </div>
       </div>
@@ -152,11 +152,11 @@ export default function Analytics() {
         <div className="flex items-center gap-2 text-cyan-300">
           <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0" />
           <span>
-            <strong className="text-white">Simulation Engine Telemetry:</strong> All economic indicators (GDP, Inflation, Salaries) are synthetic outputs generated from deterministic agent interactions and market loops — not real-world economic forecasts.
+            <strong className="text-white">Note for Viva & Students:</strong> All economic numbers (production, price of bread/electricity, salaries) are calculated directly by the simulation engine based on how computer-controlled people buy and work.
           </span>
         </div>
         <span className="text-[10px] text-slate-400 shrink-0 uppercase tracking-widest hidden md:inline">
-          MODEL REPRODUCIBLE
+          ACCURATE ENGINE DATA
         </span>
       </div>
 
@@ -170,7 +170,7 @@ export default function Analytics() {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Macro Economy & Labor
+          City Economy & Jobs
         </button>
         <button
           onClick={() => setActiveTab('social')}
@@ -181,7 +181,7 @@ export default function Analytics() {
           }`}
         >
           <Users className="w-3.5 h-3.5 text-purple-400" />
-          <span>Social Network & Communities // Phase 8</span>
+          <span>People's Communities & Connections // Phase 8</span>
         </button>
       </div>
 
@@ -191,13 +191,13 @@ export default function Analytics() {
           {/* Primary KPI Metric Cards (Phase 6 Core Metrics) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="GDP-Like Production"
+          label="Total City Production"
           code="ECO.GDP.01"
           value={gdp.toLocaleString()}
-          unit="NC/t"
+          unit="NC/day"
           delta={4.6}
           trend="up"
-          subtitle="Gross Simulation Output"
+          subtitle="Total value of goods made"
           icon={<TrendingUp className="w-4 h-4 text-cyan-400" />}
           sparkline={[gdp * 0.88, gdp * 0.91, gdp * 0.95, gdp * 0.97, gdp]}
         />
@@ -208,30 +208,30 @@ export default function Analytics() {
           value={`${unemploymentPct}%`}
           delta={-0.4}
           trend="up"
-          subtitle="Labor Market Utilization"
+          subtitle="People looking for jobs"
           icon={<Briefcase className="w-4 h-4 text-emerald-400" />}
           sparkline={[6.2, 5.8, 5.6, 5.4, 5.2]}
         />
 
         <MetricCard
-          label="Average Citizen Wealth"
+          label="Average Person Savings"
           code="CIT.WLTH.03"
           value={`${averageWealth.toFixed(1)}`}
           unit="NC"
           delta={3.8}
           trend="up"
-          subtitle={`Avg Income: ${averageIncome.toFixed(1)} NC/t`}
+          subtitle={`Average Daily Pay: ${averageIncome.toFixed(1)} NC`}
           icon={<Coins className="w-4 h-4 text-amber-400" />}
           sparkline={[130, 134, 139, 143, averageWealth]}
         />
 
         <MetricCard
-          label="Simulation Inflation"
+          label="Price Increase Rate (Inflation)"
           code="ECO.INFL.04"
           value={`${inflationPct}%`}
           delta={0.2}
           trend="neutral"
-          subtitle="Commodity Basket Drift"
+          subtitle="Average change in market prices"
           icon={<Percent className="w-4 h-4 text-violet-400" />}
           sparkline={[1.8, 1.9, 2.0, 2.1, 2.1]}
         />
@@ -244,17 +244,17 @@ export default function Analytics() {
         <div className="lg:col-span-7 space-y-6">
           <Panel
             tag="MARKET.PRICING"
-            title="Dynamic Commodity Exchange (Supply & Demand)"
-            subtitle="Prices adjust deterministically based on resource shortages and elasticity"
+            title="City Market Prices (Supply & Demand)"
+            subtitle="Item prices rise during shortages and fall when stock is plentiful"
           >
             <div className="space-y-3">
               {[
-                { name: 'Agriculture (Food Supplies)', key: 'agriculture', price: marketPrices.agriculture, base: 1.50, stock: resources.agriculture || 3000, max: 15000, icon: '🌾' },
-                { name: 'Energy Grid (Clean Fusion)', key: 'energy', price: marketPrices.energy, base: 1.00, stock: resources.energy || 5000, max: 20000, icon: '⚡' },
-                { name: 'Potable Water Reserves', key: 'water', price: marketPrices.water, base: 0.80, stock: resources.water || 5000, max: 20000, icon: '💧' },
-                { name: 'Synthesized Minerals', key: 'minerals', price: marketPrices.minerals, base: 2.50, stock: resources.minerals || 2500, max: 15000, icon: '⛏️' },
-                { name: 'Advanced Cybernetics & Tech', key: 'technology', price: marketPrices.technology, base: 5.00, stock: resources.technology || 1000, max: 10000, icon: '🔬' },
-                { name: 'Raw Industrial Materials', key: 'rawMaterials', price: marketPrices.rawMaterials, base: 2.00, stock: 2000, max: 15000, icon: '🧱' },
+                { name: 'Food & Crops', key: 'agriculture', price: marketPrices.agriculture, base: 1.50, stock: resources.agriculture || 3000, max: 15000, icon: '🌾' },
+                { name: 'Electricity & Power', key: 'energy', price: marketPrices.energy, base: 1.00, stock: resources.energy || 5000, max: 20000, icon: '⚡' },
+                { name: 'Drinking Water', key: 'water', price: marketPrices.water, base: 0.80, stock: resources.water || 5000, max: 20000, icon: '💧' },
+                { name: 'Metals & Minerals', key: 'minerals', price: marketPrices.minerals, base: 2.50, stock: resources.minerals || 2500, max: 15000, icon: '⛏️' },
+                { name: 'Technology & Chips', key: 'technology', price: marketPrices.technology, base: 5.00, stock: resources.technology || 1000, max: 10000, icon: '🔬' },
+                { name: 'Building Raw Materials', key: 'rawMaterials', price: marketPrices.rawMaterials, base: 2.00, stock: 2000, max: 15000, icon: '🧱' },
               ].map((res) => {
                 const ratio = Math.min(100, Math.round((res.stock / res.max) * 100));
                 const priceDelta = (((res.price - res.base) / res.base) * 100).toFixed(1);
@@ -277,7 +277,7 @@ export default function Analytics() {
                           )}
                         </div>
                         <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                          Buffer: {res.stock.toLocaleString()} / {res.max.toLocaleString()} ({ratio}% capacity)
+                          In Storage: {res.stock.toLocaleString()} / {res.max.toLocaleString()} ({ratio}% full)
                         </div>
                       </div>
                     </div>
@@ -287,7 +287,7 @@ export default function Analytics() {
                         {res.price.toFixed(2)} NC
                       </div>
                       <div className={`text-[10px] ${Number(priceDelta) > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                        {Number(priceDelta) > 0 ? `+${priceDelta}%` : `${priceDelta}%`} vs base
+                        {Number(priceDelta) > 0 ? `+${priceDelta}%` : `${priceDelta}%`} vs normal
                       </div>
                     </div>
                   </div>
@@ -298,34 +298,34 @@ export default function Analytics() {
 
           {/* Causal Feedback Loop Walkthrough */}
           <Panel
-            tag="CAUSAL.CHAIN"
-            title="Socio-Economic Feedback Mechanics"
-            subtitle="Deterministic causal propagation demonstrated in current tick"
+            tag="HOW.IT.WORKS"
+            title="How the City Economy Connects Together"
+            subtitle="Step-by-step chain of how each decision changes the city"
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-mono">
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-cyan-400 font-semibold block">1. RESOURCE BUFFER</span>
-                <span className="text-slate-300 text-[11px]">Storage level determines immediate supply pressure</span>
+                <span className="text-[10px] text-cyan-400 font-semibold block">1. RESOURCE STOCK</span>
+                <span className="text-slate-300 text-[11px]">Amount of food and water in city storehouses</span>
               </div>
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-cyan-400 font-semibold block">2. PRICE DYNAMICS</span>
-                <span className="text-slate-300 text-[11px]">Shortage surges prices based on price elasticity</span>
+                <span className="text-[10px] text-cyan-400 font-semibold block">2. MARKET PRICES</span>
+                <span className="text-slate-300 text-[11px]">When items become scarce, prices automatically go up</span>
               </div>
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-cyan-400 font-semibold block">3. CITIZEN SPENDING</span>
-                <span className="text-slate-300 text-[11px]">Agents budget liquid wealth or draw from savings</span>
+                <span className="text-[10px] text-cyan-400 font-semibold block">3. PEOPLE SPENDING</span>
+                <span className="text-slate-300 text-[11px]">People buy daily needs using their salary and savings</span>
               </div>
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-emerald-400 font-semibold block">4. BUSINESS SOLVENCY</span>
-                <span className="text-slate-300 text-[11px]">Commercial hubs calculate revenue minus wages</span>
+                <span className="text-[10px] text-emerald-400 font-semibold block">4. BUSINESS PROFIT</span>
+                <span className="text-slate-300 text-[11px]">Companies earn money from sales and pay worker wages</span>
               </div>
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-emerald-400 font-semibold block">5. LABOR CAPACITY</span>
-                <span className="text-slate-300 text-[11px]">Profitable businesses hire; deficits cause layoff freeze</span>
+                <span className="text-[10px] text-emerald-400 font-semibold block">5. HIRING & JOBS</span>
+                <span className="text-slate-300 text-[11px]">Profitable businesses hire more workers; others stop hiring</span>
               </div>
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
-                <span className="text-[10px] text-emerald-400 font-semibold block">6. TAX & TREASURY</span>
-                <span className="text-slate-300 text-[11px]">Municipal treasury accrues taxes to fund city grid</span>
+                <span className="text-[10px] text-emerald-400 font-semibold block">6. CITY TAXES</span>
+                <span className="text-slate-300 text-[11px]">Government collects taxes to fund city hospitals and roads</span>
               </div>
             </div>
           </Panel>
@@ -335,15 +335,15 @@ export default function Analytics() {
         <div className="lg:col-span-5 space-y-6">
           <Panel
             tag="COMMERCE.INDEX"
-            title="Commercial & Industrial Hubs"
-            subtitle={`${businessCount} Registered ventures operating in matrix`}
+            title="City Businesses & Companies"
+            subtitle={`${businessCount} Active companies providing jobs and goods`}
           >
             <div className="space-y-3">
               {[
-                { name: 'Core Agricultural Delta', type: 'Agricultural', revenue: '4,280 NC', profit: '+1,420 NC', workers: 45, status: 'operational' },
-                { name: 'Quantum Energy Synthesis', type: 'Utility & Grid', revenue: '6,100 NC', profit: '+2,150 NC', workers: 60, status: 'simulating' },
-                { name: 'Sector 03 Fabrication Hub', type: 'Manufacturing', revenue: '3,850 NC', profit: '+980 NC', workers: 38, status: 'operational' },
-                { name: 'Neural Commerce Exchange', type: 'Commercial Market', revenue: '5,400 NC', profit: '+1,890 NC', workers: 52, status: 'operational' },
+                { name: 'Core Agricultural Delta', type: 'Farming & Food', revenue: '4,280 NC', profit: '+1,420 NC', workers: 45, status: 'operational' },
+                { name: 'Quantum Energy Synthesis', type: 'Power & Grid', revenue: '6,100 NC', profit: '+2,150 NC', workers: 60, status: 'simulating' },
+                { name: 'Sector 03 Fabrication Hub', type: 'Factory', revenue: '3,850 NC', profit: '+980 NC', workers: 38, status: 'operational' },
+                { name: 'Neural Commerce Exchange', type: 'Supermarket & Trade', revenue: '5,400 NC', profit: '+1,890 NC', workers: 52, status: 'operational' },
               ].map((biz, idx) => (
                 <div
                   key={idx}
@@ -356,11 +356,11 @@ export default function Analytics() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Revenue: <strong className="text-slate-200">{biz.revenue}</strong></span>
+                    <span>Sales: <strong className="text-slate-200">{biz.revenue}</strong></span>
                     <span className="text-emerald-400 font-semibold">{biz.profit}</span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
-                    <span>Staff: {biz.workers} Citizens</span>
+                    <span>Workers: {biz.workers} People</span>
                     <StatusIndicator status={biz.status} size="sm" />
                   </div>
                 </div>
@@ -370,27 +370,27 @@ export default function Analytics() {
 
           {/* Municipal Fiscal Treasury Summary */}
           <Panel
-            tag="TREASURY.SOLVENCY"
-            title="Municipal Fiscal Solvency"
-            subtitle="Municipal budget balance & tax intake"
+            tag="CITY.TREASURY"
+            title="City Government Finances"
+            subtitle="Overview of tax collection and resources"
           >
             <div className="space-y-3 text-xs font-mono">
               <div className="flex justify-between items-center p-2 rounded bg-[#080a11] border border-slate-800">
-                <span className="text-slate-400">Tax Rate (Configured):</span>
+                <span className="text-slate-400">City Tax Rate:</span>
                 <span className="text-cyan-400 font-bold font-mono-data">
                   {((econConfig.taxRate || 0.15) * 100).toFixed(0)}%
                 </span>
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-[#080a11] border border-slate-800">
-                <span className="text-slate-400">Resource Availability Index:</span>
+                <span className="text-slate-400">Resource Stock Score:</span>
                 <span className="text-emerald-400 font-bold font-mono-data">
                   {resourceAvailability}%
                 </span>
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-[#080a11] border border-slate-800">
-                <span className="text-slate-400">Active Business Count:</span>
+                <span className="text-slate-400">Total Registered Companies:</span>
                 <span className="text-white font-bold font-mono-data">
-                  {businessCount} Active Entities
+                  {businessCount} Active Companies
                 </span>
               </div>
             </div>

@@ -24,69 +24,69 @@ export default function Timeline() {
   const branches = [
     {
       id: 'main_trunk',
-      name: 'Main Trunk // Baseline Civilization',
+      name: 'Main City // Original Timeline',
       ticks: 1420,
       status: 'active',
-      description: 'Canonical deterministic simulation execution without counterfactual intervention.',
+      description: 'The main city simulation running with original settings and policies.',
     },
     {
       id: 'branch_alpha',
-      name: 'Branch Alpha // Energy Subsidy Deregulation',
+      name: 'Version Alpha // Free Energy Policy',
       ticks: 1100,
       forkedFrom: 800,
       status: 'forked',
-      description: 'Forked at Tick 800 to evaluate zero-cap energy pricing on industrial velocity.',
+      description: 'Branched at Day 800 to see what happens when electricity is made free for all factories.',
     },
     {
       id: 'branch_beta',
-      name: 'Branch Beta // Synthetic UBI Cohort',
+      name: 'Version Beta // Citizen Cash Support',
       ticks: 950,
       forkedFrom: 600,
       status: 'dormant',
-      description: 'Forked at Tick 600 exploring universal energy quotas across lower quintiles.',
+      description: 'Branched at Day 600 to test giving monthly allowances to low-income citizens.',
     },
   ];
 
   const checkpoints = [
     {
       tick: 1420,
-      title: 'Current Head State // Epoch 01',
+      title: 'Current City State',
       date: 'Just now',
-      type: 'HEAD',
+      type: 'LATEST',
       metrics: { population: 1482, treasury: '942.8k NC', entropy: '0.14 λ' },
-      notes: 'State Manager snapshot #142 committed to in-memory buffer.',
+      notes: 'Latest simulation state saved in memory.',
     },
     {
       tick: 1100,
-      title: 'Zoning Ordinance #42 Ratified',
-      date: '320 ticks ago',
-      type: 'CHECKPOINT',
+      title: 'City Expansion Rule Approved',
+      date: '320 days ago',
+      type: 'SAVED POINT',
       metrics: { population: 1320, treasury: '860.2k NC', entropy: '0.16 λ' },
-      notes: 'Sector 04 designated as high-density residential terrace quadrant.',
+      notes: 'Sector 04 opened for new residential houses and apartments.',
     },
     {
       tick: 720,
-      title: 'Municipal Solar Grid Transition',
-      date: '700 ticks ago',
+      title: 'Solar Power Plant Completed',
+      date: '700 days ago',
       type: 'MILESTONE',
       metrics: { population: 980, treasury: '620.0k NC', entropy: '0.22 λ' },
-      notes: 'Primary energy generator flipped to 90% sustainable photovoltaic core.',
+      notes: 'Switched main power generation to clean solar power.',
     },
     {
       tick: 350,
-      title: 'Formation of Merchant Exchange Guild',
-      date: '1,070 ticks ago',
-      type: 'CHECKPOINT',
+      title: 'City Traders Association Formed',
+      date: '1,070 days ago',
+      type: 'SAVED POINT',
       metrics: { population: 640, treasury: '380.5k NC', entropy: '0.28 λ' },
-      notes: 'Autonomous agents clustered to establish centralized commodity exchange.',
+      notes: 'Local merchants established a central market for goods.',
     },
     {
       tick: 0,
-      title: 'Simulation Matrix Inception',
-      date: '1,420 ticks ago',
-      type: 'ROOT',
+      title: 'City Founded',
+      date: '1,420 days ago',
+      type: 'START',
       metrics: { population: 500, treasury: '100.0k NC', entropy: '0.35 λ' },
-      notes: 'Deterministic Mulberry32 seed #83917492 initialized.',
+      notes: 'Simulation initialized with starter population and seed.',
     },
   ];
 
@@ -97,24 +97,24 @@ export default function Timeline() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <GitBranch className="w-3.5 h-3.5" />
-            <span>TEMPORAL CHRONOMETER & BRANCHING GRAPH</span>
+            <span>TIME MACHINE & SAVED SIMULATION POINTS // PHASE 12</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Temporal Timeline & Checkpoints
+            Time Machine & City History
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Deterministic state history rollback, counterfactual branching, and simulation epoch checkpoints.
+            Rewind to earlier days, save snapshots of your city, and test "what if" decisions in separate branches.
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => alert('Forking new counterfactual branch from current state...')}
+            onClick={() => alert('Creating a new test version from current simulation day...')}
             className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs flex items-center gap-1.5 transition-colors shadow-sm shadow-cyan-600/20"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>Fork Branch</span>
+            <span>Create Test Version</span>
           </button>
         </div>
       </div>
@@ -125,9 +125,9 @@ export default function Timeline() {
         {/* Branches Column (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
           <Panel
-            tag="BRANCH.TREE"
-            title="Simulation Branch Tree"
-            subtitle="Parallel world executions and counterfactual timelines"
+            tag="SIMULATION.VERSIONS"
+            title="City Simulation Versions"
+            subtitle="Compare different decision branches running in parallel"
           >
             <div className="space-y-3">
               {branches.map((b) => {
@@ -158,14 +158,14 @@ export default function Timeline() {
 
                       <StatusIndicator
                         status={b.status === 'active' ? 'simulating' : 'idle'}
-                        label={b.status.toUpperCase()}
+                        label={b.status === 'active' ? 'RUNNING' : 'SAVED'}
                         size="sm"
                       />
                     </div>
 
                     <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                      <span>DEPTH: {b.ticks} TICKS</span>
-                      {b.forkedFrom && <span>FORKED AT: #{b.forkedFrom}</span>}
+                      <span>LENGTH: {b.ticks} DAYS</span>
+                      {b.forkedFrom && <span>STARTED FROM: DAY #{b.forkedFrom}</span>}
                     </div>
                   </div>
                 );
@@ -177,10 +177,10 @@ export default function Timeline() {
           <div className="lab-panel p-4 rounded-lg space-y-2 text-xs font-mono">
             <div className="flex items-center gap-2 text-amber-400 font-semibold text-[11px]">
               <History className="w-3.5 h-3.5" />
-              <span>DETERMINISTIC ROLLBACK CAPABILITY</span>
+              <span>HOW TIME MACHINE WORKS</span>
             </div>
             <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-              NEURAL CITY StateManager maintains immutable cloned snapshots of `WorldState`. Stepping backward to any checkpoint restores exact entity memory and socioeconomic metrics.
+              MANNORA saves complete snapshots of the entire city. When you rewind time to any saved point, all citizens, jobs, bank balance, and city buildings return exactly to how they were on that day.
             </p>
           </div>
         </div>
@@ -188,9 +188,9 @@ export default function Timeline() {
         {/* Historical Checkpoints Feed (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
           <Panel
-            tag="SNAPSHOT.LOG"
-            title="State Checkpoint History"
-            subtitle="Ring-buffer checkpoints recorded in StateManager (Retention: 100)"
+            tag="SAVED.POINTS"
+            title="Saved Simulation Points"
+            subtitle="List of saved days in city history you can rewind to"
           >
             <div className="space-y-4">
               {checkpoints.map((cp, idx) => {
@@ -210,7 +210,7 @@ export default function Timeline() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800 font-bold">
-                            TICK #{cp.tick.toLocaleString()}
+                            DAY #{cp.tick.toLocaleString()}
                           </span>
                           <span className="text-[10px] font-mono px-1 rounded bg-[#101422] text-slate-400 border border-slate-800">
                             {cp.type}
@@ -232,26 +232,26 @@ export default function Timeline() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          alert(`Initiating deterministic state rollback to Tick #${cp.tick}...`);
+                          alert(`Rewinding city state back to Day #${cp.tick}...`);
                         }}
                         className="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-mono border border-slate-700 transition-colors shrink-0 flex items-center gap-1"
-                        title={`Revert simulation to Tick #${cp.tick}`}
+                        title={`Rewind simulation to Day #${cp.tick}`}
                       >
                         <RotateCcw className="w-3 h-3 text-amber-400" />
-                        <span>Rollback</span>
+                        <span>Rewind Here</span>
                       </button>
                     </div>
 
                     {/* Checkpoint Telemetry Snapshot */}
                     <div className="mt-3 pt-2.5 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-[10px] font-mono text-slate-400">
                       <div>
-                        POP: <span className="text-white font-mono-data">{cp.metrics.population}</span>
+                        POPULATION: <span className="text-white font-mono-data">{cp.metrics.population}</span>
                       </div>
                       <div>
                         TREASURY: <span className="text-emerald-400 font-mono-data">{cp.metrics.treasury}</span>
                       </div>
                       <div>
-                        ENTROPY: <span className="text-cyan-400 font-mono-data">{cp.metrics.entropy}</span>
+                        STABILITY: <span className="text-cyan-400 font-mono-data">{cp.metrics.entropy}</span>
                       </div>
                     </div>
                   </div>

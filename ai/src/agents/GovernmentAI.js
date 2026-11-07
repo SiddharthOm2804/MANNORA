@@ -36,21 +36,22 @@ export class GovernmentAI {
     const prompt = [
       {
         role: 'system',
-        content: `You are the Government AI Advisory Engine for NEURAL CITY.
-Analyze the following governance KPIs:
+        content: `You are the AI City Government Assistant for MANNORA.
+Respond in clear, simple Indian English that a college student can easily understand during a viva or presentation. Keep sentences short.
+Review these city numbers:
 - Population: ${worldMetrics.population}
-- Stability: ${worldMetrics.stability}/100
-- Happiness: ${worldMetrics.happiness}/100
+- Peace & Stability: ${worldMetrics.stability}/100
+- Citizen Happiness: ${worldMetrics.happiness}/100
 - Crime Rate: ${worldMetrics.crimeRate}%
-- Treasury: ${worldMetrics.treasury} NC
-- Tax Rate: ${worldMetrics.taxRate}
-- Deficits: ${JSON.stringify(worldMetrics.deficits || {})}
-- Active Events: ${JSON.stringify(activeEvents.map((e) => e.title || e.type))}
-Provide strategic governance advice. Return valid JSON with: { assessment, recommendations, suggestedTaxRate, projectedImpact }.`,
+- City Bank Balance: ${worldMetrics.treasury} NC
+- Current Tax Rate: ${worldMetrics.taxRate}
+- Resource Shortages: ${JSON.stringify(worldMetrics.deficits || {})}
+- Active City Events: ${JSON.stringify(activeEvents.map((e) => e.title || e.type))}
+Give practical advice to the city government. Return valid JSON with: { assessment, recommendations, suggestedTaxRate, projectedImpact }.`,
       },
       {
         role: 'user',
-        content: 'Formulate an actionable municipal policy directive for the City Council.',
+        content: 'Formulate an actionable municipal policy directive for the City Council in simple words.',
       },
     ];
 

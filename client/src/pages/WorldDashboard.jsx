@@ -80,11 +80,11 @@ export default function WorldDashboard() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Globe className="w-3.5 h-3.5" />
-            <span>CIVILIZATION TELEMETRY DECK</span>
+            <span>CITY DASHBOARD & OVERVIEW</span>
             {activeWorld && (
               <>
                 <span className="text-slate-600">|</span>
-                <span className="text-slate-400">PERSISTED IN MONGODB</span>
+                <span className="text-slate-400">SAVED IN MONGODB</span>
               </>
             )}
           </div>
@@ -102,7 +102,7 @@ export default function WorldDashboard() {
               >
                 {worlds.map((w) => (
                   <option key={w._id} value={w._id}>
-                    Switch: {w.name}
+                    Switch City: {w.name}
                   </option>
                 ))}
               </select>
@@ -110,7 +110,7 @@ export default function WorldDashboard() {
           </div>
 
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            {activeWorld?.description || 'Real-time aggregate socioeconomic indicators, spatial quadrants, and cognitive agent telemetry.'}
+            {activeWorld?.description || 'View your city population, money, power levels, and important events.'}
           </p>
         </div>
 
@@ -121,7 +121,7 @@ export default function WorldDashboard() {
             className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-semibold tracking-wider transition-colors shadow-sm shadow-cyan-600/25 flex items-center gap-1.5"
           >
             <Play className="w-3.5 h-3.5" />
-            <span>Launch Viewport</span>
+            <span>Open 3D City</span>
           </button>
 
           <button
@@ -129,7 +129,7 @@ export default function WorldDashboard() {
             className="px-3 py-1.5 rounded-lg bg-[#0e121d] hover:bg-[#161c2e] border border-slate-700/80 text-cyan-300 font-mono text-xs transition-colors flex items-center gap-1.5"
           >
             <PlusCircle className="w-3.5 h-3.5 text-cyan-400" />
-            <span>New World</span>
+            <span>Create New City</span>
           </button>
         </div>
       </div>
@@ -137,49 +137,49 @@ export default function WorldDashboard() {
       {/* KPI Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Active Population"
-          code="CIV.POP.01"
+          label="Total Population"
+          code="CITY.POP.01"
           value={population.toLocaleString()}
-          unit="Citizens"
+          unit="People"
           delta={4.8}
           trend="up"
-          subtitle={`Density: ${(population / 100).toFixed(1)}/km²`}
+          subtitle={`Density: ${(population / 100).toFixed(1)} people/km²`}
           icon={<Users className="w-4 h-4 text-cyan-400" />}
           sparkline={[population * 0.8, population * 0.85, population * 0.9, population * 0.95, population]}
         />
 
         <MetricCard
-          label="Municipal Capital"
-          code="ECO.TRE.02"
+          label="City Bank Balance"
+          code="CITY.MONEY.02"
           value={startingMoney.toLocaleString()}
-          unit="NC"
+          unit="₹ NC"
           delta={3.2}
           trend="up"
-          subtitle="Starting Treasury"
+          subtitle="Government Treasury"
           icon={<Coins className="w-4 h-4 text-emerald-400" />}
           sparkline={[startingMoney * 0.9, startingMoney * 0.94, startingMoney * 0.98, startingMoney]}
         />
 
         <MetricCard
-          label="Energy Grid Reserve"
-          code="SYS.NRG.03"
+          label="Power Available"
+          code="CITY.PWR.03"
           value={energy.toLocaleString()}
-          unit="MW"
+          unit="Units"
           delta={-0.6}
           trend="down"
-          subtitle="Consumption: 1,120 MW/t"
+          subtitle="Use: 1,120 Units/step"
           icon={<Zap className="w-4 h-4 text-amber-400" />}
           sparkline={[energy * 1.1, energy * 1.05, energy * 1.02, energy]}
         />
 
         <MetricCard
-          label="Government Stability"
-          code="GOV.STAB.04"
+          label="City Stability & Peace"
+          code="CITY.PEACE.04"
           value={activeWorld?.governmentConfiguration?.stabilityIndex || 85}
           unit="%"
           delta={1.5}
           trend="up"
-          subtitle={`Type: ${government}`}
+          subtitle={`Rules Type: ${government}`}
           icon={<Heart className="w-4 h-4 text-rose-400" />}
           sparkline={[80, 82, 83, 85]}
         />
@@ -191,24 +191,24 @@ export default function WorldDashboard() {
         {/* Left: Municipal Cities Grid (7 Cols) */}
         <div className="lg:col-span-7 space-y-6">
           <Panel
-            tag="CITIES.NODES"
-            title={`Municipal Centers (${cities.length} Cities)`}
-            subtitle="Autonomous urban nodes and spatial distribution coordinates"
+            tag="AREAS"
+            title={`City Areas & Sectors (${cities.length} Areas)`}
+            subtitle="Local neighborhoods and their population distribution"
             actions={
               <button
                 onClick={() => navigate('/create-world')}
                 className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
               >
-                <span>Add World</span>
+                <span>New City</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             }
           >
             {cities.length === 0 ? (
               <EmptyState
-                title="NO CITIES FOUND"
-                description="This world does not have any urban centers registered yet."
-                actionLabel="Deploy New World"
+                title="NO AREAS FOUND"
+                description="This city does not have any residential or commercial areas registered yet."
+                actionLabel="Create New City"
                 onAction={() => navigate('/create-world')}
               />
             ) : (
@@ -220,7 +220,7 @@ export default function WorldDashboard() {
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
-                        {city.isCapital ? 'CAPITAL' : `NODE-${idx + 1}`}
+                        {city.isCapital ? 'MAIN AREA' : `AREA-${idx + 1}`}
                       </span>
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-white tracking-wide truncate flex items-center gap-1.5">
@@ -228,7 +228,7 @@ export default function WorldDashboard() {
                           <span>{city.name}</span>
                         </div>
                         <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                          Population: <span className="text-slate-200 font-mono-data">{city.population.toLocaleString()}</span> • Coords: [{city.coordinates?.x}, {city.coordinates?.y}]
+                          People: <span className="text-slate-200 font-mono-data">{city.population.toLocaleString()}</span> • Location: [{city.coordinates?.x}, {city.coordinates?.y}]
                         </div>
                       </div>
                     </div>
@@ -239,7 +239,7 @@ export default function WorldDashboard() {
                       </span>
                       <StatusIndicator
                         status={city.isCapital ? 'simulating' : 'operational'}
-                        label={city.isCapital ? 'CAPITAL' : 'ACTIVE'}
+                        label={city.isCapital ? 'MAIN' : 'ACTIVE'}
                         size="sm"
                         pulse={city.isCapital}
                       />
@@ -252,13 +252,13 @@ export default function WorldDashboard() {
 
           {/* Active Industries Badges */}
           <Panel
-            tag="ECO.SECTOR"
-            title="Ratified Industrial Framework"
-            subtitle="Configured economic specializations"
+            tag="BUSINESSES"
+            title="City Businesses & Work Sectors"
+            subtitle="Types of jobs and factories in this city"
           >
             <div className="flex flex-wrap gap-2 text-xs font-mono">
               {industries.length === 0 ? (
-                <span className="text-slate-400">Standard Diversified Economy</span>
+                <span className="text-slate-400">Standard Balanced City Economy</span>
               ) : (
                 industries.map((ind) => (
                   <span
@@ -276,15 +276,15 @@ export default function WorldDashboard() {
         {/* Right: Live Event Stream & Incident Log (5 Cols) */}
         <div className="lg:col-span-5 space-y-6">
           <Panel
-            tag="STREAM.01"
-            title="Civilization Event Chronometer"
-            subtitle="Micro-events recorded during discrete tick progression"
+            tag="EVENTS"
+            title="Recent City Events"
+            subtitle="Important updates recorded as time moves forward"
             actions={
               <button
                 onClick={() => navigate('/timeline')}
                 className="text-xs font-mono text-slate-400 hover:text-cyan-400 flex items-center gap-1"
               >
-                <span>Timeline</span>
+                <span>Time Machine</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             }
@@ -314,16 +314,16 @@ export default function WorldDashboard() {
 
           {/* Quick Lab Actions Panel */}
           <Panel
-            tag="QUICK.ACT"
-            title="Laboratory Operations"
-            subtitle="Direct shortcut routines"
+            tag="SHORTCUTS"
+            title="Quick Shortcuts"
+            subtitle="Jump directly to other city tools"
           >
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <button
                 onClick={() => navigate('/simulation')}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-left transition-colors flex items-center justify-between"
               >
-                <span>Spatial Viewport</span>
+                <span>3D City View</span>
                 <Play className="w-3.5 h-3.5 text-cyan-400" />
               </button>
 
@@ -331,7 +331,7 @@ export default function WorldDashboard() {
                 onClick={() => navigate('/create-world')}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-left transition-colors flex items-center justify-between"
               >
-                <span>Deploy World</span>
+                <span>New City</span>
                 <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
               </button>
 
@@ -339,7 +339,7 @@ export default function WorldDashboard() {
                 onClick={() => navigate('/agents')}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-left transition-colors flex items-center justify-between"
               >
-                <span>Agent Roster</span>
+                <span>Manage People</span>
                 <Users className="w-3.5 h-3.5 text-violet-400" />
               </button>
 
@@ -347,7 +347,7 @@ export default function WorldDashboard() {
                 onClick={() => navigate('/analytics')}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-left transition-colors flex items-center justify-between"
               >
-                <span>Analytics Lab</span>
+                <span>City Reports</span>
                 <Activity className="w-3.5 h-3.5 text-amber-400" />
               </button>
             </div>

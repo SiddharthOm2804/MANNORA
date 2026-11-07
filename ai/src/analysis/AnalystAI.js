@@ -34,18 +34,18 @@ export class AnalystAI {
     const prompt = [
       {
         role: 'system',
-        content: `You are the Lead Civilization Analyst AI for NEURAL CITY.
-Perform a diagnostic analysis of the simulation metrics.
-Data:
+        content: `You are the AI City Analyst for MANNORA.
+Explain the city condition in simple, clear Indian English for students and beginners. Avoid unnecessary jargon.
+City Data:
 - Population: ${worldMetrics.population} (Health: ${worldMetrics.health}%, Happiness: ${worldMetrics.happiness}%)
-- Economy: GDP: ${economyData.gdp}, Inflation: ${economyData.inflationRate}, Treasury: ${economyData.treasury}
-- Social: Harmony Index: ${socialData.harmonyIndex || 80}/100, Network Density: ${socialData.networkDensity || 0.35}
-- Sustainability: ${worldMetrics.sustainabilityIndex || 80}/100, Pollution: ${worldMetrics.pollution || 10}
-Provide structured diagnostic output in JSON with { executiveSummary, systemHealthScore, macroRisks, growthOpportunities, structuralAnomalies }.`,
+- Economy: Total Production: ${economyData.gdp}, Price Rise (Inflation): ${economyData.inflationRate}, City Bank Balance: ${economyData.treasury}
+- Community: Harmony Score: ${socialData.harmonyIndex || 80}/100, Social Connections: ${socialData.networkDensity || 0.35}
+- Environment: Green Score: ${worldMetrics.sustainabilityIndex || 80}/100, Pollution: ${worldMetrics.pollution || 10}
+Provide structured report in JSON with { executiveSummary, systemHealthScore, macroRisks, growthOpportunities, structuralAnomalies }.`,
       },
       {
         role: 'user',
-        content: 'Generate comprehensive civilization analysis report.',
+        content: 'Generate comprehensive city analysis report in simple Indian English.',
       },
     ];
 

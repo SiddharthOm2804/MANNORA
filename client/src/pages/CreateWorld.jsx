@@ -156,13 +156,13 @@ export default function CreateWorld() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Globe className="w-3.5 h-3.5" />
-            <span>CIVILIZATION MATRIX SPECIFICATION // PHASE 3</span>
+            <span>CREATE NEW CITY // PHASE 3</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Create Virtual Civilization
+            Create Virtual City
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Configure demographic quotas, geography, resources, economic foundations, and simulation chronometer.
+            Set up city name, population, starting resources, money, and government rules.
           </p>
         </div>
 
@@ -174,7 +174,7 @@ export default function CreateWorld() {
             className="px-4 py-2 rounded-lg bg-[#0e121d] hover:bg-[#161c2e] border border-cyan-800/60 text-cyan-300 font-mono text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Inspect World Preview</span>
+            <span>Preview City</span>
           </button>
 
           <button
@@ -186,11 +186,11 @@ export default function CreateWorld() {
             {isSubmitting ? (
               <>
                 <Cpu className="w-3.5 h-3.5 animate-spin" />
-                <span>DEPLOYING...</span>
+                <span>SAVING CITY...</span>
               </>
             ) : (
               <>
-                <span>DEPLOY WORLD</span>
+                <span>START CITY</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
@@ -221,15 +221,15 @@ export default function CreateWorld() {
           
           {/* Section 1: Designation & Demographics */}
           <Panel
-            tag="ID.POP"
-            title="1. Designation, Population & Cities"
-            subtitle="Core demographic quotas and municipal urban nodes"
+            tag="CITY.NAME"
+            title="1. City Name, Population & Areas"
+            subtitle="Basic information about your virtual city"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
               {/* World Name */}
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-slate-300 flex justify-between">
-                  <span>WORLD DESIGNATION NAME</span>
+                  <span>CITY NAME</span>
                   <span className="text-[10px] text-slate-400">Required</span>
                 </label>
                 <input
@@ -243,7 +243,7 @@ export default function CreateWorld() {
 
               {/* Description */}
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-slate-300">HISTORICAL NARRATIVE / DESCRIPTION</label>
+                <label className="text-slate-300">CITY DESCRIPTION / STORY</label>
                 <textarea
                   rows={2}
                   value={description}
@@ -255,8 +255,8 @@ export default function CreateWorld() {
               {/* Total Population */}
               <div className="space-y-1.5">
                 <label className="text-slate-300 flex justify-between">
-                  <span>INITIAL POPULATION</span>
-                  <span className="text-cyan-400 font-bold font-mono-data">{population.toLocaleString()} Citizens</span>
+                  <span>STARTING POPULATION</span>
+                  <span className="text-cyan-400 font-bold font-mono-data">{population.toLocaleString()} People</span>
                 </label>
                 <input
                   type="range"
@@ -268,17 +268,17 @@ export default function CreateWorld() {
                   className="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer accent-cyan-400"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400">
-                  <span>200 (Outpost)</span>
-                  <span>5,000 (City)</span>
-                  <span>20,000 (Metropolis)</span>
+                  <span>200 (Small Town)</span>
+                  <span>5,000 (Medium City)</span>
+                  <span>20,000 (Large City)</span>
                 </div>
               </div>
 
               {/* Number of Cities */}
               <div className="space-y-1.5">
                 <label className="text-slate-300 flex justify-between">
-                  <span>NUMBER OF CITIES</span>
-                  <span className="text-cyan-400 font-bold font-mono-data">{numberOfCities} Municipal Nodes</span>
+                  <span>NUMBER OF CITY AREAS</span>
+                  <span className="text-cyan-400 font-bold font-mono-data">{numberOfCities} City Sectors</span>
                 </label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 6].map((num) => (
@@ -292,7 +292,7 @@ export default function CreateWorld() {
                           : 'border-slate-800 bg-[#080a11] text-slate-400 hover:border-slate-700'
                       }`}
                     >
-                      {num} {num === 1 ? 'City' : 'Cities'}
+                      {num} {num === 1 ? 'Area' : 'Areas'}
                     </button>
                   ))}
                 </div>
@@ -302,9 +302,9 @@ export default function CreateWorld() {
 
           {/* Section 2: Available Resources */}
           <Panel
-            tag="RES.ALLOC"
-            title="2. Initial Resource Reserves"
-            subtitle="Starting material and energetic stocks across municipal stockpiles"
+            tag="STARTING.RESOURCES"
+            title="2. Starting Resources"
+            subtitle="Amount of food, water, and power available at the start"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
               {/* Energy */}
@@ -312,7 +312,7 @@ export default function CreateWorld() {
                 <div className="flex justify-between">
                   <span className="text-slate-300 flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span>ENERGY RESERVES</span>
+                    <span>ELECTRICITY RESERVES</span>
                   </span>
                   <span className="text-amber-400 font-mono-data">{resources.energy.toLocaleString()} MW</span>
                 </div>
@@ -332,7 +332,7 @@ export default function CreateWorld() {
                 <div className="flex justify-between">
                   <span className="text-slate-300 flex items-center gap-1.5">
                     <Factory className="w-3.5 h-3.5 text-slate-400" />
-                    <span>MINERAL DEPOSITS</span>
+                    <span>METALS & MINERALS</span>
                   </span>
                   <span className="text-slate-200 font-mono-data">{resources.minerals.toLocaleString()} Tons</span>
                 </div>
@@ -352,7 +352,7 @@ export default function CreateWorld() {
                 <div className="flex justify-between">
                   <span className="text-slate-300 flex items-center gap-1.5">
                     <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>WATER PURIFICATION</span>
+                    <span>CLEAN DRINKING WATER</span>
                   </span>
                   <span className="text-cyan-400 font-mono-data">{resources.water.toLocaleString()} kL</span>
                 </div>
@@ -372,7 +372,7 @@ export default function CreateWorld() {
                 <div className="flex justify-between">
                   <span className="text-slate-300 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>SYNTHETIC BIO-FOOD</span>
+                    <span>FOOD & GRAIN STOCKS</span>
                   </span>
                   <span className="text-emerald-400 font-mono-data">{resources.agriculture.toLocaleString()} Rations</span>
                 </div>
@@ -391,9 +391,9 @@ export default function CreateWorld() {
 
           {/* Section 3: Economy, Starting Capital & Industries */}
           <Panel
-            tag="ECO.IND"
-            title="3. Economy Configuration & Primary Industries"
-            subtitle="Starting treasury capital and structural sector specializations"
+            tag="STARTING.MONEY"
+            title="3. Starting Money & Key Industries"
+            subtitle="City starting bank balance and main work sectors"
           >
             <div className="space-y-4 text-xs font-mono">
               {/* Starting Money */}

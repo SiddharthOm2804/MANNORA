@@ -162,7 +162,7 @@ export default function Simulation() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Compass className="w-3.5 h-3.5" />
-            <span>NEURAL CITY 3D SPATIAL MATRIX // THREE.JS & R3F</span>
+            <span>MANNORA 3D VIRTUAL CITY // THREE.JS</span>
             {activeWorld && (
               <>
                 <span className="text-slate-600">|</span>
@@ -171,10 +171,10 @@ export default function Simulation() {
             )}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Civilization Spatial Simulator
+            3D Virtual City View
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Real-time WebGL visualization connected to SimulationEngine. Source of truth remains the deterministic engine.
+            Real-time 3D visual view showing moving people, buildings, day-night cycles, and actual simulation data.
           </p>
         </div>
 
@@ -185,7 +185,7 @@ export default function Simulation() {
             className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-950/80 to-amber-950/80 hover:from-red-900/90 hover:to-amber-900/90 text-amber-300 border border-amber-600/50 hover:border-amber-500 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-            <span>Inject Event</span>
+            <span>Trigger Emergency Event</span>
           </button>
 
           {worlds.length > 1 && (
@@ -213,7 +213,7 @@ export default function Simulation() {
               }`}
             >
               <Box className="w-3 h-3 text-cyan-400" />
-              <span>3D Spatial</span>
+              <span>3D View</span>
             </button>
             <button
               onClick={() => setViewMode('matrix')}
@@ -224,7 +224,7 @@ export default function Simulation() {
               }`}
             >
               <Layers className="w-3 h-3 text-cyan-400" />
-              <span>Grid Matrix</span>
+              <span>2D Grid View</span>
             </button>
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function Simulation() {
                 </div>
                 <span className="text-slate-600">|</span>
                 <span className="text-slate-400 text-[11px]">
-                  DIURNAL CYCLE: {clockHour >= 21 || clockHour < 5 ? 'NIGHT' : clockHour < 8 ? 'DAWN' : clockHour >= 18 ? 'DUSK' : 'MIDDAY'}
+                  DAY TIME: {clockHour >= 21 || clockHour < 5 ? 'NIGHT' : clockHour < 8 ? 'EARLY MORNING' : clockHour >= 18 ? 'EVENING' : 'AFTERNOON'}
                 </span>
               </div>
 
@@ -305,9 +305,9 @@ export default function Simulation() {
         {/* Spatial Hierarchical Inspector Drawer (Right 4 Cols) */}
         <div className="lg:col-span-4 space-y-5">
           <Panel
-            tag="INSPECTOR.3D"
-            title="Entity Hierarchy Inspector"
-            subtitle="Click: City → District → Building → Citizen"
+            tag="DETAILS"
+            title="Inspect City Details"
+            subtitle="Click on any area, building, or person in the 3D city"
             actions={
               selectedEntity && (
                 <button
@@ -324,7 +324,7 @@ export default function Simulation() {
                 {/* Active Entity Card */}
                 <div className="p-3.5 rounded-lg bg-[#080a11] border border-cyan-800/40 space-y-1.5">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400 uppercase">Selected Entity</span>
+                    <span className="text-slate-400 uppercase">Selected Item</span>
                     <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 uppercase font-semibold">
                       {selectedEntity.type}
                     </span>
@@ -343,19 +343,19 @@ export default function Simulation() {
                 {selectedEntity.type === 'citizen' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Occupation Role:</span>
+                      <span className="text-slate-400">Job Role:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.occupation}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Current Action:</span>
+                      <span className="text-slate-400">What they are doing:</span>
                       <span className="text-white font-mono-data">{selectedEntity.data.healthState?.currentAction || 'ACTIVE'}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Accumulated Wealth:</span>
-                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.wealth} NC</span>
+                      <span className="text-slate-400">Personal Savings:</span>
+                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.wealth} ₹ NC</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Coordinates:</span>
+                      <span className="text-slate-400">Map Location:</span>
                       <span className="text-slate-300 font-mono-data">[{selectedEntity.data.location?.x}, {selectedEntity.data.location?.y}]</span>
                     </div>
                   </div>
@@ -364,7 +364,7 @@ export default function Simulation() {
                 {selectedEntity.type === 'building' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Facility Type:</span>
+                      <span className="text-slate-400">Building Type:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
@@ -372,8 +372,8 @@ export default function Simulation() {
                       <span className="text-white font-mono-data">Level {selectedEntity.data.level || 1}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Staffing Load:</span>
-                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.workers} / {selectedEntity.data.capacity} Workers</span>
+                      <span className="text-slate-400">Staff & Workers:</span>
+                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.workers} / {selectedEntity.data.capacity} People</span>
                     </div>
                   </div>
                 )}
@@ -381,11 +381,11 @@ export default function Simulation() {
                 {selectedEntity.type === 'district' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Zoning Designation:</span>
+                      <span className="text-slate-400">Area Zone:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Quadrant Coverage:</span>
+                      <span className="text-slate-400">Area Dimensions:</span>
                       <span className="text-white font-mono-data">{selectedEntity.data.bounds?.width}x{selectedEntity.data.bounds?.depth} Units</span>
                     </div>
                   </div>
@@ -396,9 +396,9 @@ export default function Simulation() {
                 <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-cyan-400">
                   <Compass className="w-5 h-5" />
                 </div>
-                <div className="text-white font-semibold">No Entity Targeted</div>
+                <div className="text-white font-semibold">Nothing Selected Yet</div>
                 <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Interact with the 3D viewport by clicking a <strong>District</strong>, <strong>Building</strong>, or <strong>Citizen marker</strong> to focus the simulation camera.
+                  Click on any <strong>District Area</strong>, <strong>Building</strong>, or <strong>Person</strong> in the 3D view to inspect their live details.
                 </p>
               </div>
             )}
@@ -406,15 +406,15 @@ export default function Simulation() {
 
           {/* Active Events & Crises HUD Card */}
           <Panel
-            tag="EVENTS.ACTIVE"
-            title="Systemic Crises & Shocks"
-            subtitle={`${activeEvents.length > 0 ? `${activeEvents.length} active crises impacting civilization` : 'Nominal civilization equilibrium'}`}
+            tag="EVENTS"
+            title="Active City Events & Problems"
+            subtitle={`${activeEvents.length > 0 ? `${activeEvents.length} events currently affecting the city` : 'City is running normally without emergencies'}`}
             actions={
               <button
                 onClick={() => setIsEventModalOpen(true)}
                 className="text-[11px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold"
               >
-                <span>+ Inject Event</span>
+                <span>+ Trigger Event</span>
               </button>
             }
           >
@@ -431,26 +431,26 @@ export default function Simulation() {
                         {evt.title || evt.type}
                       </span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-950 text-red-300 border border-red-800">
-                        {evt.remainingTicks ?? evt.duration} Ticks Left
+                        {evt.remainingTicks ?? evt.duration} Steps Left
                       </span>
                     </div>
                     {evt.cause && (
                       <p className="text-[11px] text-slate-400 font-sans leading-tight">
-                        <strong className="text-slate-300">Cause:</strong> {evt.cause}
+                        <strong className="text-slate-300">Reason:</strong> {evt.cause}
                       </p>
                     )}
                     <div className="text-[10px] text-cyan-400 flex items-center justify-between pt-1 border-t border-red-900/30">
-                      <span>Recovery: {evt.recoveryBehavior || 'GRADUAL_RESTORATION'}</span>
-                      <span className="text-slate-500 font-mono-data">Severity: {evt.severity || 3}/5</span>
+                      <span>How it fixes: {evt.recoveryBehavior || 'GRADUAL_RESTORATION'}</span>
+                      <span className="text-slate-500 font-mono-data">Impact Level: {evt.severity || 3}/5</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="p-4 rounded-lg bg-[#070912] border border-slate-800/60 text-center space-y-1 text-xs font-mono">
-                <div className="text-emerald-400 font-semibold">No Active Crisis Shocks</div>
+                <div className="text-emerald-400 font-semibold">City is Peaceful</div>
                 <p className="text-[11px] text-slate-400 font-sans">
-                  Use the <strong>Inject Event</strong> interface to trigger systemic disturbances (shortages, crashes, disasters, outbreaks) and watch the simulation respond.
+                  Click <strong>Trigger Emergency Event</strong> to create a water shortage, power failure, market crash, or sickness outbreak and see how the city reacts.
                 </p>
               </div>
             )}
@@ -458,37 +458,37 @@ export default function Simulation() {
 
           {/* Camera Shortcuts */}
           <Panel
-            tag="CAMERA.NAV"
-            title="Camera Perspective Controls"
-            subtitle="Rapid viewpoints and zoom shortcuts"
+            tag="CAMERA"
+            title="Camera Shortcuts"
+            subtitle="Quickly move camera around the 3D city"
           >
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <button
                 onClick={() => setSelectedEntity(null)}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Full City Orbit</span>
+                <span>Full City View</span>
                 <Compass className="w-3.5 h-3.5 text-cyan-400" />
               </button>
               <button
-                onClick={() => setSelectedEntity({ type: 'district', data: { name: 'Central Matrix // Core', bounds: { x: 50, z: 50 } } })}
+                onClick={() => setSelectedEntity({ type: 'district', data: { name: 'City Center', bounds: { x: 50, z: 50 } } })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Central Core</span>
+                <span>City Center</span>
                 <Building2 className="w-3.5 h-3.5 text-sky-400" />
               </button>
               <button
                 onClick={() => setSelectedEntity({ type: 'citizen', data: agents[0] })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Lead Observer</span>
+                <span>Follow Person</span>
                 <Users className="w-3.5 h-3.5 text-violet-400" />
               </button>
               <button
                 onClick={() => setSelectedEntity({ type: 'building', data: buildings[0] })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Main Facility</span>
+                <span>Main Factory</span>
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               </button>
             </div>

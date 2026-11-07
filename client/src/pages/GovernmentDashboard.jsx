@@ -228,17 +228,17 @@ export default function GovernmentDashboard() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Landmark className="w-3.5 h-3.5" />
-            <span>CIVIC GOVERNANCE ENGINE // PHASE 10</span>
+            <span>CITY GOVERNMENT & RULES // PHASE 10</span>
             <span className="text-slate-600">|</span>
             <span className="text-slate-400 font-mono text-[10px] uppercase">
-              FICTIONAL SIMULATION MODEL
+              VIRTUAL CITY SIMULATION
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Government & Civic Policy Directorate
+            Government Rules & Public Services
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Administer taxation, infrastructure investment, public service delivery, and regulatory enactments.
+            Manage city taxes, public services like hospitals and schools, and active government rules.
           </p>
         </div>
 
@@ -250,7 +250,7 @@ export default function GovernmentDashboard() {
             className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-900/60 to-indigo-900/60 hover:from-purple-800 hover:to-indigo-800 border border-purple-700/80 text-purple-200 font-mono text-xs flex items-center gap-2 transition-all disabled:opacity-50"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>{isAiLoading ? 'Synthesizing...' : 'AI Council Advisory'}</span>
+            <span>{isAiLoading ? 'Thinking...' : 'Ask AI City Assistant'}</span>
           </button>
         </div>
       </div>
@@ -261,10 +261,10 @@ export default function GovernmentDashboard() {
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-purple-300 font-mono font-bold flex items-center gap-1.5 uppercase">
               <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>Government AI Advisory Resolution</span>
+              <span>AI City Assistant Advice</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded bg-purple-900/60 text-purple-200 border border-purple-700 font-mono">
-              {aiPolicyAdvice.source || 'llm_cognitive_assistant'}
+              {aiPolicyAdvice.source || 'ai_assistant'}
             </span>
           </div>
           <p className="text-slate-200 text-xs font-sans italic">
@@ -272,7 +272,7 @@ export default function GovernmentDashboard() {
           </p>
           {Array.isArray(aiPolicyAdvice.recommendations) && (
             <div className="pt-2 border-t border-purple-900/50 space-y-1">
-              <div className="text-[10px] font-mono text-purple-400 uppercase">Policy Directives:</div>
+              <div className="text-[10px] font-mono text-purple-400 uppercase">Suggested Actions:</div>
               <ul className="text-xs font-mono text-slate-300 list-disc list-inside space-y-0.5">
                 {aiPolicyAdvice.recommendations.map((rec, i) => (
                   <li key={i}>{rec}</li>
@@ -286,23 +286,23 @@ export default function GovernmentDashboard() {
       {/* Primary KPI Metric Cards (Phase 10 Governance Metrics) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Civic Approval Rating"
+          label="Citizen Satisfaction"
           code="GOV.APPRV.01"
           value={`${approvalRating}%`}
           delta={2.1}
           trend={approvalRating > 60 ? 'up' : 'down'}
-          subtitle="Citizen Public Confidence"
+          subtitle="Public Trust in Government"
           icon={<Heart className="w-4 h-4 text-rose-400" />}
           sparkline={[72, 74, 76, 77, approvalRating]}
         />
 
         <MetricCard
-          label="Municipal Treasury"
+          label="City Bank Balance"
           code="GOV.TRES.02"
           value={`${treasury.toLocaleString()} NC`}
           delta={-1.5}
           trend="neutral"
-          subtitle={`Net Burn: -${totalGovernmentExpenses} NC/t`}
+          subtitle={`Running Cost: -${totalGovernmentExpenses} NC/day`}
           icon={<Coins className="w-4 h-4 text-emerald-400" />}
           sparkline={[54000, 53200, 52100, 51000, treasury]}
         />
@@ -313,18 +313,18 @@ export default function GovernmentDashboard() {
           value={`${avgServiceSatisfaction}/100`}
           delta={3.4}
           trend="up"
-          subtitle="Composite Service Index"
+          subtitle="Average Quality of City Services"
           icon={<Building2 className="w-4 h-4 text-cyan-400" />}
           sparkline={[78, 80, 82, 84, avgServiceSatisfaction]}
         />
 
         <MetricCard
-          label="Statutory Tax Rate"
+          label="City Tax Rate"
           code="GOV.TAX.04"
           value={`${taxRate}%`}
           delta={0}
           trend="neutral"
-          subtitle="Civilian Income Tariff"
+          subtitle="Income Tax on Citizens"
           icon={<Sliders className="w-4 h-4 text-amber-400" />}
           sparkline={[14, 15, 15, 15, taxRate]}
         />
@@ -336,9 +336,9 @@ export default function GovernmentDashboard() {
         {/* Left: Policy Registry & Legislative Chamber (7 Cols) */}
         <div className="lg:col-span-7 space-y-6">
           <Panel
-            tag="POLICY.DIRECTIVES"
-            title="Legislative Policy Registry"
-            subtitle={`${activePolicies.length} Active decrees modifying civilization variables`}
+            tag="CITY.RULES"
+            title="City Government Rules"
+            subtitle={`${activePolicies.length} Active rules currently changing how the city works`}
           >
             <div className="space-y-3">
               {policyCatalog.map((policy) => {
@@ -371,7 +371,7 @@ export default function GovernmentDashboard() {
                           {policy.description}
                         </p>
                         <div className="flex items-center gap-3 text-[11px] font-mono mt-2 text-slate-400">
-                          <span>Cost: <strong className="text-amber-400">{policy.costPerTick} NC/t</strong></span>
+                          <span>Cost: <strong className="text-amber-400">{policy.costPerTick} NC/day</strong></span>
                           <span>•</span>
                           <span className="text-emerald-400 font-medium">Impact: {policy.impact}</span>
                         </div>
@@ -385,7 +385,7 @@ export default function GovernmentDashboard() {
                             : 'bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-cyan-300'
                         }`}
                       >
-                        {isActive ? 'Repeal Policy' : 'Enact Decree'}
+                        {isActive ? 'Stop Rule' : 'Apply Rule'}
                       </button>
                     </div>
                   </div>
@@ -396,9 +396,9 @@ export default function GovernmentDashboard() {
 
           {/* Legislative Event History Log */}
           <Panel
-            tag="GOVERNANCE.LOG"
-            title="Legislative History & Policy Transitions"
-            subtitle="Audited simulation events recorded on every policy enactment or repeal"
+            tag="RULES.HISTORY"
+            title="History of Rule Changes"
+            subtitle="Record of when government rules were started or stopped"
           >
             <div className="space-y-2 text-xs font-mono">
               {policyHistory.slice(0, 6).map((log) => (
@@ -412,12 +412,12 @@ export default function GovernmentDashboard() {
                         ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
                         : 'bg-rose-950 text-rose-300 border-rose-800'
                     }`}>
-                      {log.action}
+                      {log.action === 'ENACT' ? 'STARTED' : 'STOPPED'}
                     </span>
                     <span className="text-white truncate font-medium">{log.name}</span>
                   </div>
                   <div className="text-[10px] text-slate-400 shrink-0">
-                    Tick #{log.tick} • {log.timestamp}
+                    Day #{log.tick} • {log.timestamp}
                   </div>
                 </div>
               ))}
@@ -429,8 +429,8 @@ export default function GovernmentDashboard() {
         <div className="lg:col-span-5 space-y-6">
           <Panel
             tag="PUBLIC.SERVICES"
-            title="Municipal Public Services Delivery"
-            subtitle="Operational allocations, citizen capacities, and satisfaction scores"
+            title="City Public Services"
+            subtitle="Budget spending, capacity, and satisfaction for essential city services"
           >
             <div className="space-y-3.5">
               {services.map((s) => (
@@ -443,17 +443,17 @@ export default function GovernmentDashboard() {
                       <span className="text-base">{s.icon}</span>
                       <span className="font-semibold text-white">{s.name}</span>
                     </div>
-                    <span className="text-emerald-400 font-bold">{s.satisfaction}% Sat</span>
+                    <span className="text-emerald-400 font-bold">{s.satisfaction}% Happy</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1">
-                    <div>Allocation: <strong className="text-cyan-400">{s.allocation} NC/t</strong></div>
-                    <div>Capacity: <strong className="text-slate-200">{s.capacity} Citizens</strong></div>
+                    <div>Budget: <strong className="text-cyan-400">{s.allocation} NC/day</strong></div>
+                    <div>Capacity: <strong className="text-slate-200">{s.capacity} People</strong></div>
                   </div>
 
                   {/* Budget Controls */}
                   <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
-                    <span className="text-[10px] text-slate-400">Budget Adjustment:</span>
+                    <span className="text-[10px] text-slate-400">Change Budget:</span>
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleServiceAllocationChange(s.key, -10)}
@@ -476,13 +476,13 @@ export default function GovernmentDashboard() {
 
           {/* Tax Code Regulation Panel */}
           <Panel
-            tag="FISCAL.TAXATION"
-            title="Municipal Tax Code & Fiscal Policy"
-            subtitle="Adjust direct statutory tax rate across population"
+            tag="CITY.TAX"
+            title="City Income Tax Settings"
+            subtitle="Change the percentage of tax collected from citizens"
           >
             <div className="p-3.5 rounded-lg bg-[#080a11] border border-slate-800 space-y-3 text-xs font-mono">
               <div className="flex items-center justify-between">
-                <span className="text-slate-300">Statutory Tax Rate:</span>
+                <span className="text-slate-300">Current Tax Rate:</span>
                 <span className="text-cyan-400 font-bold text-base">{taxRate}%</span>
               </div>
               <input
@@ -494,8 +494,8 @@ export default function GovernmentDashboard() {
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
               <div className="flex justify-between text-[10px] text-slate-400">
-                <span>5% (Low Revenue / High Morale)</span>
-                <span>35% (High Revenue / Austerity)</span>
+                <span>5% (Lower Revenue / Happier People)</span>
+                <span>35% (Higher Revenue / Less Happy)</span>
               </div>
             </div>
           </Panel>

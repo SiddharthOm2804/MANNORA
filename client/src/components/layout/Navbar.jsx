@@ -35,17 +35,17 @@ export default function Navbar({
           <span className="font-mono text-xs font-semibold text-white tracking-wider truncate">
             {worldName}
           </span>
-          <span className="text-[10px] font-mono px-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
-            SIM-01
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+            CITY-01
           </span>
         </div>
 
         <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-slate-400">
           <span className="text-slate-600">/</span>
-          <span className="text-[11px] text-slate-300">{epoch}</span>
+          <span className="text-[11px] text-slate-300">STAGE 01</span>
           <span className="text-slate-600">/</span>
           <span className="text-[11px] font-semibold text-cyan-400 font-mono-data">
-            TICK #{tick.toLocaleString()}
+            CLOCK STEP #{tick.toLocaleString()}
           </span>
         </div>
       </div>
@@ -58,28 +58,27 @@ export default function Navbar({
         >
           <div className="flex items-center gap-2">
             <Search className="w-3.5 h-3.5 text-slate-400" />
-            <span>Search console commands, telemetry, agents...</span>
+            <span>Search city details, people, actions...</span>
           </div>
           <kbd className="px-1.5 py-0.5 rounded bg-slate-800/80 text-[10px] text-slate-400 border border-slate-700/80">
-            ⌘K
+            Ctrl+K
           </kbd>
         </button>
       </div>
 
-      {/* Right: Telemetry & Server Status Vitals */}
+      {/* Right: City Server & Database Status */}
       <div className="flex items-center gap-3 shrink-0">
-        {/* Backend & DB Health Indicator */}
         <div className="flex items-center gap-2">
           <StatusIndicator
             status={isDbConnected ? 'operational' : isServerRunning ? 'degraded' : 'error'}
-            label={isDbConnected ? 'DB SYNC' : isServerRunning ? 'DB OFFLINE' : 'OFFLINE'}
+            label={isDbConnected ? 'DATA SAVED' : isServerRunning ? 'DATABASE DISCONNECTED' : 'SERVER OFFLINE'}
             size="sm"
           />
 
           <button
             onClick={onRefreshHealth}
             disabled={isHealthLoading}
-            title="Refresh System Health Telemetry"
+            title="Refresh System Health Check"
             className="p-1.5 rounded text-slate-400 hover:text-cyan-400 hover:bg-slate-800/60 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isHealthLoading ? 'animate-spin text-cyan-400' : ''}`} />
