@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Terminal,
   Globe,
-  Landmark
+  Landmark,
+  FlaskConical
 } from 'lucide-react';
 
 /**
@@ -66,11 +67,18 @@ export default function Sidebar({ isCollapsed, onToggleCollapse }) {
       tag: '06',
     },
     {
+      to: '/experiment-lab',
+      label: 'Experiment Lab',
+      shortLabel: 'Lab',
+      icon: <FlaskConical className="w-4 h-4 shrink-0" />,
+      tag: '07',
+    },
+    {
       to: '/settings',
       label: 'City Settings',
       shortLabel: 'Settings',
       icon: <Settings className="w-4 h-4 shrink-0" />,
-      tag: '07',
+      tag: '08',
     },
   ];
 

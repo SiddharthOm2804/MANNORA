@@ -1,4 +1,4 @@
-import { SimulationEngine } from '@neural-city/simulation';
+import { SimulationEngine, ExperimentLab } from '@neural-city/simulation';
 import { World } from '../models/World.js';
 import { worldService } from './worldService.js';
 import { WorldStateAdapter } from './worldStateAdapter.js';
@@ -13,6 +13,7 @@ export class SimulationBridgeService {
   constructor() {
     /** @type {Map<string, { engine: SimulationEngine, worldId: string, unbind: Function, worldDoc: Object }>} */
     this.activeSimulations = new Map();
+    this.experimentLab = new ExperimentLab();
   }
 
   /**
@@ -342,6 +343,67 @@ export class SimulationBridgeService {
       worldId,
       report,
     };
+  }
+
+  /**
+   * Run a multi-run simulation experiment in the Experiment Lab (Phase 13).
+   * @param {string} [worldId] - Optional anchor world ID
+   * @param {Object} experimentSpec - Specification for experiment
+   * @returns {Promise<Object>} Completed experiment with statistical aggregation
+   */
+  async runExperiment(worldId, experimentSpec = {}) {
+    let startingConditions = experimentSpec.startingConditions || {};
+
+    // If anchor world provided, merge its current state
+    if (worldId && isValidMongoId(worldId)) {
+      const sim = this.activeSimulations.get(worldId);
+      if (sim) {
+        startingConditions = sim.engine.stateManager.getCurrentState();
+      } else {
+        const worldDoc = await worldService.getWorldById(worldId);
+        if (worldDoc) {
+          startingConditions = WorldStateAdapter.documentToState(worldDoc);
+        }
+      }
+    }
+
+    const payload = {
+      ...experimentSpec,
+      startingConditions,
+    };
+
+    const experiment = await this.experimentLab.runExperiment(payload);
+    return experiment;
+  }
+
+  /**
+   * List all registered experiments in the Experiment Lab
+   */
+  listExperiments() {
+    return this.experimentLab.listExperiments();
+  }
+
+  /**
+   * Get single experiment by ID
+   * @param {string} experimentId
+   */
+  getExperiment(experimentId) {
+    const exp = this.experimentLab.getExperiment(experimentId);
+    if (!exp) {
+      const error = new Error(`Experiment ${experimentId} not found`);
+      error.name = 'NotFoundError';
+      error.status = 404;
+      throw error;
+    }
+    return exp;
+  }
+
+  /**
+   * Compare multiple completed experiments
+   * @param {string[]} experimentIds
+   */
+  compareExperiments(experimentIds) {
+    return this.experimentLab.compareExperiments(experimentIds);
   }
 
   /**

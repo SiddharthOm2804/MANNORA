@@ -10,6 +10,7 @@ import Analytics from './pages/Analytics';
 import Timeline from './pages/Timeline';
 import Settings from './pages/Settings';
 import GovernmentDashboard from './pages/GovernmentDashboard';
+import ExperimentLab from './pages/ExperimentLab';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/government" element={<GovernmentDashboard />} />
           <Route path="/timeline" element={<Timeline />} />
+          <Route path="/experiment-lab" element={<ExperimentLab />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
 

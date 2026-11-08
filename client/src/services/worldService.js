@@ -200,6 +200,44 @@ export const worldService = {
     }
   },
 
+  // Phase 13 Experiment Lab Services
+  async runExperiment(worldId, experimentSpec) {
+    try {
+      const endpoint = worldId ? `/worlds/${worldId}/experiments` : `/worlds/experiments/run`;
+      const response = await api.post(endpoint, experimentSpec);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async listExperiments() {
+    try {
+      const response = await api.get('/worlds/experiments/all');
+      return { success: true, data: response.data?.data || [] };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message, data: [] };
+    }
+  },
+
+  async getExperiment(expId) {
+    try {
+      const response = await api.get(`/worlds/experiments/${expId}`);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
+  async compareExperiments(experimentIds) {
+    try {
+      const response = await api.post('/worlds/experiments/compare', { experimentIds });
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  },
+
   /**
    * Delete world by ID.
    * @param {string} id

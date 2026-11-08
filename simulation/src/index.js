@@ -16,6 +16,11 @@ export { SnapshotSystem } from './time/SnapshotSystem.js';
 export { BranchEngine } from './time/BranchEngine.js';
 export { CounterfactualEngine } from './time/CounterfactualEngine.js';
 
+// Experiment Lab Components (Phase 13)
+export { ExperimentLab } from './experiment/ExperimentLab.js';
+export { ExperimentRunner } from './experiment/ExperimentRunner.js';
+export { StatisticalAnalysis } from './experiment/StatisticalAnalysis.js';
+
 // Modular Subsystems
 export { EventEngine } from './events/EventEngine.js';
 export { EventQueue } from './events/EventQueue.js';

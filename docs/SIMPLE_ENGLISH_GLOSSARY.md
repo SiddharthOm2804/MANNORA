@@ -287,3 +287,4 @@ This document explains technical words in simple, natural Indian English with ev
 - **Simple Meaning:** Running existing tests after making code changes to guarantee that nothing previously working got broken.
 - **What it does in MANNORA:** Running all 97 simulation tests to make sure that adding simple English labels did not break simulation calculations.
 - **Real-Life Example:** Double-checking your entire bicycle after fixing a flat tyre to ensure the brakes and chain still work perfectly.
+

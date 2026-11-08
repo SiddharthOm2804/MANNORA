@@ -228,6 +228,69 @@ export const runComparison = async (req, res, next) => {
     next(error);
   }
 };
+
+// Phase 13 Experiment Lab Controllers
+export const runExperiment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const experiment = await simulationBridgeService.runExperiment(id, req.body || {});
+
+    res.status(200).json({
+      success: true,
+      message: `Simulation experiment '${experiment.name}' completed`,
+      data: experiment,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const listExperiments = async (req, res, next) => {
+  try {
+    const experiments = simulationBridgeService.listExperiments();
+    res.status(200).json({
+      success: true,
+      data: experiments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getExperiment = async (req, res, next) => {
+  try {
+    const { expId } = req.params;
+    const experiment = simulationBridgeService.getExperiment(expId);
+    res.status(200).json({
+      success: true,
+      data: experiment,
+    });
+  } catch (error) {
+    if (error.name === 'NotFoundError' || error.status === 404) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const compareExperiments = async (req, res, next) => {
+  try {
+    const { experimentIds } = req.body || {};
+    const comparison = simulationBridgeService.compareExperiments(experimentIds);
+    res.status(200).json({
+      success: true,
+      data: comparison,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 export default {
   launchSimulation,
   stepSimulation,
@@ -240,4 +303,8 @@ export default {
   jumpToDay,
   createBranch,
   runComparison,
+  runExperiment,
+  listExperiments,
+  getExperiment,
+  compareExperiments,
 };

@@ -19,6 +19,10 @@ import {
   jumpToDay,
   createBranch,
   runComparison,
+  runExperiment,
+  listExperiments,
+  getExperiment,
+  compareExperiments,
 } from '../controllers/simulationController.js';
 
 const router = Router();
@@ -56,6 +60,13 @@ router.post('/:id/rewind', rewindSimulation);
 router.post('/:id/jump-to-day', jumpToDay);
 router.post('/:id/branches', createBranch);
 router.post('/:id/compare', runComparison);
+
+// Experiment Lab Routes (Phase 13)
+router.post('/:id/experiments', runExperiment);
+router.post('/experiments/run', runExperiment);
+router.get('/experiments/all', listExperiments);
+router.get('/experiments/:expId', getExperiment);
+router.post('/experiments/compare', compareExperiments);
 
 // GET /api/worlds/:id - Get single world details
 router.get('/:id', getWorldById);

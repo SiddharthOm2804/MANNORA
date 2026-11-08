@@ -83,3 +83,4 @@ All modifications strictly preserved backend route contracts, simulation physics
 - [x] Is there any fake data in the UI? **No, all data flows from the simulation engine.**
 - [x] Can the student explain how the 3D city connects to code? **Yes.**
 - [x] Are difficult terms explained in `docs/SIMPLE_ENGLISH_GLOSSARY.md`? **Yes.**
+

@@ -75,3 +75,4 @@ The following user-visible files will be updated with beginner-friendly text:
 2. **`README.md`**: Friendly project overview, simple setup steps, architecture explanation, and viva presentation guide.
 3. **`docs/architecture.md` & other guides**: Simplified explanations of the 7-stage tick pipeline and data flow.
 4. **`ai/` assistant prompts**: Update system prompts in `CitizenAI`, `GovernmentAI`, `AnalystAI`, and `DeterministicRuleFallbackProvider` to respond in simple Indian English.
+
