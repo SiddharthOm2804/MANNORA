@@ -1,5 +1,6 @@
 import express from 'express';
-import { CitizenAI, GovernmentAI, AnalystAI, AIProviderFactory, WorldPromptParser } from '@neural-city/ai';
+import { CitizenAI, GovernmentAI, AnalystAI, AIProviderFactory, WorldPromptParser, CausalAnalyzer } from '@neural-city/ai';
+import { simulationBridgeService } from '../services/simulationBridgeService.js';
 
 const router = express.Router();
 const providerFactory = new AIProviderFactory();
@@ -8,6 +9,7 @@ const activeProvider = providerFactory.getProvider();
 const governmentAI = new GovernmentAI({ aiProvider: activeProvider });
 const analystAI = new AnalystAI({ aiProvider: activeProvider });
 const worldPromptParser = new WorldPromptParser({ aiProvider: activeProvider });
+const causalAnalyzer = new CausalAnalyzer({ aiProvider: activeProvider });
 
 // Cache of CitizenAI cognitive instances: Map<citizenId, CitizenAI>
 const citizenAICache = new Map();
@@ -174,6 +176,51 @@ router.post('/world-prompt/parse', async (req, res, next) => {
       success: true,
       message: 'Natural language prompt successfully parsed and validated',
       data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/ai/causal-inquiry
+ * AI Analyst Causal Reasoning (Phase 15)
+ * Answers user questions ("Why did unemployment increase?", "What caused the economic decline?")
+ * Grounded in empirical snapshots and simulation events.
+ */
+router.post('/causal-inquiry', async (req, res, next) => {
+  try {
+    const { question, worldId, history } = req.body || {};
+    if (!question || typeof question !== 'string' || !question.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Question is required and must not be empty',
+      });
+    }
+
+    let simulationHistory = history || {};
+
+    // If worldId provided and simulation running, pull real snapshots and events directly
+    if (worldId) {
+      const activeSim = simulationBridgeService.getActiveSimulation(worldId);
+      if (activeSim && activeSim.engine) {
+        const snapshots = Array.from(activeSim.engine.stateManager.history.values());
+        const events = activeSim.engine.stateManager.getCurrentState().activeEvents || [];
+        const policyHistory = activeSim.engine.stateManager.getCurrentState().government?.recentPolicyHistory || [];
+        simulationHistory = {
+          snapshots,
+          events,
+          policyHistory,
+        };
+      }
+    }
+
+    const answer = await causalAnalyzer.answerCausalInquiry(question.trim(), simulationHistory);
+
+    res.json({
+      success: true,
+      message: 'Causal inquiry analyzed successfully',
+      data: answer,
     });
   } catch (err) {
     next(err);

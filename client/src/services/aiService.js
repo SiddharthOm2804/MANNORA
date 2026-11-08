@@ -98,6 +98,21 @@ export const aiService = {
       };
     }
   },
+  /**
+   * AI Analyst Causal Inquiry (Phase 15)
+   * Answers "Why did unemployment increase?", "What caused economic decline?", etc.
+   */
+  async askCausalInquiry(question, worldId = null, history = null) {
+    try {
+      const res = await api.post('/ai/causal-inquiry', { question, worldId, history });
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
+    }
+  },
 };
 
 export default aiService;

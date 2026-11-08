@@ -15,6 +15,8 @@ export { BaseCognitiveAgent } from './agents/BaseCognitiveAgent.js';
 export { CitizenAI } from './agents/CitizenAI.js';
 export { GovernmentAI } from './agents/GovernmentAI.js';
 export { AnalystAI } from './analysis/AnalystAI.js';
+export { CausalAnalyzer } from './analysis/CausalAnalyzer.js';
+export { SimulationAnalyzer } from './analysis/SimulationAnalyzer.js';
 
 // Natural Language Generation (Phase 14)
 export { WorldPromptParser } from './generation/WorldPromptParser.js';
