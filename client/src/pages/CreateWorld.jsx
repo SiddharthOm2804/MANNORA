@@ -25,9 +25,18 @@ import Panel from '../components/common/Panel';
 import Modal from '../components/common/Modal';
 import StatusIndicator from '../components/common/StatusIndicator';
 import { worldService, generateDefaultCities } from '../services/worldService';
+import { aiService } from '../services/aiService';
 
 export default function CreateWorld() {
   const navigate = useNavigate();
+
+  // Natural Language Generation State (Phase 14)
+  const [nlPrompt, setNlPrompt] = useState(
+    'Create a desert civilization with 20,000 citizens, two cities, limited water, agriculture, trade, hospitals and a central government.'
+  );
+  const [isParsingNl, setIsParsingNl] = useState(false);
+  const [nlValidationResult, setNlValidationResult] = useState(null);
+  const [isNlConfirmationOpen, setIsNlConfirmationOpen] = useState(false);
 
   // 1. World Name & Description
   const [worldName, setWorldName] = useState('Sector 07 // Neo-Alexandria');
@@ -107,6 +116,48 @@ export default function CreateWorld() {
 
   // Preview generated cities calculation
   const previewCities = generateDefaultCities(numberOfCities, population, worldName);
+
+  // Natural Language Pipeline Handler (Phase 14)
+  const handleParseNlPrompt = async () => {
+    if (!nlPrompt.trim()) return;
+    setIsParsingNl(true);
+    setErrorMessage('');
+
+    try {
+      const res = await aiService.parseWorldPrompt(nlPrompt.trim());
+      if (res.success && res.data) {
+        setNlValidationResult(res.data);
+        setIsNlConfirmationOpen(true);
+      } else {
+        setErrorMessage(res.message || 'Failed to parse natural language prompt');
+      }
+    } catch (e) {
+      setErrorMessage(e.message || 'Error executing AI pipeline');
+    } finally {
+      setIsParsingNl(false);
+    }
+  };
+
+  // Apply validated configuration upon explicit user confirmation
+  const handleConfirmNlConfiguration = () => {
+    if (!nlValidationResult || !nlValidationResult.validatedConfig) return;
+    const cfg = nlValidationResult.validatedConfig;
+
+    setWorldName(cfg.name);
+    setDescription(cfg.description);
+    setPopulation(cfg.population);
+    setNumberOfCities(cfg.numberOfCities);
+    setBiome(cfg.biome);
+    setGovernmentType(cfg.governmentType);
+    setResources(cfg.resources);
+    setStartingMoney(cfg.startingMoney);
+    if (cfg.industries && cfg.industries.length > 0) {
+      setSelectedIndustries(cfg.industries);
+    }
+
+    setIsNlConfirmationOpen(false);
+    setSuccessMessage(`Natural language configuration for "${cfg.name}" applied! Review below or start city.`);
+  };
 
   // Form submission handler
   const handleDeployWorld = async () => {
@@ -212,6 +263,59 @@ export default function CreateWorld() {
           <span>{successMessage}</span>
         </div>
       )}
+
+      {/* PHASE 14: Natural Language World Creation Section */}
+      <Panel
+        tag="AI.PROMPT.BUILDER"
+        title="Create City From Natural Language Prompt (Phase 14)"
+        subtitle="Write what you want in plain English; AI converts it to a verified city setup"
+      >
+        <div className="space-y-3 text-xs font-mono">
+          <div className="space-y-1.5">
+            <label className="text-slate-300 flex justify-between">
+              <span>NATURAL LANGUAGE PROMPT</span>
+              <span className="text-cyan-400">Describe your civilization</span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={nlPrompt}
+                onChange={(e) => setNlPrompt(e.target.value)}
+                placeholder='e.g. "Create a desert civilization with 20,000 citizens, two cities, limited water, agriculture, trade, hospitals and a central government."'
+                className="flex-1 bg-[#080a11] border border-slate-800 focus:border-cyan-500 rounded px-3 py-2 text-white focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleParseNlPrompt}
+                disabled={isParsingNl || !nlPrompt.trim()}
+                className="px-4 py-2 rounded bg-gradient-to-r from-purple-900/80 to-indigo-900/80 hover:from-purple-800 hover:to-indigo-800 text-purple-200 border border-purple-700/80 font-bold transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
+              >
+                {isParsingNl ? (
+                  <>
+                    <Cpu className="w-3.5 h-3.5 animate-spin text-purple-300" />
+                    <span>PARSING...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <span>AI BUILD & VALIDATE</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-400">
+            <span className="text-slate-500">Pipeline:</span>
+            <span className="text-cyan-400">User Prompt</span>
+            <span>→</span>
+            <span className="text-cyan-400">WorldPromptParser</span>
+            <span>→</span>
+            <span className="text-cyan-400">Strict Validation</span>
+            <span>→</span>
+            <span className="text-purple-400">Preview & Confirm</span>
+          </div>
+        </div>
+      </Panel>
 
       {/* Form Deck */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -736,6 +840,157 @@ export default function CreateWorld() {
 
         </div>
       </Modal>
+
+      {/* PHASE 14: Natural Language Validation & Confirmation Modal */}
+      {nlValidationResult && (
+        <Modal
+          isOpen={isNlConfirmationOpen}
+          onClose={() => setIsNlConfirmationOpen(false)}
+          size="lg"
+          tag="AI.VALIDATION // WORLD-CONFIG"
+          title={`AI Generated Configuration: ${nlValidationResult.validatedConfig?.name}`}
+          description="Review the structured configuration converted from your natural language prompt. Verify all parameters before applying."
+          footer={
+            <div className="flex items-center justify-between w-full">
+              <span className="text-[11px] font-mono text-slate-400">
+                {nlValidationResult.isValid ? (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Configuration Validated</span>
+                  </span>
+                ) : (
+                  <span className="text-rose-400 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Errors Present</span>
+                  </span>
+                )}
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsNlConfirmationOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-800 text-xs font-mono text-slate-300 hover:text-white"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmNlConfiguration}
+                  disabled={!nlValidationResult.isValid}
+                  className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 shadow-md shadow-cyan-600/20 disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Confirm & Populate Form</span>
+                </button>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-4 text-xs font-mono">
+            {/* User Prompt Echo */}
+            <div className="p-3 rounded-lg bg-[#080a11] border border-purple-800/60 space-y-1">
+              <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">Original Natural Language Prompt</span>
+              <p className="text-slate-200 text-xs font-sans italic">"{nlPrompt}"</p>
+            </div>
+
+            {/* Validation Warnings or Errors */}
+            {nlValidationResult.warnings && nlValidationResult.warnings.length > 0 && (
+              <div className="p-3 rounded-lg bg-amber-950/20 border border-amber-800/60 space-y-1 text-amber-300 text-[11px]">
+                <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Validation Adjustments</span>
+                </span>
+                <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+                  {nlValidationResult.warnings.map((w, idx) => (
+                    <li key={idx}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Extracted Configuration Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">POPULATION</span>
+                <span className="text-cyan-400 font-bold text-sm">
+                  {nlValidationResult.validatedConfig?.population?.toLocaleString()}
+                </span>
+              </div>
+              <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">CITIES COUNT</span>
+                <span className="text-white font-bold text-sm">
+                  {nlValidationResult.validatedConfig?.numberOfCities} Cities
+                </span>
+              </div>
+              <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">BIOME / CLIMATE</span>
+                <span className="text-amber-400 font-bold text-sm">
+                  {nlValidationResult.validatedConfig?.biome}
+                </span>
+              </div>
+              <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">GOVERNMENT</span>
+                <span className="text-emerald-400 font-bold text-sm truncate block">
+                  {nlValidationResult.validatedConfig?.governmentType}
+                </span>
+              </div>
+            </div>
+
+            {/* Resources breakdown */}
+            <div className="p-3 rounded-lg bg-[#080a11] border border-slate-800 space-y-2">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Validated Initial Resources</span>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-[11px]">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">WATER</span>
+                  <strong className={nlValidationResult.validatedConfig?.resources?.water < 2500 ? 'text-rose-400' : 'text-cyan-400'}>
+                    {nlValidationResult.validatedConfig?.resources?.water}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">ENERGY</span>
+                  <strong className="text-amber-400">{nlValidationResult.validatedConfig?.resources?.energy}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">AGRICULTURE</span>
+                  <strong className="text-emerald-400">{nlValidationResult.validatedConfig?.resources?.agriculture}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">MINERALS</span>
+                  <strong className="text-slate-200">{nlValidationResult.validatedConfig?.resources?.minerals}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">TECHNOLOGY</span>
+                  <strong className="text-violet-400">{nlValidationResult.validatedConfig?.resources?.technology}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Extracted Sectors & Services */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+              <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-1">
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">Inferred Industries</span>
+                <div className="space-y-0.5 text-slate-200">
+                  {nlValidationResult.validatedConfig?.industries?.map((ind, i) => (
+                    <div key={i}>• {ind}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-1">
+                <span className="text-slate-400 text-[10px] uppercase font-semibold block">Public Infrastructure</span>
+                <div className="space-y-0.5 text-slate-200">
+                  {nlValidationResult.validatedConfig?.publicServices?.map((srv, i) => (
+                    <div key={i}>• {srv}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded bg-cyan-950/20 border border-cyan-800/40 text-[11px] text-cyan-300">
+              Safety Guarantee: All values have been checked against system thresholds. Clicking "Confirm" will populate the city creation form so you can review or modify any setting.
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

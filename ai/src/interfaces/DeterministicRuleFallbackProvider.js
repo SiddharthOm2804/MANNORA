@@ -25,6 +25,59 @@ export class DeterministicRuleFallbackProvider extends ILLMProvider {
 
     const lower = promptStr.toLowerCase();
 
+    // 0. Natural Language World Creation / WorldPromptParser (Phase 14)
+    if (lower.includes('world configuration architect') || lower.includes('create a') && lower.includes('civilization')) {
+      // Deterministically parse attributes from prompt
+      let pop = 20000;
+      const popMatch = promptStr.match(/(\d[\d,]*)\s*(?:citizens|people|residents)/i);
+      if (popMatch) {
+        pop = parseInt(popMatch[1].replace(/,/g, ''), 10);
+      }
+
+      let citiesCount = 2;
+      const cityMatch = promptStr.match(/(one|two|three|four|five|six|\d+)\s*(?:cities|municipalities)/i);
+      if (cityMatch) {
+        const wordMap = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+        citiesCount = wordMap[cityMatch[1].toLowerCase()] || parseInt(cityMatch[1], 10) || 2;
+      }
+
+      const isDesert = lower.includes('desert') || lower.includes('arid');
+      const isLimitedWater = lower.includes('limited water') || lower.includes('water scarcity') || lower.includes('scarce');
+
+      return {
+        text: JSON.stringify({
+          name: isDesert ? 'Neo-Sahara Central Oasis' : 'New Horizon Autonomous Matrix',
+          description: `A ${isDesert ? 'desert' : 'temperate'} civilization with ${pop.toLocaleString()} citizens, ${citiesCount} cities, and central government.`,
+          population: pop,
+          numberOfCities: citiesCount,
+          biome: isDesert ? 'Desert' : 'Cybernetic Basin',
+          governmentType: 'Central Government',
+          resources: {
+            water: isLimitedWater ? 1200 : 5000,
+            energy: 5500,
+            agriculture: lower.includes('agriculture') ? 4200 : 3000,
+            minerals: 2800,
+            technology: 1800,
+          },
+          startingMoney: 600000,
+          taxRate: 0.15,
+          industries: [
+            'Synthetic Bio-Agriculture & Farming',
+            'Commercial Trade & Markets',
+            'Healthcare, Biotech & Clinics',
+          ],
+          publicServices: [
+            'Municipal Hospitals & Healthcare Clinics',
+            'Central Civil Administration',
+            'Water Purification Grid',
+          ],
+        }),
+        raw: { model: 'fallback-rules-v1', mode: 'world_generation' },
+        usage: { promptTokens: promptStr.length, completionTokens: 96, totalTokens: promptStr.length + 96 },
+        fallback: true,
+      };
+    }
+
     // 1. Government Policy / Governance AI
     if (lower.includes('government') || lower.includes('policy') || lower.includes('council')) {
       return {

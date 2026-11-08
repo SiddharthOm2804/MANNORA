@@ -83,6 +83,21 @@ export const aiService = {
       };
     }
   },
+  /**
+   * Natural Language World Creation (Phase 14)
+   * Parse prompt into validated structured configuration
+   */
+  async parseWorldPrompt(prompt) {
+    try {
+      const res = await api.post('/ai/world-prompt/parse', { prompt });
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
+    }
+  },
 };
 
 export default aiService;

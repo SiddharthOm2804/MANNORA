@@ -1,5 +1,5 @@
 import express from 'express';
-import { CitizenAI, GovernmentAI, AnalystAI, AIProviderFactory } from '@neural-city/ai';
+import { CitizenAI, GovernmentAI, AnalystAI, AIProviderFactory, WorldPromptParser } from '@neural-city/ai';
 
 const router = express.Router();
 const providerFactory = new AIProviderFactory();
@@ -7,6 +7,7 @@ const activeProvider = providerFactory.getProvider();
 
 const governmentAI = new GovernmentAI({ aiProvider: activeProvider });
 const analystAI = new AnalystAI({ aiProvider: activeProvider });
+const worldPromptParser = new WorldPromptParser({ aiProvider: activeProvider });
 
 // Cache of CitizenAI cognitive instances: Map<citizenId, CitizenAI>
 const citizenAICache = new Map();
@@ -146,6 +147,33 @@ router.post('/analyst/diagnostics', async (req, res, next) => {
     res.json({
       success: true,
       data: diagnostic,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/ai/world-prompt/parse
+ * Natural Language World Creation (Phase 14)
+ * Converts prompt to structured, strictly validated configuration.
+ */
+router.post('/world-prompt/parse', async (req, res, next) => {
+  try {
+    const { prompt } = req.body || {};
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Prompt is required and must not be empty',
+      });
+    }
+
+    const result = await worldPromptParser.parseWorldPrompt(prompt.trim());
+
+    res.json({
+      success: true,
+      message: 'Natural language prompt successfully parsed and validated',
+      data: result,
     });
   } catch (err) {
     next(err);
