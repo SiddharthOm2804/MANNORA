@@ -100,3 +100,4 @@ describe('Phase 15: CausalAnalyzer Inquiries & Structured Responses', () => {
     assert.ok(res.observation.includes('water'));
   });
 });
+
