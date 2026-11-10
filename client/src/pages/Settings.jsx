@@ -20,7 +20,7 @@ export default function Settings() {
   const [maxHistory, setMaxHistory] = useState(100);
   const [prngAlgorithm, setPrngAlgorithm] = useState('mulberry32');
   const [telemetryInterval, setTelemetryInterval] = useState(1);
-  const [apiEndpoint, setApiEndpoint] = useState('http://localhost:5000');
+  const [apiEndpoint, setApiEndpoint] = useState('http://localhost:5005');
   const [mongoUri, setMongoUri] = useState('mongodb://localhost:27017/neural_city');
   const [renderQuality, setRenderQuality] = useState('high');
   const [gridOpacity, setGridOpacity] = useState(0.4);
