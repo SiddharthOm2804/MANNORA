@@ -63,15 +63,15 @@ export class CausalAnalyzer {
     const prompt = [
       {
         role: 'system',
-        content: `You are the Lead Simulation Causal Analyst for MANNORA (Virtual City Simulation).
-Answer the user's question about the virtual city strictly based on the provided empirical simulation data.
+        content: `You help people understand why their city changed.
+Answer using only the city information below.
 Do NOT invent statistics or events that are not in the data.
 Structure your response as a valid JSON object with:
-- observation: 1-2 sentences stating what the simulation data shows
-- evidence: an array of strings listing exact verified numbers and deltas from the data
+- observation: 1-2 short sentences about what changed
+- evidence: a list of numbers that support your answer
 - relatedEvents: array of event names or titles that occurred in this period
-- possibleCause: clear explanation of the simulation mechanism (e.g. resource shortage leading to price spike or business layoffs)
-- confidence: "High (Direct Evidence)" | "Moderate (Correlated Metric Drift)" | "Inconclusive (Insufficient Telemetry)"
+- possibleCause: a simple explanation of what may have caused the change (e.g. resource shortage leading to price spike or business layoffs)
+- confidence: "Strong evidence" | "Some evidence" | "Not enough information"
 - verdict: concise summary in simple Indian English.`,
       },
       {
@@ -104,7 +104,7 @@ ${JSON.stringify(empirical, null, 2)}`,
       evidence: Array.isArray(parsed.evidence) ? parsed.evidence : [String(parsed.evidence)],
       relatedEvents: parsed.relatedEvents || (empirical.events || []).map((e) => e.title),
       possibleCause: parsed.possibleCause,
-      confidence: parsed.confidence || 'High (Direct Evidence)',
+      confidence: parsed.confidence || 'Strong evidence',
       verdict: parsed.verdict || parsed.observation,
       disclaimer: 'SIMULATION RESULT: This analysis explains mathematical relationships inside MANNORA simulation code. It does not reflect real-world economic or demographic certainty.',
       empiricalDeltas: empirical.deltas,
@@ -149,16 +149,16 @@ ${JSON.stringify(empirical, null, 2)}`,
         const waterDelta = d.water ? d.water.delta : 0;
 
         return {
-          observation: `Simulation data shows unemployment changed by ${unempDelta >= 0 ? '+' : ''}${unempDelta}% to reach a current rate of ${unempEnd}%.`,
+          observation: `The share of people without work changed by ${unempDelta >= 0 ? '+' : ''}${unempDelta}% to reach a current rate of ${unempEnd}%.`,
           evidence: [
-            `Unemployment Rate: from ${d.unemployment?.start ?? 0}% to ${d.unemployment?.end ?? 0}%`,
-            `Total Goods Production (GDP): ${gdpDelta >= 0 ? '+' : ''}${gdpDelta} NC net shift`,
-            `City Water Reserves: ${waterDelta >= 0 ? '+' : ''}${waterDelta} units change`,
+            `People without work: from ${d.unemployment?.start ?? 0}% to ${d.unemployment?.end ?? 0}%`,
+            `Goods made: ${gdpDelta >= 0 ? '+' : ''}${gdpDelta} rupees changed`,
+            `City water supply: ${waterDelta >= 0 ? '+' : ''}${waterDelta} units change`,
           ],
           relatedEvents: events.filter((e) => e.type.includes('economic') || e.type.includes('shortage') || e.type.includes('failure')).map((e) => e.title),
-          possibleCause: 'When commodity inputs (like water or energy) face deficits, production costs rise. Commercial businesses experience reduced profits and pause hiring, causing unemployment to tick upward.',
-          confidence: 'High (Direct Evidence)',
-          verdict: `Unemployment rose primarily due to commercial hiring freezes triggered by input cost inflation and resource shifts.`,
+          possibleCause: 'When the city has less water or power, it may cost more for shops to work. Some shops may stop hiring.',
+          confidence: 'Strong evidence',
+          verdict: `There were fewer jobs as shop costs went up.`,
         };
       }
 
@@ -167,16 +167,16 @@ ${JSON.stringify(empirical, null, 2)}`,
         const tresDelta = d.treasury ? d.treasury.delta : 0;
 
         return {
-          observation: `City production (GDP) shifted by ${gdpDelta} NC and municipal treasury reserves changed by ${tresDelta} NC across ${empirical.totalSnapshots || 1} recorded snapshots.`,
+          observation: `Goods made changed by ${gdpDelta} NC and city funds changed by ${tresDelta} NC over ${empirical.totalSnapshots || 1} saved points.`,
           evidence: [
-            `GDP trajectory: start ${d.gdp?.start ?? 0} NC, current ${d.gdp?.end ?? 0} NC`,
-            `Treasury balance: start ${d.treasury?.start ?? 0} NC, current ${d.treasury?.end ?? 0} NC`,
-            `Triggered crisis events: ${events.length} recorded incidents`,
+            `Goods made: start ${d.gdp?.start ?? 0} NC, current ${d.gdp?.end ?? 0} NC`,
+            `City funds: start ${d.treasury?.start ?? 0} NC, current ${d.treasury?.end ?? 0} NC`,
+            `City events: ${events.length} recorded incidents`,
           ],
           relatedEvents: events.map((e) => e.title),
-          possibleCause: 'Production drops occur when material bottlenecks reduce factory efficiency or when disaster events damage physical infrastructure and divert emergency funds.',
-          confidence: 'High (Direct Evidence)',
-          verdict: 'Economic output contracted due to combined supply shortages and infrastructure repair deductions.',
+          possibleCause: 'The city may make fewer goods when supplies run low or buildings are damaged.',
+          confidence: 'Strong evidence',
+          verdict: 'The city made fewer goods and spent more on repairs.',
         };
       }
 
@@ -184,27 +184,27 @@ ${JSON.stringify(empirical, null, 2)}`,
         const evt = empirical.largestImpactEvent || events[0];
         if (!evt) {
           return {
-            observation: 'No major crisis events were recorded in the simulation history snapshots.',
+            observation: 'No major events were saved in the city history.',
             evidence: ['Total recorded events: 0'],
             relatedEvents: [],
-            possibleCause: 'The simulation has operated under steady baseline conditions without active shocks.',
-            confidence: 'Inconclusive (No Events Recorded)',
-            verdict: 'No event was triggered; the simulation remained within equilibrium.',
+            possibleCause: 'The city has been running without any major problems.',
+            confidence: 'Not enough information',
+            verdict: 'No major event happened.',
           };
         }
 
         return {
-          observation: `The event with the largest systemic impact was "${evt.title}" (Severity: ${evt.severity}/5) at Day/Tick #${evt.tick}.`,
+          observation: `The biggest event was "${evt.title}" (Severity: ${evt.severity}/5) at Day/Tick #${evt.tick}.`,
           evidence: [
-            `Event Designation: ${evt.title} (${evt.type})`,
-            `Severity Level: ${evt.severity} out of 5`,
-            `Reported Cause: ${evt.cause}`,
-            `Population Happiness Shift: ${d.happiness?.delta ?? 0} points`,
+            `Event: ${evt.title} (${evt.type})`,
+            `Level: ${evt.severity} out of 5`,
+            `Cause: ${evt.cause}`,
+            `Change in happiness: ${d.happiness?.delta ?? 0} points`,
           ],
           relatedEvents: [evt.title],
-          possibleCause: `This event caused wide structural impacts across building health, citizen rest decay, and emergency municipal expenditure.`,
-          confidence: 'High (Direct Evidence)',
-          verdict: `"${evt.title}" caused the greatest observed disruption across municipal resources and satisfaction.`,
+          possibleCause: `This event affected buildings, people, and city spending.`,
+          confidence: 'Strong evidence',
+          verdict: `"${evt.title}" caused the biggest change in the city.`,
         };
       }
 
@@ -222,7 +222,7 @@ ${JSON.stringify(empirical, null, 2)}`,
           ],
           relatedEvents: events.filter((e) => e.type.includes('water') || e.type.includes('shortage')).map((e) => e.title),
           possibleCause: 'The EventEngine reduced water reserves, automatically driving up commodity prices. Poorer households faced higher living expenses, decreasing public happiness and raising survival priorities.',
-          confidence: 'High (Direct Evidence)',
+          confidence: 'Strong evidence',
           verdict: 'The water shortage caused commodity price spikes, reduced citizen satisfaction, and forced household austerity.',
         };
       }
@@ -240,23 +240,23 @@ ${JSON.stringify(empirical, null, 2)}`,
           ],
           relatedEvents: events.map((e) => e.title),
           possibleCause: 'Citizens in MANNORA emigrate when unemployment remains high and basic need satisfaction falls below critical survival thresholds.',
-          confidence: 'Moderate (Correlated Metric Drift)',
+          confidence: 'Some evidence',
           verdict: 'Population shifts were driven by changes in employment availability and basic need satisfaction.',
         };
       }
 
       default: {
         return {
-          observation: `Simulation telemetry indicates an aggregate population shift of ${d.population?.delta ?? 0} and treasury change of ${d.treasury?.delta ?? 0} NC.`,
+          observation: `The city population changed by ${d.population?.delta ?? 0}, and city funds changed by ${d.treasury?.delta ?? 0}.`,
           evidence: [
-            `Active Events Count: ${events.length}`,
-            `Population: ${d.population?.end ?? 0}`,
-            `GDP: ${d.gdp?.end ?? 0} NC`,
+            `City events: ${events.length}`,
+            `People: ${d.population?.end ?? 0}`,
+            `Goods made: ${d.gdp?.end ?? 0}`,
           ],
           relatedEvents: events.map((e) => e.title),
-          possibleCause: 'Continuous interaction between citizen daily routines, market price discovery, and municipal policy rules.',
-          confidence: 'Moderate (Correlated Metric Drift)',
-          verdict: 'Simulation state evolved according to deterministic market and citizen decision loops.',
+          possibleCause: 'People’s daily choices, shop prices, and city rules all affected the result.',
+          confidence: 'Medium',
+          verdict: 'The city changed as people made choices and shops changed their prices.',
         };
       }
     }

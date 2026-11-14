@@ -1,2 +1,3 @@
-export { World, default as defaultWorld } from './World.js';
-export { Agent, AgentSchema, TraitSchema, MemoryRecordSchema, AgentStateSchema, AgentLocationSchema } from './Agent.js';
+export { World } from './World.js';
+export { Agent } from './Agent.js';
+export { SimulationSnapshot } from './SimulationSnapshot.js';

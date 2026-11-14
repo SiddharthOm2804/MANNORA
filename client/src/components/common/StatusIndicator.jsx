@@ -22,13 +22,13 @@ export default function StatusIndicator({
       dot: 'bg-emerald-400',
       ping: 'bg-emerald-400',
       badge: 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40',
-      defaultLabel: 'OPERATIONAL',
+      defaultLabel: 'READY',
     },
     simulating: {
       dot: 'bg-sky-400',
       ping: 'bg-sky-400',
       badge: 'bg-sky-950/40 text-sky-300 border-sky-800/40',
-      defaultLabel: 'SIMULATING',
+      defaultLabel: 'RUNNING',
     },
     paused: {
       dot: 'bg-amber-400',
@@ -40,19 +40,19 @@ export default function StatusIndicator({
       dot: 'bg-amber-500',
       ping: 'bg-amber-500',
       badge: 'bg-amber-950/40 text-amber-300 border-amber-800/40',
-      defaultLabel: 'DEGRADED',
+      defaultLabel: 'SLOW',
     },
     error: {
       dot: 'bg-rose-500',
       ping: 'bg-rose-500',
       badge: 'bg-rose-950/40 text-rose-300 border-rose-800/40',
-      defaultLabel: 'FAULT',
+      defaultLabel: 'OFFLINE',
     },
     idle: {
       dot: 'bg-slate-400',
       ping: 'bg-slate-400',
       badge: 'bg-slate-900/60 text-slate-400 border-slate-800',
-      defaultLabel: 'STANDBY',
+      defaultLabel: 'WAITING',
     },
   };
 

@@ -16,7 +16,7 @@ export function ResourceNodes({
   const nodes = useMemo(() => [
     {
       id: 'res_node_solar',
-      name: 'Solar-Fusion Power Relay',
+      name: 'Kaza Solar Power Station',
       resourceKey: 'energy',
       position: [20, 0, 20],
       color: '#f59e0b',
@@ -25,7 +25,7 @@ export function ResourceNodes({
     },
     {
       id: 'res_node_hydro',
-      name: 'Aquifer Biosphere Reservoir',
+      name: 'Tabo Water Tank',
       resourceKey: 'water',
       position: [50, 0, 85],
       color: '#06b6d4',
@@ -34,7 +34,7 @@ export function ResourceNodes({
     },
     {
       id: 'res_node_agro',
-      name: 'Synthetic Hydroponic Delta',
+      name: 'Dhankar Farm',
       resourceKey: 'agriculture',
       position: [35, 0, 80],
       color: '#10b981',
@@ -43,7 +43,7 @@ export function ResourceNodes({
     },
     {
       id: 'res_node_mine',
-      name: 'Sub-Crust Mineral Extraction Well',
+      name: 'Mountain Quarry',
       resourceKey: 'minerals',
       position: [85, 0, 25],
       color: '#eab308',
@@ -52,7 +52,7 @@ export function ResourceNodes({
     },
     {
       id: 'res_node_quantum',
-      name: 'Quantum Logic Synthesis Array',
+      name: 'Spiti Learning Centre',
       resourceKey: 'technology',
       position: [20, 0, 75],
       color: '#8b5cf6',

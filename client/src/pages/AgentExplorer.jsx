@@ -30,80 +30,80 @@ export default function AgentExplorer() {
   const agents = [
     {
       id: 'agt_001',
-      name: 'Dr. Evelyn Voss',
+      name: 'Dr. Asha Sharma',
       role: 'OBSERVER',
       status: 'active',
       happiness: 92,
       energy: 88,
       wealth: 18400,
-      sector: 'Sector-05 // Biosphere',
-      currentAction: 'ANALYZING_THERMODYNAMIC_ENTROPY',
+      sector: 'Kaza Greenhouse',
+      currentAction: 'Reading weather reports',
       traits: { rationality: 0.95, ambition: 0.82, riskTolerance: 0.35, socialAffinity: 0.64 },
       workingMemory: [
-        { time: 'TICK #1419', observation: 'Detected 0.02% temperature drop in North Biosphere corridor.' },
-        { time: 'TICK #1412', observation: 'Processed consensus report from Technocratic Council.' },
-        { time: 'TICK #1398', observation: 'Exchanged research telemetry with Citizen agt_042.' },
+        { time: 'TICK #1419', observation: 'Noticed that the greenhouse became a little cooler.' },
+        { time: 'TICK #1412', observation: 'Read the city council’s latest report.' },
+        { time: 'TICK #1398', observation: 'Shared research with Arjun Mehta.' },
       ],
       goals: [
-        { level: 'PRIMARY', title: 'Maintain Systemic Thermodynamic Equilibrium', progress: 85 },
-        { level: 'SECONDARY', title: 'Catalogue Emergent Trade Behavioral Anomalies', progress: 42 },
+        { level: 'PRIMARY', title: 'Keep the city at a safe temperature', progress: 85 },
+        { level: 'SECONDARY', title: 'Study how people trade', progress: 42 },
       ],
     },
     {
       id: 'agt_042',
-      name: 'Kaelen Rask',
+      name: 'Arjun Mehta',
       role: 'MERCHANT',
       status: 'active',
       happiness: 84,
       energy: 74,
       wealth: 92500,
-      sector: 'Sector-03 // Exchange',
-      currentAction: 'NEGOTIATING_ENERGY_CONTRACT',
+      sector: 'Kaza Market',
+      currentAction: 'Selling solar power',
       traits: { rationality: 0.88, ambition: 0.91, riskTolerance: 0.72, socialAffinity: 0.85 },
       workingMemory: [
-        { time: 'TICK #1418', observation: 'Subscribed to Municipal Solar Grid surplus bid.' },
-        { time: 'TICK #1405', observation: 'Settled trade arbitrage with Sector 02 manufacturing node.' },
+        { time: 'TICK #1418', observation: 'Placed an offer for extra solar power.' },
+        { time: 'TICK #1405', observation: 'Settled trade arbitrage with Tabo workshop.' },
       ],
       goals: [
-        { level: 'PRIMARY', title: 'Accumulate Capital Liquidity for Sector 03 Warehouse', progress: 70 },
+        { level: 'PRIMARY', title: 'Accumulate Capital Liquidity for Kaza storehouse', progress: 70 },
       ],
     },
     {
       id: 'agt_088',
-      name: 'Governor Linnea Sol',
+      name: 'Governor Priya Nair',
       role: 'GOVERNOR',
       status: 'voting',
       happiness: 79,
       energy: 82,
       wealth: 45000,
-      sector: 'Sector-01 // Council Core',
-      currentAction: 'TABULATING_ENERGY_SUBSIDY_VOTES',
+      sector: 'Spiti Council Hall',
+      currentAction: 'Reviewing power bill support',
       traits: { rationality: 0.92, ambition: 0.78, riskTolerance: 0.40, socialAffinity: 0.90 },
       workingMemory: [
-        { time: 'TICK #1420', observation: 'Ratified Council Resolution #14 for Energy Subsidies.' },
-        { time: 'TICK #1410', observation: 'Reviewed public satisfaction metrics from Sector 04.' },
+        { time: 'TICK #1420', observation: 'Approved help for people’s power bills.' },
+        { time: 'TICK #1410', observation: 'Reviewed public satisfaction metrics from Dhankar homes.' },
       ],
       goals: [
-        { level: 'PRIMARY', title: 'Preserve Civil Harmony Above 80% Index', progress: 88 },
+        { level: 'PRIMARY', title: 'Keep the community peaceful', progress: 88 },
       ],
     },
     {
       id: 'agt_104',
-      name: 'Tarek Chen',
+      name: 'Mohan Verma',
       role: 'CITIZEN',
       status: 'resting',
       happiness: 81,
       energy: 95,
       wealth: 12800,
-      sector: 'Sector-04 // Residential',
-      currentAction: 'RESTORING_HOMEOSTATIC_ENERGY',
+      sector: 'Tabo Homes',
+      currentAction: 'Resting at home',
       traits: { rationality: 0.75, ambition: 0.55, riskTolerance: 0.30, socialAffinity: 0.78 },
       workingMemory: [
-        { time: 'TICK #1415', observation: 'Completed work cycle at Sector 02 Industrial Hub.' },
-        { time: 'TICK #1401', observation: 'Purchased bio-synthetic rations from Merchant node.' },
+        { time: 'TICK #1415', observation: 'Finished a shift at the Tabo workshop.' },
+        { time: 'TICK #1401', observation: 'Bought food from a local shop.' },
       ],
       goals: [
-        { level: 'PRIMARY', title: 'Acquire Residential Terrace Permit', progress: 54 },
+        { level: 'PRIMARY', title: 'Find a home in Tabo', progress: 54 },
       ],
     },
   ];
@@ -126,13 +126,13 @@ export default function AgentExplorer() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Users className="w-3.5 h-3.5" />
-            <span>CITY RESIDENTS & CITIZENS</span>
+            <span>PEOPLE IN YOUR CITY</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
             Manage People
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Inspect individual computer-controlled citizens, their basic needs, daily activities, memories, and personal goals.
+            See each person’s needs, daily life, memories, and goals.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function AgentExplorer() {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search person by name or ID..."
+              placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-[#0e121d] border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-48 sm:w-60"
@@ -158,7 +158,7 @@ export default function AgentExplorer() {
             <option value="CITIZEN">Residents</option>
             <option value="MERCHANT">Merchants & Shopkeepers</option>
             <option value="GOVERNOR">City Leaders</option>
-            <option value="OBSERVER">Scientists & Observers</option>
+            <option value="OBSERVER">Scientists</option>
           </select>
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function AgentExplorer() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Coins className="w-3 h-3 text-emerald-400" />
-                      <span>{agent.wealth.toLocaleString()} NC</span>
+                      <span>{agent.wealth.toLocaleString()} ₹</span>
                     </span>
                   </div>
                 </div>
@@ -277,7 +277,7 @@ export default function AgentExplorer() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-purple-300 font-mono flex items-center gap-1.5 font-bold uppercase">
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                      <span>AI Person Assistant Reflection</span>
+                      <span>What the AI learned about this person</span>
                     </span>
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-900/60 text-purple-200 border border-purple-700 uppercase">
                       {aiReflection.source || 'AI Assistant'}
@@ -287,8 +287,8 @@ export default function AgentExplorer() {
                     "{aiReflection.reflection}"
                   </p>
                   <div className="flex items-center justify-between text-[10px] pt-1 border-t border-purple-900/60 text-slate-400">
-                    <span>Current Feeling: <strong className="text-purple-300 capitalize">{aiReflection.mood || 'determined'}</strong></span>
-                    <span>Top Focus: <strong className="text-slate-300">{aiReflection.priorityGoal || 'Take Care of Family'}</strong></span>
+                    <span>Feeling: <strong className="text-purple-300 capitalize">{aiReflection.mood || 'determined'}</strong></span>
+                    <span>Main goal: <strong className="text-slate-300">{aiReflection.priorityGoal || 'Take Care of Family'}</strong></span>
                   </div>
                 </div>
               )}
@@ -320,11 +320,11 @@ export default function AgentExplorer() {
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
                   <div className="text-[10px] text-slate-400">SAVINGS</div>
                   <div className="text-base font-bold text-emerald-400 font-mono-data mt-0.5">
-                    {activeAgent.wealth.toLocaleString()} ₹ NC
+                    {activeAgent.wealth.toLocaleString()} ₹
                   </div>
                 </div>
                 <div className="p-2.5 rounded bg-[#080a11] border border-slate-800">
-                  <div className="text-[10px] text-slate-400">PRACTICAL THINKING</div>
+                  <div className="text-[10px] text-slate-400">DECISION SKILL</div>
                   <div className="text-base font-bold text-cyan-400 font-mono-data mt-0.5">
                     {(activeAgent.traits.rationality * 100).toFixed(0)}%
                   </div>

@@ -28,7 +28,7 @@ export class PolicyEngine {
     // 1. INFRASTRUCTURE INVESTMENT
     EXPAND_TRANSIT_GRID: {
       id: 'pol_infra_transit',
-      name: 'High-Throughput Arterial Transit Grid',
+      name: 'Better Roads and Bus Service',
       category: 'infrastructure',
       description: 'Expands transit and logistical corridors, increasing building efficiency and civic mobility.',
       costPerTick: 45,
@@ -40,7 +40,7 @@ export class PolicyEngine {
     },
     GREEN_ARCOLOGY_SUBSIDY: {
       id: 'pol_infra_arcology',
-      name: 'Ecological Arcology Renovation Act',
+      name: 'Solar Panels and Water Saving',
       category: 'infrastructure',
       description: 'Mandates solar tiles and water recycling on all commercial and residential structures.',
       costPerTick: 35,
@@ -53,7 +53,7 @@ export class PolicyEngine {
     // 2. TAXATION & FISCAL
     PROGRESSIVE_EQUITY_TAX: {
       id: 'pol_tax_progressive',
-      name: 'Syntropic Progressive Dividend Tax',
+      name: 'Fair Income Tax',
       category: 'fiscal',
       description: 'Adjusts statutory tax rate to 18% with targeted poverty tax credits.',
       costPerTick: 0,
@@ -65,7 +65,7 @@ export class PolicyEngine {
     },
     COMMERCIAL_FREE_TRADE_ZONE: {
       id: 'pol_tax_freetrade',
-      name: 'Special Economic Enterprise Zone',
+      name: 'Help for Local Shops',
       category: 'fiscal',
       description: 'Lowers corporate tax rate to 11% to stimulate venture formation and employment.',
       costPerTick: 0,
@@ -79,7 +79,7 @@ export class PolicyEngine {
     // 3. HEALTHCARE
     UNIVERSAL_SYNTH_HEALTHCARE: {
       id: 'pol_health_universal',
-      name: 'Comprehensive Bio-Synthetic Healthcare',
+      name: 'Free Health Care',
       category: 'healthcare',
       description: 'Free preventative clinic access, genetic repair therapies, and water quality inspection.',
       costPerTick: 50,
@@ -93,7 +93,7 @@ export class PolicyEngine {
     // 4. EDUCATION & RESEARCH
     QUANTUM_ACADEMY_ENDOWMENT: {
       id: 'pol_edu_academy',
-      name: 'Universal Vocational & Cybernetics Academy',
+      name: 'Skills and Training Centre',
       category: 'education',
       description: 'Public education funding accelerating scientific discovery and worker craftsmanship.',
       costPerTick: 40,
@@ -107,7 +107,7 @@ export class PolicyEngine {
     // 5. PUBLIC RESOURCES
     STRATEGIC_UTILITY_RESERVES: {
       id: 'pol_res_strategic',
-      name: 'Strategic Resource Buffer Mandate',
+      name: 'Save Water and Power',
       category: 'resources',
       description: 'Subsidizes base electricity and agricultural tariffs to protect against market shortages.',
       costPerTick: 30,
@@ -120,7 +120,7 @@ export class PolicyEngine {
     // 6. EMERGENCY RESPONSE
     GRID_FAILSAFE_PROTOCOL: {
       id: 'pol_emg_failsafe',
-      name: 'Civil Protection & Crisis Protocol',
+      name: 'Emergency Help Plan',
       category: 'emergency',
       description: 'Maintains automated disaster response relays and reserve emergency supplies.',
       costPerTick: 25,

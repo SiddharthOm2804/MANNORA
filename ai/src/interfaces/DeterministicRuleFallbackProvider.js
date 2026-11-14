@@ -46,8 +46,8 @@ export class DeterministicRuleFallbackProvider extends ILLMProvider {
 
       return {
         text: JSON.stringify({
-          name: isDesert ? 'Neo-Sahara Central Oasis' : 'New Horizon Autonomous Matrix',
-          description: `A ${isDesert ? 'desert' : 'temperate'} civilization with ${pop.toLocaleString()} citizens, ${citiesCount} cities, and central government.`,
+          name: isDesert ? 'Jaisalmer City' : 'Spiti Vally',
+          description: `A ${isDesert ? 'desert' : 'mountain'} city with ${pop.toLocaleString()} people, ${citiesCount} areas, and a local government.`,
           population: pop,
           numberOfCities: citiesCount,
           biome: isDesert ? 'Desert' : 'Cybernetic Basin',

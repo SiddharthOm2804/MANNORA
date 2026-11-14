@@ -44,7 +44,7 @@ export default function GovernmentDashboard() {
   const [policyHistory, setPolicyHistory] = useState([
     {
       id: 'pol_init_01',
-      name: 'High-Throughput Arterial Transit Grid',
+      name: 'Better Roads and Bus Service',
       action: 'ENACT',
       tick: 0,
       costPerTick: 45,
@@ -53,7 +53,7 @@ export default function GovernmentDashboard() {
     },
     {
       id: 'pol_init_02',
-      name: 'Comprehensive Bio-Synthetic Healthcare',
+      name: 'Free Health Care',
       action: 'ENACT',
       tick: 0,
       costPerTick: 50,
@@ -63,11 +63,11 @@ export default function GovernmentDashboard() {
   ]);
 
   const [services, setServices] = useState([
-    { key: 'healthcare', name: 'Municipal Healthcare & Bio-Synthetics', allocation: 80, capacity: 1280, efficiency: 0.95, satisfaction: 88, icon: '🏥' },
-    { key: 'education', name: 'Civic Education & Technical Academies', allocation: 65, capacity: 1050, efficiency: 0.85, satisfaction: 80, icon: '🎓' },
-    { key: 'infrastructure', name: 'Grid Logistics & Transit Infrastructure', allocation: 90, capacity: 1450, efficiency: 0.92, satisfaction: 86, icon: '🚆' },
-    { key: 'resources', name: 'Public Utility & Strategic Buffers', allocation: 50, capacity: 1200, efficiency: 0.82, satisfaction: 81, icon: '⚡' },
-    { key: 'emergency', name: 'Civil Protection & Emergency Response', allocation: 45, capacity: 1500, efficiency: 0.90, satisfaction: 89, icon: '🛡️' },
+    { key: 'healthcare', name: 'Health Care', allocation: 80, capacity: 1280, efficiency: 0.95, satisfaction: 88, icon: '🏥' },
+    { key: 'education', name: 'Schools and Training', allocation: 65, capacity: 1050, efficiency: 0.85, satisfaction: 80, icon: '🎓' },
+    { key: 'infrastructure', name: 'Roads and Public Transport', allocation: 90, capacity: 1450, efficiency: 0.92, satisfaction: 86, icon: '🚆' },
+    { key: 'resources', name: 'Water and Power', allocation: 50, capacity: 1200, efficiency: 0.82, satisfaction: 81, icon: '⚡' },
+    { key: 'emergency', name: 'Emergency Services', allocation: 45, capacity: 1500, efficiency: 0.90, satisfaction: 89, icon: '🛡️' },
   ]);
 
   // Load world data
@@ -97,67 +97,67 @@ export default function GovernmentDashboard() {
   const policyCatalog = [
     {
       id: 'pol_infra_transit',
-      name: 'High-Throughput Arterial Transit Grid',
+      name: 'Better Roads and Bus Service',
       category: 'infrastructure',
-      description: 'Expands transit and logistical corridors, increasing building efficiency and civic mobility.',
+      description: 'Improves roads and bus routes so people and goods can get around faster.',
       costPerTick: 45,
-      impact: '+15% Transit Capacity, +8% Productivity',
+      impact: 'More bus service and faster deliveries',
     },
     {
       id: 'pol_infra_arcology',
-      name: 'Ecological Arcology Renovation Act',
+      name: 'Solar Panels and Water Saving',
       category: 'infrastructure',
-      description: 'Mandates solar tiles and water recycling on all commercial and residential structures.',
+      description: 'Adds solar panels and reuses water in homes and shops.',
       costPerTick: 35,
-      impact: '-4 Pollution Index, +8 Sustainability',
+      impact: 'Less pollution and lower water use',
     },
     {
       id: 'pol_tax_progressive',
-      name: 'Syntropic Progressive Dividend Tax',
+      name: 'Fair Income Tax',
       category: 'fiscal',
-      description: 'Adjusts statutory tax rate to 18% with targeted poverty tax credits.',
+      description: 'Sets income tax to 18% and gives tax help to people with low incomes.',
       costPerTick: 0,
-      impact: '+20% Public Revenue, -1% Short-Term Happiness',
+      impact: 'More money for city services; people may be less happy at first',
     },
     {
       id: 'pol_tax_freetrade',
-      name: 'Special Economic Enterprise Zone',
+      name: 'Support for Local Shops',
       category: 'fiscal',
-      description: 'Lowers corporate tax rate to 11% to stimulate venture formation and employment.',
+      description: 'Lowers shop taxes to 11% to help local businesses grow and hire people.',
       costPerTick: 0,
-      impact: '+25% Business Formation, +2% Satisfaction',
+      impact: 'More local shops and jobs',
     },
     {
       id: 'pol_health_universal',
-      name: 'Comprehensive Bio-Synthetic Healthcare',
+      name: 'Free Health Care',
       category: 'healthcare',
-      description: 'Free preventative clinic access, genetic repair therapies, and water inspection.',
+      description: 'Gives everyone free check-ups and safe drinking water.',
       costPerTick: 50,
-      impact: '+6 Public Health, -40% Famine/Disease Mortality',
+      impact: 'Better health and fewer deaths from illness',
     },
     {
       id: 'pol_edu_academy',
-      name: 'Universal Vocational & Cybernetics Academy',
+      name: 'Skills and Training Centre',
       category: 'education',
-      description: 'Public education funding accelerating scientific discovery and worker craftsmanship.',
+      description: 'Pays for schools and job training.',
       costPerTick: 40,
-      impact: '+25% Skill Growth Rate, +15% Tech Yield',
+      impact: 'More skills and better job options',
     },
     {
       id: 'pol_res_strategic',
-      name: 'Strategic Resource Buffer Mandate',
+      name: 'Save Water and Power for Emergencies',
       category: 'resources',
-      description: 'Subsidizes base electricity and agricultural tariffs to protect against market shortages.',
+      description: 'Keeps water, power, and food costs steady when supplies run low.',
       costPerTick: 30,
-      impact: '-12% Commodity Price Spikes, Deficit Protection',
+      impact: 'Fewer sudden price rises during shortages',
     },
     {
       id: 'pol_emg_failsafe',
-      name: 'Civil Protection & Crisis Protocol',
+      name: 'Emergency Help Plan',
       category: 'emergency',
-      description: 'Maintains automated disaster response relays and reserve emergency supplies.',
+      description: 'Keeps emergency supplies ready and helps people after a disaster.',
       costPerTick: 25,
-      impact: '-40% Disaster Damage, Stability Floor 65',
+      impact: 'Less damage when a disaster happens',
     },
   ];
 
@@ -299,10 +299,10 @@ export default function GovernmentDashboard() {
         <MetricCard
           label="City Bank Balance"
           code="GOV.TRES.02"
-          value={`${treasury.toLocaleString()} NC`}
+          value={`${treasury.toLocaleString()} ₹`}
           delta={-1.5}
           trend="neutral"
-          subtitle={`Running Cost: -${totalGovernmentExpenses} NC/day`}
+          subtitle={`Running Cost: -${totalGovernmentExpenses} ₹/day`}
           icon={<Coins className="w-4 h-4 text-emerald-400" />}
           sparkline={[54000, 53200, 52100, 51000, treasury]}
         />
@@ -337,8 +337,8 @@ export default function GovernmentDashboard() {
         <div className="lg:col-span-7 space-y-6">
           <Panel
             tag="CITY.RULES"
-            title="City Government Rules"
-            subtitle={`${activePolicies.length} Active rules currently changing how the city works`}
+            title="City Rules"
+            subtitle={`${activePolicies.length} Rules now in place in the city`}
           >
             <div className="space-y-3">
               {policyCatalog.map((policy) => {
@@ -371,7 +371,7 @@ export default function GovernmentDashboard() {
                           {policy.description}
                         </p>
                         <div className="flex items-center gap-3 text-[11px] font-mono mt-2 text-slate-400">
-                          <span>Cost: <strong className="text-amber-400">{policy.costPerTick} NC/day</strong></span>
+                          <span>Cost: <strong className="text-amber-400">{policy.costPerTick} ₹/day</strong></span>
                           <span>•</span>
                           <span className="text-emerald-400 font-medium">Impact: {policy.impact}</span>
                         </div>
@@ -397,8 +397,8 @@ export default function GovernmentDashboard() {
           {/* Legislative Event History Log */}
           <Panel
             tag="RULES.HISTORY"
-            title="History of Rule Changes"
-            subtitle="Record of when government rules were started or stopped"
+            title="Past Rule Changes"
+            subtitle="When each rule started or stopped"
           >
             <div className="space-y-2 text-xs font-mono">
               {policyHistory.slice(0, 6).map((log) => (
@@ -429,8 +429,8 @@ export default function GovernmentDashboard() {
         <div className="lg:col-span-5 space-y-6">
           <Panel
             tag="PUBLIC.SERVICES"
-            title="City Public Services"
-            subtitle="Budget spending, capacity, and satisfaction for essential city services"
+            title="Public Services"
+            subtitle="Money spent and how well each service works"
           >
             <div className="space-y-3.5">
               {services.map((s) => (
@@ -447,7 +447,7 @@ export default function GovernmentDashboard() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1">
-                    <div>Budget: <strong className="text-cyan-400">{s.allocation} NC/day</strong></div>
+                    <div>Budget: <strong className="text-cyan-400">{s.allocation} ₹/day</strong></div>
                     <div>Capacity: <strong className="text-slate-200">{s.capacity} People</strong></div>
                   </div>
 
@@ -477,8 +477,8 @@ export default function GovernmentDashboard() {
           {/* Tax Code Regulation Panel */}
           <Panel
             tag="CITY.TAX"
-            title="City Income Tax Settings"
-            subtitle="Change the percentage of tax collected from citizens"
+            title="Income Tax"
+            subtitle="Change how much tax people pay"
           >
             <div className="p-3.5 rounded-lg bg-[#080a11] border border-slate-800 space-y-3 text-xs font-mono">
               <div className="flex items-center justify-between">

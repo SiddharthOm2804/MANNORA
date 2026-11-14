@@ -30,43 +30,43 @@ export default function CommandBar({ isOpen, onClose }) {
       items: [
         {
           id: 'nav-dashboard',
-          title: 'World Dashboard',
-          description: 'Primary civilization vitals & laboratory overview',
+          title: 'City Overview',
+          description: 'See the city’s main details',
           icon: <LayoutDashboard className="w-4 h-4 text-cyan-400" />,
           action: () => navigate('/dashboard'),
         },
         {
           id: 'nav-simulation',
-          title: 'Simulation Viewport',
-          description: 'Spatial matrix grid & real-time telemetry HUD',
+          title: 'City Simulation',
+          description: 'View the city map as it changes',
           icon: <Play className="w-4 h-4 text-sky-400" />,
           action: () => navigate('/simulation'),
         },
         {
           id: 'nav-agents',
-          title: 'Agent Explorer',
-          description: 'Cognitive agent registry, memory stream & dossiers',
+          title: 'People',
+          description: 'Find people and see what they do',
           icon: <Users className="w-4 h-4 text-violet-400" />,
           action: () => navigate('/agents'),
         },
         {
           id: 'nav-analytics',
-          title: 'Macroeconomic Analytics',
-          description: 'Demographics, wealth velocity & entropy curves',
+          title: 'City Reports',
+          description: 'See city money, jobs, and prices',
           icon: <BarChart3 className="w-4 h-4 text-emerald-400" />,
           action: () => navigate('/analytics'),
         },
         {
           id: 'nav-timeline',
-          title: 'Temporal Timeline',
-          description: 'Branching historical graph & rollback checkpoints',
+          title: 'City History',
+          description: 'Compare saved city versions',
           icon: <GitBranch className="w-4 h-4 text-amber-400" />,
           action: () => navigate('/timeline'),
         },
         {
           id: 'nav-settings',
-          title: 'Laboratory Settings',
-          description: 'Engine tick rates, PRNG seed & renderer configuration',
+          title: 'Settings',
+          description: 'Change the speed, saved history, and display',
           icon: <Settings className="w-4 h-4 text-slate-400" />,
           action: () => navigate('/settings'),
         },
@@ -77,15 +77,15 @@ export default function CommandBar({ isOpen, onClose }) {
       items: [
         {
           id: 'act-create',
-          title: 'Initialize New Civilization Matrix',
-          description: 'Deploy new seed, topology & agent populations',
+          title: 'Create a City',
+          description: 'Set up a new city and its people',
           icon: <PlusCircle className="w-4 h-4 text-cyan-400" />,
           action: () => navigate('/create-world'),
         },
         {
           id: 'act-landing',
-          title: 'Return to Laboratory Portal',
-          description: 'Overview of engine architecture and specs',
+          title: 'Home',
+          description: 'Learn how the city works',
           icon: <Globe className="w-4 h-4 text-slate-400" />,
           action: () => navigate('/'),
         },
@@ -170,7 +170,7 @@ export default function CommandBar({ isOpen, onClose }) {
               <input
                 autoFocus
                 type="text"
-                placeholder="Type a command or jump to laboratory page..."
+                placeholder="Type a command or jump to city tool..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none font-mono"
@@ -243,7 +243,7 @@ export default function CommandBar({ isOpen, onClose }) {
                 <span>↵ Select</span>
                 <span>ESC Exit</span>
               </div>
-              <span className="text-cyan-400/80">NEURAL CITY CONSOLE</span>
+              <span className="text-cyan-400/80">MANNORA SEARCH</span>
             </div>
           </motion.div>
         </div>

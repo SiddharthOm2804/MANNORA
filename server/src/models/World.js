@@ -101,12 +101,12 @@ const EconomyConfigurationSchema = new mongoose.Schema(
     },
     currencyName: {
       type: String,
-      default: 'Neural Credits',
+      default: 'Indian Rupees',
       trim: true,
     },
     currencySymbol: {
       type: String,
-      default: 'NC',
+      default: '₹',
       trim: true,
     },
     taxRate: {

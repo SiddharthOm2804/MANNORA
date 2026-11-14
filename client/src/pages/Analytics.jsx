@@ -27,6 +27,84 @@ import StatusIndicator from '../components/common/StatusIndicator';
 import { worldService } from '../services/worldService';
 import { aiService } from '../services/aiService';
 
+const pdfEscape = (value) => String(value)
+  .normalize('NFKD')
+  .replace(/[^\x20-\x7E]/g, '')
+  .replace(/\\/g, '\\\\')
+  .replace(/\(/g, '\\(')
+  .replace(/\)/g, '\\)');
+
+const wrapReportText = (value, maxLength = 84) => {
+  const words = String(value).split(/\s+/);
+  const lines = [];
+  let line = '';
+  words.forEach((word) => {
+    if (line && `${line} ${word}`.length > maxLength) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line ? `${line} ${word}` : word;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+};
+
+const createReportPdf = (lines) => {
+  const chunks = [];
+  let page = [];
+  let y = 750;
+  const addPage = () => {
+    if (page.length) chunks.push(page);
+    page = [];
+    y = 750;
+    page.push('0.08 0.18 0.29 rg 0 790 595 52 re f');
+    page.push('BT /F1 9 Tf 1 1 1 rg 44 811 Td (SPITI VALLY  |  CITY REPORT) Tj ET');
+  };
+  addPage();
+  lines.forEach((item) => {
+    if (item.type === 'space') { y -= 8; return; }
+    if (y < 65) addPage();
+    if (item.type === 'title') {
+      page.push(`BT /F2 24 Tf 0.08 0.18 0.29 rg 44 ${y} Td (${pdfEscape(item.text)}) Tj ET`);
+      y -= 38;
+    } else if (item.type === 'section') {
+      y -= 8;
+      page.push(`0.88 0.93 0.96 rg 44 ${y - 5} 507 22 re f`);
+      page.push(`BT /F2 11 Tf 0.05 0.42 0.55 rg 52 ${y} Td (${pdfEscape(item.text.toUpperCase())}) Tj ET`);
+      y -= 28;
+    } else {
+      page.push(`BT /F1 ${item.type === 'small' ? 9 : 10} Tf 0.16 0.20 0.24 rg 48 ${y} Td (${pdfEscape(item.text)}) Tj ET`);
+      y -= item.type === 'small' ? 14 : 17;
+    }
+  });
+  if (page.length) chunks.push(page);
+  const objects = [null,
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [${chunks.map((_, i) => `${5 + i * 2} 0 R`).join(' ')}] /Count ${chunks.length} >>`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+  ];
+  chunks.forEach((commands, index) => {
+    const pageId = 5 + index * 2;
+    const streamId = pageId + 1;
+    const stream = `${commands.join('\n')}\n`;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${streamId} 0 R >>`);
+    objects.push(`<< /Length ${new TextEncoder().encode(stream).length} >>\nstream\n${stream}endstream`);
+  });
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (let i = 1; i < objects.length; i += 1) {
+    offsets.push(new TextEncoder().encode(pdf).length);
+    pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
+  }
+  const xrefOffset = new TextEncoder().encode(pdf).length;
+  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; });
+  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  return new Blob([pdf], { type: 'application/pdf' });
+};
+
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('1000_TICKS');
   const [activeTab, setActiveTab] = useState('macro'); // macro | social | ai_analyst
@@ -82,28 +160,49 @@ export default function Analytics() {
   };
 
   const handleExportData = () => {
-    const data = {
-      worldName: activeWorld?.name || 'Neural City',
-      timestamp: new Date().toISOString(),
-      disclaimer: 'Generated simulation metrics from model — not real-world economic forecasts.',
-      metrics: {
-        gdp,
-        unemploymentRate: `${unemploymentPct}%`,
-        averageIncome,
-        averageWealth,
-        inflationRate: `${inflationPct}%`,
-        resourceAvailability: `${resourceAvailability}%`,
-        businessCount,
-        marketPrices,
-      },
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const reportLines = [
+      { type: 'title', text: `${activeWorld?.name || 'Spiti Vally'} City Report` },
+      { type: 'small', text: `Prepared on ${new Date().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })}` },
+      { type: 'space' },
+      { type: 'section', text: 'City overview' },
+      { type: 'body', text: `City: ${activeWorld?.name || 'Spiti Vally'}` },
+      { type: 'body', text: `Population: ${Number(activeWorld?.population || 1000).toLocaleString('en-IN')} people` },
+      { type: 'body', text: `Places in this city: ${(activeWorld?.cities || []).map((city) => typeof city === 'string' ? city : city.name).filter(Boolean).join(', ') || 'No places listed'}` },
+      { type: 'body', text: `Businesses: ${Number(businessCount).toLocaleString('en-IN')}` },
+      { type: 'space' },
+      { type: 'section', text: 'Money and jobs' },
+      { type: 'body', text: `City production (GDP): INR ${Number(gdp).toLocaleString('en-IN')}` },
+      { type: 'body', text: `People without jobs: ${unemploymentPct}%` },
+      { type: 'body', text: `Average income: INR ${Number(averageIncome).toLocaleString('en-IN')}` },
+      { type: 'body', text: `Average savings: INR ${Number(averageWealth).toLocaleString('en-IN')}` },
+      { type: 'body', text: `Price change (inflation): ${inflationPct}%` },
+      { type: 'space' },
+      { type: 'section', text: 'Resources and market prices' },
+      ...[
+        ['Food and crops', 'agriculture', resources.agriculture || 3000],
+        ['Electricity and power', 'energy', resources.energy || 5000],
+        ['Drinking water', 'water', resources.water || 5000],
+        ['Metals and minerals', 'minerals', resources.minerals || 2500],
+        ['Technology', 'technology', resources.technology || 1000],
+        ['Building materials', 'rawMaterials', resources.rawMaterials || 2000],
+      ].map(([label, key, stock]) => ({ type: 'body', text: `${label}: ${Number(stock).toLocaleString('en-IN')} in stock | Price: INR ${marketPrices[key].toFixed(2)}` })),
+      { type: 'body', text: `Overall resource availability: ${resourceAvailability}%` },
+      { type: 'space' },
+      { type: 'section', text: 'Recent city events' },
+      ...(activeWorld?.events?.length
+        ? activeWorld.events.slice(0, 8).map((event) => ({ type: 'body', text: `${event.title || event.name || event.type || 'City event'}${event.tick !== undefined ? ` (day ${event.tick})` : ''}${event.cause ? `: ${event.cause}` : ''}` }))
+        : [{ type: 'body', text: 'No major city events are recorded for this report.' }]),
+      { type: 'space' },
+      { type: 'section', text: 'About this report' },
+      ...wrapReportText('These figures come from the city simulation and describe the selected city. They are not real-world forecasts. Resource availability is a combined estimate; market prices are shown in Indian rupees (INR).').map((text) => ({ type: 'small', text })),
+    ];
+    const blob = createReportPdf(reportLines);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `neural_city_economy_${activeWorld?._id || 'telemetry'}.json`;
+    a.download = `${(activeWorld?.name || 'Spiti-Vally').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}-city-report.pdf`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   // Phase 15: Handle AI Analyst Causal Inquiry
@@ -170,7 +269,7 @@ export default function Analytics() {
             )}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            City Economy & Market Reports
+            City Money and Prices
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
             Reports showing city production, jobs, market prices, and business profit.
@@ -237,7 +336,7 @@ export default function Analytics() {
           }`}
         >
           <Users className="w-3.5 h-3.5 text-purple-400" />
-          <span>People's Communities & Connections // Phase 8</span>
+          <span>People and Groups</span>
         </button>
         <button
           onClick={() => setActiveTab('ai_analyst')}
@@ -248,7 +347,7 @@ export default function Analytics() {
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          <span>AI Analyst & Causal Inquiries // Phase 15</span>
+          <span>Ask why a city change happened</span>
         </button>
       </div>
 
@@ -261,7 +360,7 @@ export default function Analytics() {
           label="Total City Production"
           code="ECO.GDP.01"
           value={gdp.toLocaleString()}
-          unit="NC/day"
+          unit="₹/day"
           delta={4.6}
           trend="up"
           subtitle="Total value of goods made"
@@ -287,7 +386,7 @@ export default function Analytics() {
           unit="NC"
           delta={3.8}
           trend="up"
-          subtitle={`Average Daily Pay: ${averageIncome.toFixed(1)} NC`}
+          subtitle={`Average daily pay: ${averageIncome.toFixed(1)} ₹`}
           icon={<Coins className="w-4 h-4 text-amber-400" />}
           sparkline={[130, 134, 139, 143, averageWealth]}
         />
@@ -311,8 +410,8 @@ export default function Analytics() {
         <div className="lg:col-span-7 space-y-6">
           <Panel
             tag="MARKET.PRICING"
-            title="City Market Prices (Supply & Demand)"
-            subtitle="Item prices rise during shortages and fall when stock is plentiful"
+            title="Prices of Food, Water, and Power"
+            subtitle="Prices go up when goods are scarce and down when there is enough."
           >
             <div className="space-y-3">
               {[
@@ -351,7 +450,7 @@ export default function Analytics() {
 
                     <div className="text-right shrink-0 font-mono">
                       <div className="text-xs font-bold text-cyan-300 font-mono-data">
-                        {res.price.toFixed(2)} NC
+                        {res.price.toFixed(2)} ₹
                       </div>
                       <div className={`text-[10px] ${Number(priceDelta) > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                         {Number(priceDelta) > 0 ? `+${priceDelta}%` : `${priceDelta}%`} vs normal
@@ -366,8 +465,8 @@ export default function Analytics() {
           {/* Causal Feedback Loop Walkthrough */}
           <Panel
             tag="HOW.IT.WORKS"
-            title="How the City Economy Connects Together"
-            subtitle="Step-by-step chain of how each decision changes the city"
+            title="How Money Moves Around the City"
+            subtitle="See how each choice affects the city."
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-mono">
               <div className="p-2.5 rounded bg-[#080a11] border border-slate-800 space-y-1">
@@ -402,15 +501,15 @@ export default function Analytics() {
         <div className="lg:col-span-5 space-y-6">
           <Panel
             tag="COMMERCE.INDEX"
-            title="City Businesses & Companies"
-            subtitle={`${businessCount} Active companies providing jobs and goods`}
+            title="Shops and Workplaces"
+            subtitle={`${businessCount} Shops and workplaces that provide jobs and goods`}
           >
             <div className="space-y-3">
               {[
-                { name: 'Core Agricultural Delta', type: 'Farming & Food', revenue: '4,280 NC', profit: '+1,420 NC', workers: 45, status: 'operational' },
-                { name: 'Quantum Energy Synthesis', type: 'Power & Grid', revenue: '6,100 NC', profit: '+2,150 NC', workers: 60, status: 'simulating' },
-                { name: 'Sector 03 Fabrication Hub', type: 'Factory', revenue: '3,850 NC', profit: '+980 NC', workers: 38, status: 'operational' },
-                { name: 'Neural Commerce Exchange', type: 'Supermarket & Trade', revenue: '5,400 NC', profit: '+1,890 NC', workers: 52, status: 'operational' },
+                { name: 'Spiti Valley Farm', type: 'Farming & Food', revenue: '4,280 ₹', profit: '+1,420 ₹', workers: 45, status: 'operational' },
+                { name: 'Kaza Solar Works', type: 'Power & Grid', revenue: '6,100 ₹', profit: '+2,150 ₹', workers: 60, status: 'simulating' },
+                { name: 'Tabo Repair Shop', type: 'Workshop', revenue: '3,850 ₹', profit: '+980 ₹', workers: 38, status: 'operational' },
+                { name: 'Dhankar General Store', type: 'Shop', revenue: '5,400 ₹', profit: '+1,890 ₹', workers: 52, status: 'operational' },
               ].map((biz, idx) => (
                 <div
                   key={idx}
@@ -438,8 +537,8 @@ export default function Analytics() {
           {/* Municipal Fiscal Treasury Summary */}
           <Panel
             tag="CITY.TREASURY"
-            title="City Government Finances"
-            subtitle="Overview of tax collection and resources"
+            title="City Budget"
+            subtitle="See the money the city collects and spends."
           >
             <div className="space-y-3 text-xs font-mono">
               <div className="flex justify-between items-center p-2 rounded bg-[#080a11] border border-slate-800">
@@ -479,7 +578,7 @@ export default function Analytics() {
               value="82/100"
               delta={2.4}
               trend="up"
-              subtitle="Social Trust & Stability"
+              subtitle="Trust in the Community"
               icon={<Heart className="w-4 h-4 text-rose-400" />}
               sparkline={[75, 78, 79, 81, 82]}
             />
@@ -489,7 +588,7 @@ export default function Analytics() {
               value="0.38"
               delta={0.03}
               trend="up"
-              subtitle="Interconnected Citizen Graph"
+              subtitle="How People Connect"
               icon={<Users className="w-4 h-4 text-purple-400" />}
               sparkline={[0.31, 0.33, 0.35, 0.36, 0.38]}
             />
@@ -499,7 +598,7 @@ export default function Analytics() {
               value="0.74"
               delta={0.05}
               trend="up"
-              subtitle="Guild & Enclave Strength"
+              subtitle="Local Group Strength"
               icon={<Layers className="w-4 h-4 text-cyan-400" />}
               sparkline={[0.65, 0.68, 0.70, 0.72, 0.74]}
             />
@@ -509,7 +608,7 @@ export default function Analytics() {
               value="78%"
               delta={5.0}
               trend="up"
-              subtitle="Civic Rumor & Market Reach"
+              subtitle="How News Spreads"
               icon={<Activity className="w-4 h-4 text-emerald-400" />}
               sparkline={[60, 65, 70, 74, 78]}
             />
@@ -520,16 +619,16 @@ export default function Analytics() {
             <div className="lg:col-span-7 space-y-6">
               <Panel
                 tag="COMMUNITY.ENCLAVES"
-                title="Active Civilization Communities & Guilds"
-                subtitle="Formed by geography, vocations, and philosophical alignment"
+                title="Local Groups"
+                subtitle="Groups formed by where people live and what they do."
               >
                 <div className="space-y-3">
                   {[
-                    { id: 'comm_01', name: 'Central Matrix Resident Council', type: 'geographic', members: 42, cohesion: 0.76, treasury: '1,450 NC', focus: 'Civic Welfare' },
-                    { id: 'comm_02', name: 'Technological & Architecture Syndicate', type: 'occupational', members: 28, cohesion: 0.84, treasury: '3,200 NC', focus: 'Engineering & Grid R&D' },
-                    { id: 'comm_03', name: 'Applied Cybernetics & Research Institute', type: 'occupational', members: 24, cohesion: 0.81, treasury: '2,800 NC', focus: 'Scientific Acceleration' },
-                    { id: 'comm_04', name: 'Syntropic Ecology & Green Core Society', type: 'interest', members: 19, cohesion: 0.88, treasury: '1,100 NC', focus: 'Environmental Advocacy' },
-                    { id: 'comm_05', name: 'Commercial Trade & Mercator Guild', type: 'occupational', members: 31, cohesion: 0.72, treasury: '4,600 NC', focus: 'Market Liquidity' },
+                    { id: 'comm_01', name: 'Kaza Neighbourhood Group', type: 'Local area', members: 42, cohesion: 0.76, treasury: '₹1,450', focus: 'Helping families' },
+                    { id: 'comm_02', name: 'Spiti Builders Group', type: 'Work', members: 28, cohesion: 0.84, treasury: '₹3,200', focus: 'Roads and power' },
+                    { id: 'comm_03', name: 'Kaza Science Club', type: 'Work', members: 24, cohesion: 0.81, treasury: '₹2,800', focus: 'Research' },
+                    { id: 'comm_04', name: 'Dhankar Nature Group', type: 'Shared interest', members: 19, cohesion: 0.88, treasury: '₹1,100', focus: 'Protecting the land' },
+                    { id: 'comm_05', name: 'Tabo Shopkeepers Group', type: 'Work', members: 31, cohesion: 0.72, treasury: '₹4,600', focus: 'Local shops and trade' },
                   ].map((comm) => (
                     <div
                       key={comm.id}
@@ -543,11 +642,11 @@ export default function Analytics() {
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-400 pt-1">
                         <div>Members: <strong className="text-slate-200">{comm.members}</strong></div>
-                        <div>Cohesion: <strong className="text-cyan-400">{(comm.cohesion * 100).toFixed(0)}%</strong></div>
-                        <div>Treasury: <strong className="text-emerald-400">{comm.treasury}</strong></div>
+                        <div>Working well: <strong className="text-cyan-400">{(comm.cohesion * 100).toFixed(0)}%</strong></div>
+                        <div>Group funds: <strong className="text-emerald-400">{comm.treasury}</strong></div>
                       </div>
                       <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
-                        Focus: <span className="text-slate-300">{comm.focus}</span>
+                        Main aim: <span className="text-slate-300">{comm.focus}</span>
                       </div>
                     </div>
                   ))}
@@ -559,8 +658,8 @@ export default function Analytics() {
             <div className="lg:col-span-5 space-y-6">
               <Panel
                 tag="SOCIAL.GRAPH"
-                title="Relationship Typology & Dynamics"
-                subtitle="Interpersonal bonds and mutual assistance networks"
+                title="People’s Relationships"
+                subtitle="How people know and help each other."
               >
                 <div className="space-y-3 text-xs font-mono">
                   <div className="p-3 rounded-lg bg-[#080a11] border border-slate-800 space-y-1">
@@ -600,8 +699,8 @@ export default function Analytics() {
               {/* Information Circulation Feed */}
               <Panel
                 tag="NEWS.PROPAGATION"
-                title="Active Circulating Telemetry"
-                subtitle="Decentralized rumor & information diffusion"
+                title="Community News"
+                subtitle="How news spreads around the city."
               >
                 <div className="space-y-2 text-xs font-mono">
                   {[
@@ -630,13 +729,13 @@ export default function Analytics() {
           {/* Inquiry Question Form */}
           <Panel
             tag="AI.CAUSAL.INQUIRY"
-            title="AI City Analyst — Causal Reasoning"
-            subtitle="Ask questions about why metrics shifted or what caused specific outcomes"
+            title="Ask the City Assistant"
+            subtitle="Ask why something changed in the city."
           >
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-2">
                 <label className="text-slate-300 flex justify-between">
-                  <span>ASK A CAUSAL QUESTION</span>
+                  <span>ASK A QUESTION</span>
                   <span className="text-purple-400">Grounded in empirical simulation history</span>
                 </label>
                 <div className="flex gap-2">
@@ -658,12 +757,12 @@ export default function Analytics() {
                     {isAskingAi ? (
                       <>
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>ANALYZING DATA...</span>
+                        <span>LOOKING AT CITY DATA...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                        <span>ANALYZE CAUSE</span>
+                        <span>FIND OUT WHY</span>
                       </>
                     )}
                   </button>
@@ -705,7 +804,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-purple-300 flex items-center gap-1.5 uppercase">
                     <Sparkles className="w-4 h-4 text-purple-400" />
-                    <span>Causal Investigation Verdict</span>
+                    <span>What the city assistant found</span>
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-900/60 text-purple-200 border border-purple-700">
                     Confidence: {causalReport.confidence}
@@ -724,7 +823,7 @@ export default function Analytics() {
                 {/* 1. Observation */}
                 <Panel
                   tag="1. OBSERVATION"
-                  title="Observed Trend in Simulation"
+                  title="What Changed"
                   subtitle="What the data shows across history"
                 >
                   <p className="text-slate-300 text-[12px] font-sans leading-relaxed">
@@ -735,8 +834,8 @@ export default function Analytics() {
                 {/* 2. Evidence */}
                 <Panel
                   tag="2. EVIDENCE"
-                  title="Verifiable Simulation Evidence"
-                  subtitle="Exact numbers and recorded metric shifts"
+                  title="Numbers from the City"
+                  subtitle="The numbers that changed."
                 >
                   <ul className="space-y-1.5 text-slate-200">
                     {causalReport.evidence.map((item, idx) => (
@@ -751,8 +850,8 @@ export default function Analytics() {
                 {/* 3. Related Events */}
                 <Panel
                   tag="3. RELATED EVENTS"
-                  title="Correlated Crises & Injections"
-                  subtitle="Active events coinciding with this metric trajectory"
+                  title="Events at the Same Time"
+                  subtitle="Events that happened around the same time"
                 >
                   {causalReport.relatedEvents && causalReport.relatedEvents.length > 0 ? (
                     <div className="space-y-1.5">
@@ -770,8 +869,8 @@ export default function Analytics() {
                 {/* 4. Possible Cause */}
                 <Panel
                   tag="4. POSSIBLE CAUSE"
-                  title="Underlying Simulation Mechanism"
-                  subtitle="Code-level interaction causing this behavior"
+                  title="How the City Works"
+                  subtitle="The city rules that led to this change."
                 >
                   <p className="text-slate-300 text-[12px] font-sans leading-relaxed">
                     {causalReport.possibleCause}

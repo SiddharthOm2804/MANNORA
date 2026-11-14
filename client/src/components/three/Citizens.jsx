@@ -7,7 +7,7 @@ import * as THREE from 'three';
  * DO NOT create thousands of expensive individual meshes if performance suffers.
  * InstancedMesh renders hundreds of citizens in a single draw call.
  */
-export function Citizens({
+export const Citizens = React.memo(function Citizens({
   agents = [],
   selectedCitizen,
   onSelectCitizen,
@@ -29,13 +29,17 @@ export function Citizens({
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
+  // Cap visible instances to maintain 60 FPS even with thousands of agents
+  const displayLimit = Math.min(agents.length, 1500);
+
   // Update instance matrices and colors whenever agents change
   useEffect(() => {
     if (!meshRef.current || agents.length === 0) return;
 
-    agents.forEach((agent, i) => {
-      const x = agent.location?.x ?? (50 + (i % 10) * 2);
-      const z = agent.location?.y ?? (50 + Math.floor(i / 10) * 2);
+    for (let i = 0; i < displayLimit; i++) {
+      const agent = agents[i];
+      const x = agent.location?.x ?? agent.x ?? (50 + (i % 20) * 1.5);
+      const z = agent.location?.y ?? agent.y ?? (50 + Math.floor(i / 20) * 1.5);
 
       dummy.position.set(x, 0.45, z);
       dummy.scale.set(1, 1, 1);
@@ -46,13 +50,13 @@ export function Citizens({
       // Color coding by occupation or status
       const color = occupationColors[agent.occupation] || occupationColors.citizen;
       meshRef.current.setColorAt(i, color);
-    });
+    }
 
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor) {
       meshRef.current.instanceColor.needsUpdate = true;
     }
-  }, [agents, dummy, occupationColors]);
+  }, [agents, displayLimit, dummy, occupationColors]);
 
   // Click Raycaster Handler for InstancedMesh
   const handleClick = (e) => {
@@ -72,7 +76,7 @@ export function Citizens({
         title: agt.name || `Citizen ${agt.id}`,
         badge: (agt.occupation || 'citizen').toUpperCase(),
         action: agt.healthState?.currentAction || 'ACTIVE',
-        wealth: `${Math.round(agt.wealth || 100)} NC`,
+        wealth: `${Math.round(agt.wealth || 100)} ₹`,
         happiness: `${Math.round(agt.healthState?.happiness || 100)}%`,
         position: [agt.location?.x ?? 50, 1.8, agt.location?.y ?? 50],
       });
@@ -84,7 +88,7 @@ export function Citizens({
   return (
     <instancedMesh
       ref={meshRef}
-      args={[null, null, agents.length]}
+      args={[null, null, displayLimit]}
       onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={(e) => {
@@ -98,6 +102,6 @@ export function Citizens({
       <meshStandardMaterial roughness={0.3} metalness={0.7} />
     </instancedMesh>
   );
-}
+});
 
 export default Citizens;

@@ -82,7 +82,7 @@ export default function TimelineControl({
           onClick={onStep}
           disabled={isRunning}
           className="p-2 rounded-md border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-          title="Step 1 Discrete Tick"
+          title="Move forward one step"
         >
           <SkipForward className="w-4 h-4" />
         </button>
@@ -91,7 +91,7 @@ export default function TimelineControl({
         <button
           onClick={onReset}
           className="p-2 rounded-md border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          title="Reset Simulation Clock"
+          title="Start the city clock again"
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>

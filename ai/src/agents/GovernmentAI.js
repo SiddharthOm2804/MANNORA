@@ -109,7 +109,7 @@ Provide emergency council response protocol in JSON with { priorityActions, reso
           'Mobilize guild engineers for rapid infrastructure repair.',
         ],
         resourceAllocationStrategy: 'Allocate 20% of treasury surplus to immediate relief.',
-        citizenGuidance: 'Remain near designated arcology shelter zones and conserve power.',
+        citizenGuidance: 'Stay near the marked shelter and save power.',
         source: 'deterministic_rule_engine',
       };
     }

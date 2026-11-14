@@ -134,13 +134,13 @@ export default function ExperimentLabPage() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <FlaskConical className="w-3.5 h-3.5 text-cyan-400" />
-            <span>EXPERIMENT LAB & MONTE-CARLO SIMULATOR // PHASE 13</span>
+            <span>TEST CITY CHOICES</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            Experiment Lab & Policy Testing
+            Test City Choices
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Define starting conditions, run multiple simulation trials, and examine statistical outcomes.
+            Choose a city change, run the test, and compare what happens.
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export default function ExperimentLabPage() {
                 : 'bg-[#080a11] text-slate-400 border border-slate-800 hover:text-white'
             }`}
           >
-            1. Define Experiment
+            1. Set Up Test
           </button>
           <button
             onClick={() => setActiveTab('results')}
@@ -165,7 +165,7 @@ export default function ExperimentLabPage() {
                 : 'bg-[#080a11] text-slate-400 border border-slate-800 hover:text-white'
             }`}
           >
-            2. Statistical Results
+            2. Test Results
           </button>
           <button
             onClick={() => setActiveTab('comparison')}
@@ -176,7 +176,7 @@ export default function ExperimentLabPage() {
                 : 'bg-[#080a11] text-slate-400 border border-slate-800 hover:text-white'
             }`}
           >
-            3. Compare Scenarios
+            3. Compare Tests
           </button>
         </div>
       </div>
@@ -186,11 +186,10 @@ export default function ExperimentLabPage() {
         <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <div className="text-amber-300 font-bold tracking-wide uppercase text-[11px] flex items-center gap-2">
-            <span>Notice: Simulation Model Output — Not Real-World Prediction</span>
+            <span>These results are from the city model</span>
           </div>
           <p className="text-slate-300 font-sans leading-relaxed text-[11px]">
-            All charts, variances, and distributions produced in this laboratory reflect synthetic agent-based mathematical equations within MANNORA. 
-            They illustrate how this virtual city model behaves under stress; <strong>they do not claim scientific certainty or real-world demographic/economic forecasting.</strong>
+            The charts show results from this virtual city model. They help you compare choices; <strong>they do not predict what will happen in a real city.</strong>
           </p>
         </div>
       </div>
@@ -203,15 +202,15 @@ export default function ExperimentLabPage() {
           <div className="lg:col-span-7 space-y-5">
             <Panel
               tag="SETUP.VARIABLES"
-              title="Experiment Setup & Variables"
-              subtitle="Configure baseline population, variable modifications, and run counts"
+              title="Set Up a Test"
+              subtitle="Choose what to change and how many times to run the test."
             >
               <div className="space-y-4 text-xs font-mono">
                 {/* Experiment Name */}
                 <div className="space-y-1.5">
                   <label className="text-slate-300 flex justify-between">
-                    <span>EXPERIMENT TITLE</span>
-                    <span className="text-slate-400">Descriptive Label</span>
+                    <span>TEST NAME</span>
+                    <span className="text-slate-400">Give your test a name</span>
                   </label>
                   <input
                     type="text"
@@ -226,7 +225,7 @@ export default function ExperimentLabPage() {
                   {/* Baseline Population */}
                   <div className="space-y-1.5">
                     <label className="text-slate-300 flex justify-between">
-                      <span>BASE POPULATION</span>
+                      <span>STARTING POPULATION</span>
                       <span className="text-cyan-400 font-bold">{population.toLocaleString()}</span>
                     </label>
                     <input
@@ -257,7 +256,7 @@ export default function ExperimentLabPage() {
                       <option value="water">Water Availability (Reserve Stock)</option>
                       <option value="energy">Energy Availability (Fusion Grid)</option>
                       <option value="taxRate">City Income Tax Rate (%)</option>
-                      <option value="treasury">Initial City Treasury (NC)</option>
+                      <option value="treasury">Starting city money (₹)</option>
                     </select>
                   </div>
                 </div>
@@ -359,28 +358,28 @@ export default function ExperimentLabPage() {
           <div className="lg:col-span-5 space-y-5">
             <Panel
               tag="METHODOLOGY"
-              title="Monte-Carlo Simulation Methodology"
-              subtitle="How multiple runs generate statistical confidence"
+              title="How Repeated Tests Work"
+              subtitle="Run the same test again to compare results."
             >
               <div className="space-y-3 text-xs font-mono">
                 <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-1.5">
-                  <span className="text-cyan-400 font-bold block text-[11px]">1. ISOLATED RUN EXECUTION</span>
+                  <span className="text-cyan-400 font-bold block text-[11px]">1. RUN THE TEST</span>
                   <p className="text-slate-300 text-[11px] font-sans">
-                    Each run launches an independent simulation engine with the specified starting conditions and runs for {durationDays} days.
+                    Each run starts a fresh city with your settings and follows it for {durationDays} days.
                   </p>
                 </div>
 
                 <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-1.5">
-                  <span className="text-cyan-400 font-bold block text-[11px]">2. STATISTICAL AGGREGATION</span>
+                  <span className="text-cyan-400 font-bold block text-[11px]">2. COMPARE THE RESULTS</span>
                   <p className="text-slate-300 text-[11px] font-sans">
-                    The lab measures population survival, average wealth, prices, and event occurrences to calculate mathematical variance and distribution histograms.
+                    We compare the number of people, savings, prices, and city events across each run.
                   </p>
                 </div>
 
                 <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-1.5">
-                  <span className="text-cyan-400 font-bold block text-[11px]">3. DECISION TESTING</span>
+                  <span className="text-cyan-400 font-bold block text-[11px]">3. CHOOSE WHAT WORKS</span>
                   <p className="text-slate-300 text-[11px] font-sans">
-                    Test what happens under extreme scenarios (like 80% water shortage) before applying rules to your main city.
+                    Try a big change, like an 80% water cut, before using it in your city.
                   </p>
                 </div>
               </div>
@@ -390,8 +389,8 @@ export default function ExperimentLabPage() {
             {historyExperiments.length > 0 && (
               <Panel
                 tag="HISTORY"
-                title="Completed Laboratory Trials"
-                subtitle="Select trials for comparative analysis"
+                title="Finished Tests"
+                subtitle="Choose tests to compare."
               >
                 <div className="space-y-2 text-xs font-mono">
                   {historyExperiments.map((exp) => {
@@ -432,7 +431,7 @@ export default function ExperimentLabPage() {
                       className="w-full mt-2 py-2 px-3 rounded bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700 font-mono text-xs font-semibold flex items-center justify-center gap-1.5"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                      <span>Compare Selected ({comparisonSelection.length}) Trials</span>
+                      <span>Compare selected tests ({comparisonSelection.length})</span>
                     </button>
                   )}
                 </div>
@@ -451,7 +450,7 @@ export default function ExperimentLabPage() {
               label="Population Average"
               code="EXP.POP.MEAN"
               value={activeStats.metrics.population.mean.toLocaleString()}
-              subtitle={`Std Dev: ±${activeStats.metrics.population.stdDev} (Range: ${activeStats.metrics.population.range})`}
+              subtitle={`Typical change: ±${activeStats.metrics.population.stdDev} (Range: ${activeStats.metrics.population.range})`}
               icon={<Users className="w-4 h-4 text-cyan-400" />}
               sparkline={[
                 activeStats.metrics.population.min,
@@ -466,7 +465,7 @@ export default function ExperimentLabPage() {
               label="Citizen Happiness Score"
               code="EXP.HAP.MEAN"
               value={`${activeStats.metrics.happiness.mean}/100`}
-              subtitle={`Variance: ${activeStats.metrics.happiness.variance} • Med: ${activeStats.metrics.happiness.quartiles.median}`}
+              subtitle={`Difference: ${activeStats.metrics.happiness.variance} • Middle value: ${activeStats.metrics.happiness.quartiles.median}`}
               icon={<Sparkles className="w-4 h-4 text-rose-400" />}
               sparkline={[
                 activeStats.metrics.happiness.min,
@@ -480,7 +479,7 @@ export default function ExperimentLabPage() {
             <MetricCard
               label="City Treasury Balance"
               code="EXP.TRES.MEAN"
-              value={`${Math.round(activeStats.metrics.treasury.mean).toLocaleString()} NC`}
+              value={`${Math.round(activeStats.metrics.treasury.mean).toLocaleString()} ₹`}
               subtitle={`Min: ${activeStats.metrics.treasury.min} • Max: ${activeStats.metrics.treasury.max}`}
               icon={<Coins className="w-4 h-4 text-emerald-400" />}
               sparkline={[
@@ -496,7 +495,7 @@ export default function ExperimentLabPage() {
               label="Unemployment Rate"
               code="EXP.UNEMP.MEAN"
               value={`${activeStats.metrics.unemployment.mean}%`}
-              subtitle={`Std Dev: ±${activeStats.metrics.unemployment.stdDev}% across runs`}
+              subtitle={`Typical change: ±${activeStats.metrics.unemployment.stdDev}% across runs`}
               icon={<Building className="w-4 h-4 text-amber-400" />}
               sparkline={[
                 activeStats.metrics.unemployment.min,
@@ -515,15 +514,15 @@ export default function ExperimentLabPage() {
             <div className="lg:col-span-7 space-y-6">
               <Panel
                 tag="DISTRIBUTIONS"
-                title="Outcome Frequency Distributions"
-                subtitle={`Binned histogram across all ${activeStats.totalRuns} simulation runs`}
+                title="How Often Each Result Happened"
+                subtitle={`Results from all ${activeStats.totalRuns} simulation runs`}
               >
                 <div className="space-y-6 text-xs font-mono">
                   {/* Population Distribution */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-slate-300">
                       <span className="font-semibold text-white">Population Distribution:</span>
-                      <span className="text-[11px] text-slate-400">Mean: {activeStats.metrics.population.mean} | Median: {activeStats.metrics.population.quartiles.median}</span>
+                      <span className="text-[11px] text-slate-400">Average: {activeStats.metrics.population.mean} | Middle value: {activeStats.metrics.population.quartiles.median}</span>
                     </div>
                     <div className="grid grid-cols-8 gap-1.5 items-end h-24 pt-2">
                       {activeStats.metrics.population.distribution.map((bin, i) => (
@@ -545,7 +544,7 @@ export default function ExperimentLabPage() {
                   <div className="space-y-2 pt-4 border-t border-slate-800">
                     <div className="flex justify-between items-center text-slate-300">
                       <span className="font-semibold text-white">Happiness Distribution:</span>
-                      <span className="text-[11px] text-slate-400">Mean: {activeStats.metrics.happiness.mean} | IQR: {activeStats.metrics.happiness.quartiles.iqr}</span>
+                      <span className="text-[11px] text-slate-400">Average: {activeStats.metrics.happiness.mean} | Middle range: {activeStats.metrics.happiness.quartiles.iqr}</span>
                     </div>
                     <div className="grid grid-cols-8 gap-1.5 items-end h-24 pt-2">
                       {activeStats.metrics.happiness.distribution.map((bin, i) => (
@@ -570,13 +569,13 @@ export default function ExperimentLabPage() {
             <div className="lg:col-span-5 space-y-6">
               <Panel
                 tag="EVENT.FREQUENCY"
-                title="Crisis & Event Frequencies"
-                subtitle="Rate of emergency occurrences triggered by stress test"
+                title="Emergencies During Tests"
+                subtitle="How often emergencies happened during the test"
               >
                 <div className="space-y-2.5 text-xs font-mono">
                   {Object.keys(activeStats.eventFrequencies).length === 0 ? (
                     <div className="p-3 rounded bg-[#080a11] border border-slate-800 text-slate-400 text-center">
-                      No emergency events triggered in this trial series.
+                      No emergencies happened during these tests.
                     </div>
                   ) : (
                     Object.entries(activeStats.eventFrequencies).map(([type, stats]) => (
@@ -601,16 +600,16 @@ export default function ExperimentLabPage() {
               {/* Statistical Variance Summary Table */}
               <Panel
                 tag="METRICS.TABLE"
-                title="Averages, Variance & Ranges"
-                subtitle="Complete mathematical summary across all metrics"
+                title="Average Results and Ranges"
+                subtitle="A simple summary of all results"
               >
                 <div className="overflow-x-auto text-[11px] font-mono">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-800 text-slate-400">
-                        <th className="pb-1.5">Metric</th>
-                        <th className="pb-1.5">Mean</th>
-                        <th className="pb-1.5">Std Dev</th>
+                        <th className="pb-1.5">Item</th>
+                        <th className="pb-1.5">Average</th>
+                        <th className="pb-1.5">Typical change</th>
                         <th className="pb-1.5">Min / Max</th>
                       </tr>
                     </thead>
@@ -638,8 +637,8 @@ export default function ExperimentLabPage() {
         <div className="space-y-6">
           <Panel
             tag="COMPARISON.MATRIX"
-            title="Outcome Comparisons Across Different Scenarios"
-            subtitle={`Comparing ${comparisonResult.experimentCount} completed simulation trials`}
+            title="Compare Test Results"
+            subtitle={`Compare ${comparisonResult.experimentCount} finished tests`}
           >
             <div className="space-y-6 text-xs font-mono">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -661,7 +660,7 @@ export default function ExperimentLabPage() {
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
                     <tr className="border-b border-slate-800 text-slate-400">
-                      <th className="pb-2">Metric</th>
+                        <th className="pb-2">Item</th>
                       {comparisonResult.experiments.map((e) => (
                         <th key={e.id} className="pb-2 text-white">{e.name} (Mean ± SD)</th>
                       ))}

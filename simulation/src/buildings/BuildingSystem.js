@@ -62,7 +62,7 @@ export class BuildingSystem {
   static createBuilding(id, type = 'residential', overrides = {}) {
     const blueprints = {
       residential: {
-        name: 'Habitat Arcology',
+        name: 'Kaza Homes',
         category: 'residential',
         level: 1,
         health: 100,
@@ -74,7 +74,7 @@ export class BuildingSystem {
         consumption: { energy: 4, water: 3 },
       },
       commercial: {
-        name: 'Neural Commerce Hub',
+        name: 'Kaza Market',
         category: 'commercial',
         level: 1,
         health: 100,
@@ -86,7 +86,7 @@ export class BuildingSystem {
         consumption: { energy: 6, water: 2 },
       },
       industrial: {
-        name: 'Automated Synthesis Plant',
+        name: 'Tabo Workshop',
         category: 'industrial',
         level: 1,
         health: 100,
@@ -98,7 +98,7 @@ export class BuildingSystem {
         consumption: { energy: 12, water: 5 },
       },
       power_plant: {
-        name: 'Fusion Grid Station',
+        name: 'Kaza Solar Station',
         category: 'utility',
         level: 1,
         health: 100,
@@ -110,7 +110,7 @@ export class BuildingSystem {
         consumption: { water: 5 },
       },
       water_filter: {
-        name: 'Aquifer Filtration Plant',
+        name: 'Tabo Water Station',
         category: 'utility',
         level: 1,
         health: 100,
@@ -122,7 +122,7 @@ export class BuildingSystem {
         consumption: { energy: 8 },
       },
       vertical_farm: {
-        name: 'Hydroponic Spire',
+        name: 'Dhankar Farm',
         category: 'agriculture',
         level: 1,
         health: 100,
@@ -134,7 +134,7 @@ export class BuildingSystem {
         consumption: { energy: 6, water: 8 },
       },
       research_lab: {
-        name: 'Quantum AI Laboratory',
+        name: 'Spiti Learning Centre',
         category: 'research',
         level: 1,
         health: 100,

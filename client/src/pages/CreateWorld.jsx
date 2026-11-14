@@ -32,16 +32,16 @@ export default function CreateWorld() {
 
   // Natural Language Generation State (Phase 14)
   const [nlPrompt, setNlPrompt] = useState(
-    'Create a desert civilization with 20,000 citizens, two cities, limited water, agriculture, trade, hospitals and a central government.'
+    'Create a town in Spiti with 2,500 people, farms, shops, a hospital, and a local council.'
   );
   const [isParsingNl, setIsParsingNl] = useState(false);
   const [nlValidationResult, setNlValidationResult] = useState(null);
   const [isNlConfirmationOpen, setIsNlConfirmationOpen] = useState(false);
 
   // 1. World Name & Description
-  const [worldName, setWorldName] = useState('Sector 07 // Neo-Alexandria');
+  const [worldName, setWorldName] = useState('Spiti Vally');
   const [description, setDescription] = useState(
-    'A high-density cybernetic civilization matrix founded around automated solar deltas and algorithmic civic councils.'
+    'A mountain city in Spiti with local jobs, services, and close-knit communities.'
   );
 
   // 2. Population
@@ -225,7 +225,7 @@ export default function CreateWorld() {
             className="px-4 py-2 rounded-lg bg-[#0e121d] hover:bg-[#161c2e] border border-cyan-800/60 text-cyan-300 font-mono text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Preview City</span>
+            <span>Preview city</span>
           </button>
 
           <button
@@ -241,7 +241,7 @@ export default function CreateWorld() {
               </>
             ) : (
               <>
-                <span>START CITY</span>
+                <span>CREATE CITY</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
@@ -267,21 +267,21 @@ export default function CreateWorld() {
       {/* PHASE 14: Natural Language World Creation Section */}
       <Panel
         tag="AI.PROMPT.BUILDER"
-        title="Create City From Natural Language Prompt (Phase 14)"
-        subtitle="Write what you want in plain English; AI converts it to a verified city setup"
+        title="Describe a city and let AI set it up"
+        subtitle="Describe your city in a few words. AI will fill in the setup."
       >
         <div className="space-y-3 text-xs font-mono">
           <div className="space-y-1.5">
             <label className="text-slate-300 flex justify-between">
-              <span>NATURAL LANGUAGE PROMPT</span>
-              <span className="text-cyan-400">Describe your civilization</span>
+              <span>DESCRIBE YOUR CITY</span>
+              <span className="text-cyan-400">Describe your city</span>
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={nlPrompt}
                 onChange={(e) => setNlPrompt(e.target.value)}
-                placeholder='e.g. "Create a desert civilization with 20,000 citizens, two cities, limited water, agriculture, trade, hospitals and a central government."'
+                placeholder='For example: "Create a town in Spiti with farms, shops, a hospital, and a local council."'
                 className="flex-1 bg-[#080a11] border border-slate-800 focus:border-cyan-500 rounded px-3 py-2 text-white focus:outline-none"
               />
               <button
@@ -293,12 +293,12 @@ export default function CreateWorld() {
                 {isParsingNl ? (
                   <>
                     <Cpu className="w-3.5 h-3.5 animate-spin text-purple-300" />
-                    <span>PARSING...</span>
+                    <span>READING...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                    <span>AI BUILD & VALIDATE</span>
+                    <span>SET UP CITY</span>
                   </>
                 )}
               </button>
@@ -327,7 +327,7 @@ export default function CreateWorld() {
           <Panel
             tag="CITY.NAME"
             title="1. City Name, Population & Areas"
-            subtitle="Basic information about your virtual city"
+            subtitle="Add the city name and number of people"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
               {/* World Name */}
@@ -340,14 +340,14 @@ export default function CreateWorld() {
                   type="text"
                   value={worldName}
                   onChange={(e) => setWorldName(e.target.value)}
-                  placeholder="e.g. Sector 07 // Neo-Alexandria"
+                  placeholder="e.g. Spiti Vally"
                   className="w-full bg-[#080a11] border border-slate-800 focus:border-cyan-500 rounded px-3 py-2 text-white focus:outline-none"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-slate-300">CITY DESCRIPTION / STORY</label>
+                <label className="text-slate-300">CITY DESCRIPTION</label>
                 <textarea
                   rows={2}
                   value={description}
@@ -406,7 +406,7 @@ export default function CreateWorld() {
 
           {/* Section 2: Available Resources */}
           <Panel
-            tag="STARTING.RESOURCES"
+            tag="STARTING RESOURCES"
             title="2. Starting Resources"
             subtitle="Amount of food, water, and power available at the start"
           >
@@ -495,9 +495,9 @@ export default function CreateWorld() {
 
           {/* Section 3: Economy, Starting Capital & Industries */}
           <Panel
-            tag="STARTING.MONEY"
+            tag="STARTING MONEY"
             title="3. Starting Money & Key Industries"
-            subtitle="City starting bank balance and main work sectors"
+            subtitle="Set the starting money and main types of work"
           >
             <div className="space-y-4 text-xs font-mono">
               {/* Starting Money */}
@@ -508,7 +508,7 @@ export default function CreateWorld() {
                     <span>STARTING TREASURY CAPITAL</span>
                   </span>
                   <span className="text-emerald-400 font-bold font-mono-data">
-                    {startingMoney.toLocaleString()} Neural Credits (NC)
+                    {startingMoney.toLocaleString()} Indian rupees (₹)
                   </span>
                 </div>
                 <input
@@ -521,16 +521,16 @@ export default function CreateWorld() {
                   className="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer accent-emerald-400"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400">
-                  <span>50k NC (Austere)</span>
-                  <span>500k NC (Standard Reserve)</span>
-                  <span>3.0M NC (Hyper-Funded)</span>
+                  <span>50k ₹ (Low amount)</span>
+                  <span>500k ₹ (Typical amount)</span>
+                  <span>3.0M ₹ (High amount)</span>
                 </div>
               </div>
 
               {/* Industries Multi-Select */}
               <div className="space-y-2 pt-2 border-t border-slate-800/80">
                 <label className="text-slate-300 block">
-                  ACTIVE ECONOMIC INDUSTRIES (Select at least 1)
+                  MAIN TYPES OF WORK (Choose at least 1)
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {availableIndustries.map((ind) => {
@@ -567,9 +567,9 @@ export default function CreateWorld() {
 
           {/* Section 4: Government, Simulation Speed & Starting Date */}
           <Panel
-            tag="GOV.TIME"
-            title="4. Government Paradigm & Simulation Chronometer"
-            subtitle="Institutional authority structure and temporal starting epoch"
+            tag="GOVERNMENT & TIME"
+            title="4. Government and Start Date"
+            subtitle="Choose who makes city decisions and when the city starts"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
               {/* Government Type */}
@@ -580,27 +580,27 @@ export default function CreateWorld() {
                   onChange={(e) => setGovernmentType(e.target.value)}
                   className="w-full bg-[#080a11] border border-slate-800 rounded px-3 py-2 text-white focus:outline-none"
                 >
-                  <option value="Technocracy">Technocratic Council</option>
-                  <option value="Direct Democracy">Direct Digital Democracy</option>
-                  <option value="Autonomous Republic">Autonomous Republic</option>
-                  <option value="Corporate Guild">Corporate Guild Federation</option>
-                  <option value="Algorithmic Syndicate">Algorithmic Syndicate</option>
+                  <option value="Technocracy">Expert-led council</option>
+                  <option value="Direct Democracy">Direct democracy</option>
+                  <option value="Local republic">Local republic</option>
+                  <option value="Corporate Guild">Business council</option>
+                  <option value="Data-led council">Data-led council</option>
                 </select>
               </div>
 
               {/* Simulation Speed */}
               <div className="space-y-1.5">
-                <label className="text-slate-300">SIMULATION VELOCITY</label>
+                <label className="text-slate-300">CITY SPEED</label>
                 <select
                   value={simulationSpeed}
                   onChange={(e) => setSimulationSpeed(Number(e.target.value))}
                   className="w-full bg-[#080a11] border border-slate-800 rounded px-3 py-2 text-white focus:outline-none"
                 >
-                  <option value={0.5}>0.5x (Slow Motion Telemetry)</option>
-                  <option value={1}>1.0x (Standard Clock)</option>
-                  <option value={2}>2.0x (Accelerated Stepping)</option>
-                  <option value={5}>5.0x (Rapid Epoch Progression)</option>
-                  <option value={10}>10.0x (High-Throughput)</option>
+                  <option value={0.5}>0.5x (Slow)</option>
+                  <option value={1}>1.0x (Normal)</option>
+                  <option value={2}>2.0x (Fast)</option>
+                  <option value={5}>5.0x (Very fast)</option>
+                  <option value={10}>10.0x (Fastest)</option>
                 </select>
               </div>
 
@@ -608,7 +608,7 @@ export default function CreateWorld() {
               <div className="space-y-1.5">
                 <label className="text-slate-300 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>STARTING EPOCH DATE</span>
+                  <span>START DATE</span>
                 </label>
                 <input
                   type="date"
@@ -626,15 +626,15 @@ export default function CreateWorld() {
         <div className="lg:col-span-4 space-y-5">
           <Panel
             tag="MANIFEST"
-            title="Civilization Manifest"
-            subtitle="Pre-flight deployment verification"
+            title="City Summary"
+            subtitle="Check your city setup before saving."
           >
             <div className="space-y-3.5 text-xs font-mono">
               <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-2">
                 <div className="text-[10px] text-slate-400 uppercase">Designation</div>
                 <div className="text-white font-bold text-sm truncate">{worldName}</div>
                 <div className="flex justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800">
-                  <span>PRNG Seed:</span>
+                  <span>Starting number:</span>
                   <span className="text-cyan-400 font-mono-data">{seed}</span>
                 </div>
               </div>
@@ -645,12 +645,12 @@ export default function CreateWorld() {
                   <span className="text-white font-mono-data">{population.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Municipal Centers:</span>
+                  <span className="text-slate-400">City areas:</span>
                   <span className="text-white font-mono-data">{numberOfCities} Cities</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Starting Capital:</span>
-                  <span className="text-emerald-400 font-mono-data">{startingMoney.toLocaleString()} NC</span>
+                  <span className="text-emerald-400 font-mono-data">{startingMoney.toLocaleString()} ₹</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Industries Active:</span>
@@ -673,7 +673,7 @@ export default function CreateWorld() {
                 className="w-full py-2.5 px-3 rounded-lg bg-[#0e121d] hover:bg-[#161c2e] border border-cyan-800/60 text-cyan-300 font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>Open World Preview</span>
+                <span>Preview city</span>
               </button>
 
               <button
@@ -689,7 +689,7 @@ export default function CreateWorld() {
                   </>
                 ) : (
                   <>
-                    <span>CONFIRM & DEPLOY MATRIX</span>
+                    <span>CREATE CITY</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -746,7 +746,7 @@ export default function CreateWorld() {
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px]">STARTING CAPITAL</span>
-                <span className="text-emerald-400 font-bold font-mono-data">{startingMoney.toLocaleString()} NC</span>
+                <span className="text-emerald-400 font-bold font-mono-data">{startingMoney.toLocaleString()} ₹</span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px]">GOVERNANCE</span>

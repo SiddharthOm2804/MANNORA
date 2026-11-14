@@ -19,5 +19,8 @@
     "deterministic"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "p-queue": "^10.0.0"
+  }
 }

@@ -20,7 +20,7 @@ import LoadingWorld from './LoadingWorld';
  * - Day/night lighting responds to SimulationClock hour.
  * - Hierarchical focus: City → District → Building → Citizen.
  */
-export function CityScene({
+export const CityScene = React.memo(function CityScene({
   worldState,
   agents = [],
   buildings = [],
@@ -194,6 +194,6 @@ export function CityScene({
       </Canvas>
     </div>
   );
-}
+});
 
 export default CityScene;

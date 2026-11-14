@@ -1,5 +1,6 @@
 import { World } from '../models/World.js';
 import { isValidMongoId } from '../utils/validators.js';
+import { cacheManager } from './cacheManager.js';
 
 /**
  * Helper to generate default cities when a count or empty array is provided.
@@ -11,8 +12,7 @@ import { isValidMongoId } from '../utils/validators.js';
 export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldName = 'World') => {
   const cityCount = Math.max(1, Math.min(20, count));
   const baseName = worldName.split('//')[0].trim() || 'Sector';
-  const prefixes = ['Neo-', 'New ', 'Port ', 'Upper ', 'Lower ', 'Central ', 'Fort ', 'Nova '];
-  const suffixes = ['Prime', 'Core', 'Station', 'Heights', 'Delta', 'Hub', 'District', 'Spire'];
+  const spitiPlaces = ['Spiti Vally', 'Kaza', 'Tabo', 'Dhankar', 'Kibber', 'Langza'];
 
   const cities = [];
   const capitalShare = cityCount === 1 ? 1.0 : 0.45;
@@ -25,9 +25,10 @@ export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldNa
       ? Math.floor(totalPopulation * capitalShare) 
       : (i === cityCount - 1 ? totalPopulation - cities.reduce((acc, c) => acc + c.population, 0) : secondaryPopPerCity);
 
-    const prefix = prefixes[i % prefixes.length];
-    const suffix = suffixes[i % suffixes.length];
-    const cityName = isCapital ? `${baseName} Capital Prime` : `${prefix}${baseName} ${suffix}`;
+    const isSpitiCity = baseName.toLowerCase().includes('spiti');
+    const cityName = isSpitiCity
+      ? spitiPlaces[i % spitiPlaces.length]
+      : isCapital ? `${baseName} Town Centre` : `${baseName} Area ${i + 1}`;
 
     // Deterministic spatial scattering
     const angle = (i / cityCount) * Math.PI * 2;
@@ -40,7 +41,7 @@ export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldNa
       population: Math.max(1, pop),
       isCapital,
       coordinates: { x, y },
-      specialization: isCapital ? 'Government & Financial Hub' : (i % 2 === 0 ? 'Manufacturing & Logistics' : 'Research & Biosphere'),
+      specialization: isCapital ? 'Council and local shops' : (i % 2 === 0 ? 'Farming and transport' : 'Schools and health care'),
     });
   }
 
@@ -100,8 +101,8 @@ export class WorldService {
       cities,
       economyConfiguration: {
         startingMoney: Number(worldData.economyConfiguration?.startingMoney ?? worldData.startingMoney ?? 500000),
-        currencyName: worldData.economyConfiguration?.currencyName || 'Neural Credits',
-        currencySymbol: worldData.economyConfiguration?.currencySymbol || 'NC',
+        currencyName: worldData.economyConfiguration?.currencyName || 'Indian Rupees',
+        currencySymbol: worldData.economyConfiguration?.currencySymbol || '₹',
         taxRate: Number(worldData.economyConfiguration?.taxRate ?? 0.15),
         industries: Array.isArray(worldData.economyConfiguration?.industries)
           ? worldData.economyConfiguration.industries
@@ -143,7 +144,7 @@ export class WorldService {
   }
 
   /**
-   * Retrieve single world by MongoDB ID.
+   * Retrieve single world by MongoDB ID with caching.
    * @param {string} id
    * @returns {Promise<World|null>}
    */
@@ -154,7 +155,19 @@ export class WorldService {
       error.status = 400;
       throw error;
     }
-    return await World.findById(id);
+
+    // Try fast cache first
+    const cached = await cacheManager.get(`world:${id}`);
+    if (cached) {
+      return cached;
+    }
+
+    const world = await World.findById(id);
+    if (world) {
+      // Cache for 60 seconds
+      await cacheManager.set(`world:${id}`, world, 60);
+    }
+    return world;
   }
 
   /**
@@ -184,6 +197,7 @@ export class WorldService {
       throw error;
     }
 
+    await cacheManager.del(`world:${id}`);
     return updated;
   }
 

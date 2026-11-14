@@ -75,7 +75,7 @@ export const aiService = {
       return {
         success: false,
         data: {
-          executiveSummary: 'Simulation telemetry indicates balanced operational stability.',
+          executiveSummary: 'The city is running well and key services are steady.',
           systemHealthScore: 85,
           source: 'client_offline_fallback',
         },

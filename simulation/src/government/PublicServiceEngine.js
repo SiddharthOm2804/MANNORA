@@ -17,35 +17,35 @@ export class PublicServiceEngine {
   constructor(config = {}) {
     this.services = {
       healthcare: {
-        name: 'Municipal Healthcare & Bio-Synthetics',
+        name: 'Health Care',
         allocation: config.services?.healthcare?.allocation ?? 80,
         capacity: 1200,
         efficiency: 0.85,
         satisfaction: 82,
       },
       education: {
-        name: 'Civic Education & Technical Academies',
+        name: 'Schools and Training',
         allocation: config.services?.education?.allocation ?? 65,
         capacity: 1000,
         efficiency: 0.80,
         satisfaction: 78,
       },
       infrastructure: {
-        name: 'Grid Logistics & Transit Infrastructure',
+        name: 'Roads and Public Transport',
         allocation: config.services?.infrastructure?.allocation ?? 90,
         capacity: 1500,
         efficiency: 0.88,
         satisfaction: 85,
       },
       resources: {
-        name: 'Public Utility & Strategic Buffers',
+        name: 'Water and Power',
         allocation: config.services?.resources?.allocation ?? 50,
         capacity: 1400,
         efficiency: 0.82,
         satisfaction: 80,
       },
       emergency: {
-        name: 'Civil Protection & Emergency Response',
+        name: 'Emergency Services',
         allocation: config.services?.emergency?.allocation ?? 45,
         capacity: 1500,
         efficiency: 0.90,

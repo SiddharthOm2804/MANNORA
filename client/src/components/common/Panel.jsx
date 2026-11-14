@@ -30,11 +30,6 @@ export default function Panel({
         <div className="px-4 py-3 border-b border-slate-800/80 flex items-center justify-between gap-3 shrink-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              {tag && (
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 text-cyan-400 border border-slate-700/50 uppercase">
-                  {tag}
-                </span>
-              )}
               <h3 className="text-sm font-semibold tracking-wide text-white truncate">
                 {title}
               </h3>

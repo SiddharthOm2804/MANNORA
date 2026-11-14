@@ -199,8 +199,8 @@ export class AgentEngine {
       'administrator',
     ];
 
-    const firstNames = ['Aria', 'Kaelen', 'Evelyn', 'Tarek', 'Linnea', 'Dax', 'Lyra', 'Soren', 'Vera', 'Zane', 'Elena', 'Marcus'];
-    const lastNames = ['Voss', 'Rask', 'Chen', 'Sol', 'Mercer', 'Nakamura', 'Novak', 'Sterling', 'Corvus', 'Thorne'];
+    const firstNames = ['Asha', 'Arjun', 'Priya', 'Mohan', 'Kavita', 'Rahul', 'Pooja', 'Deepak', 'Aman', 'Meera', 'Kiran', 'Ravi'];
+    const lastNames = ['Sharma', 'Mehta', 'Nair', 'Verma', 'Singh', 'Negi', 'Rao', 'Kapoor', 'Thakur', 'Joshi'];
 
     const firstName = random ? random.choice(firstNames) : firstNames[0];
     const lastName = random ? random.choice(lastNames) : lastNames[0];

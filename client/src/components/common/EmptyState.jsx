@@ -13,9 +13,9 @@ import { Database, Plus, Search } from 'lucide-react';
  * @param {Function} [props.onAction] - Button click handler
  */
 export default function EmptyState({
-  title = 'NO ACTIVE TELEMETRY FOUND',
-  description = 'No simulation records or agent entities match the specified query parameters.',
-  code = 'NULL_STREAM_00',
+  title = 'Nothing to show yet',
+  description = 'Try changing your search or add a new city.',
+  code = '',
   icon,
   actionLabel,
   onAction,
@@ -30,9 +30,7 @@ export default function EmptyState({
       </div>
 
       <div className="space-y-1.5 max-w-md">
-        <div className="text-[10px] font-mono text-cyan-400 tracking-wider">
-          [{code}]
-        </div>
+        {code && <div className="text-[10px] font-mono text-cyan-400 tracking-wider">{code}</div>}
         <h4 className="text-sm font-semibold tracking-wide text-white">
           {title}
         </h4>

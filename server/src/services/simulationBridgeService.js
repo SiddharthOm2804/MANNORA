@@ -4,6 +4,8 @@ import { worldService } from './worldService.js';
 import { WorldStateAdapter } from './worldStateAdapter.js';
 import { eventPublisher } from './eventPublisher.js';
 import { isValidMongoId } from '../utils/validators.js';
+import { persistenceWorker } from './persistenceWorker.js';
+import { cacheManager } from './cacheManager.js';
 
 /**
  * SimulationBridgeService manages the lifecycle of in-memory SimulationEngine instances
@@ -82,7 +84,46 @@ export class SimulationBridgeService {
       engine.stateManager.getCurrentState().setEntity(entity.id, entity);
     }
 
-    // 6. Bind engine events to EventPublisher for real-time SSE streaming
+    // Phase 16: Automatic periodic batch persistence and snapshotting during simulation
+    const onTickPersistence = (tickData) => {
+      const currentState = engine.stateManager.getCurrentState();
+      // Cache current tick stats for zero-latency queries
+      cacheManager.set(`world:${worldId}:metrics`, currentState.metrics, 30);
+
+      // Persist snapshot periodically (e.g. every 50 ticks)
+      if (tickData.tick > 0 && tickData.tick % 50 === 0) {
+        persistenceWorker.queueSnapshot({
+          worldId,
+          tick: tickData.tick,
+          label: `tick_${tickData.tick}`,
+          simulatedTime: new Date(),
+          metrics: {
+            population: currentState.population?.total || 0,
+            employed: currentState.population?.employed || 0,
+            gdp: currentState.economy?.gdp || 0,
+            treasury: currentState.economy?.treasury || 0,
+            satisfaction: currentState.metrics?.averageSatisfaction || 100,
+            health: currentState.metrics?.averageHealth || 100,
+          },
+          resources: currentState.resources || {},
+          economy: currentState.economy || {},
+          agentCount: currentState.getAgents().length,
+          buildingCount: currentState.getBuildings().length,
+        });
+
+        // Queue world stats write-behind
+        persistenceWorker.queueWorldUpdate(worldId, {
+          'simulationSettings.currentTick': tickData.tick,
+          'metrics.population': currentState.population?.total || 0,
+          'metrics.gdp': currentState.economy?.gdp || 0,
+          'economyConfiguration.treasury': currentState.economy?.treasury || 0,
+        });
+      }
+    };
+
+    engine.on('tick', onTickPersistence);
+
+    // 6. Bind engine events to EventPublisher for real-time SSE & WebSocket streaming
     const unbind = eventPublisher.bindSimulationEngine(worldId, engine);
 
     // 7. Store active simulation instance

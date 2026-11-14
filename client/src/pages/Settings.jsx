@@ -38,13 +38,13 @@ export default function Settings() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <SettingsIcon className="w-3.5 h-3.5" />
-            <span>CITY & ENGINE SETTINGS</span>
+            <span>CITY SETTINGS</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
             City Settings
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Configure simulation speed, how many days of history to save, and database connection.
+            Choose how fast the city changes and how often to save it.
           </p>
         </div>
 
@@ -74,39 +74,39 @@ export default function Settings() {
           {/* Section 1: Simulation Engine Settings */}
           <Panel
             tag="ENGINE.SPEED"
-            title="1. Simulation Engine Speed & Seed"
-            subtitle="Control how fast simulation days progress and random seeds"
+            title="1. City Speed and Starting Number"
+            subtitle="Set how fast the city changes and choose a starting number"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
               <div className="space-y-1.5">
-                <label className="text-slate-300">SIMULATION TICKS PER SECOND</label>
+                <label className="text-slate-300">CITY STEPS PER SECOND</label>
                 <select
                   value={tickRate}
                   onChange={(e) => setTickRate(Number(e.target.value))}
                   className="w-full bg-[#080a11] border border-slate-800 rounded px-3 py-2 text-white focus:outline-none"
                 >
-                  <option value={10}>10 Steps/Sec (Normal Speed)</option>
-                  <option value={20}>20 Steps/Sec (Fast Speed)</option>
-                  <option value={60}>60 Steps/Sec (Maximum Speed)</option>
+                  <option value={10}>10 steps per second (normal)</option>
+                  <option value={20}>20 steps per second (fast)</option>
+                  <option value={60}>60 steps per second (fastest)</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-300">RANDOM NUMBER GENERATOR</label>
+                <label className="text-slate-300">REPEATABLE RESULTS</label>
                 <select
                   value={prngAlgorithm}
                   onChange={(e) => setPrngAlgorithm(e.target.value)}
                   className="w-full bg-[#080a11] border border-slate-800 rounded px-3 py-2 text-white focus:outline-none"
                 >
-                  <option value="mulberry32">Mulberry32 (Standard Deterministic Seed)</option>
-                  <option value="splitmix64">SplitMix64 (Extended Random Generator)</option>
+                  <option value="mulberry32">Repeat the same results (Method 1)</option>
+                  <option value="splitmix64">Repeat the same results (Method 2)</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-slate-300 flex justify-between">
-                  <span>MAXIMUM SAVED HISTORY POINTS</span>
-                  <span className="text-cyan-400 font-mono-data">{maxHistory} Snapshots</span>
+                  <span>SAVED CITY DAYS</span>
+                  <span className="text-cyan-400 font-mono-data">{maxHistory} saved days</span>
                 </label>
                 <input
                   type="range"
@@ -137,12 +137,12 @@ export default function Settings() {
           {/* Section 2: Backend Persistence & Network */}
           <Panel
             tag="DATABASE.SETTINGS"
-            title="2. Backend Server & Database Settings"
-            subtitle="Connection addresses for Node.js API and MongoDB database"
+            title="2. Server and Database"
+            subtitle="Server and database addresses"
           >
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-1.5">
-                <label className="text-slate-300">BACKEND API ADDRESS</label>
+                <label className="text-slate-300">SERVER ADDRESS</label>
                 <input
                   type="text"
                   value={apiEndpoint}
@@ -152,7 +152,7 @@ export default function Settings() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-300">MONGODB DATABASE ADDRESS</label>
+                <label className="text-slate-300">DATABASE ADDRESS</label>
                 <input
                   type="text"
                   value={mongoUri}
@@ -160,7 +160,7 @@ export default function Settings() {
                   className="w-full bg-[#080a11] border border-slate-800 focus:border-cyan-500 rounded px-3 py-2 text-white focus:outline-none"
                 />
                 <span className="text-[10px] text-slate-400">
-                  Configured through server environment variable: MONGO_URI
+                  Your server sets this address.
                 </span>
               </div>
             </div>
@@ -169,8 +169,8 @@ export default function Settings() {
           {/* Section 3: Viewport & Client Rendering */}
           <Panel
             tag="GRAPHICS.SETTINGS"
-            title="3. 3D Display & Graphics Settings"
-            subtitle="Visual settings for 3D city view"
+            title="3. City Display"
+            subtitle="Change how the 3D city looks"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
               <div className="space-y-1.5">
@@ -188,7 +188,7 @@ export default function Settings() {
 
               <div className="space-y-1.5">
                 <label className="text-slate-300 flex justify-between">
-                  <span>GROUND GRID OPACITY</span>
+                  <span>MAP GRID DARKNESS</span>
                   <span className="text-cyan-400 font-mono-data">{(gridOpacity * 100).toFixed(0)}%</span>
                 </label>
                 <input
@@ -210,8 +210,8 @@ export default function Settings() {
         <div className="lg:col-span-4 space-y-5">
           <Panel
             tag="SYSTEM.STATUS"
-            title="System & Technology Info"
-            subtitle="Tools and versions used in MANNORA"
+            title="About this project"
+            subtitle="Tools used to build MANNORA"
           >
             <div className="space-y-3 text-xs font-mono">
               <div className="p-3 rounded bg-[#080a11] border border-slate-800 space-y-2 text-[11px]">
@@ -238,7 +238,7 @@ export default function Settings() {
               </div>
 
               <div className="p-2.5 rounded bg-cyan-950/20 border border-cyan-800/40 text-[11px] text-cyan-300">
-                City simulation runs with exact repeatable results using deterministic math.
+                The same starting number gives the same city results each time.
               </div>
             </div>
           </Panel>

@@ -10,8 +10,8 @@ import { Cpu, RefreshCw } from 'lucide-react';
  * @param {boolean} [props.fullScreen=false]
  */
 export default function LoadingState({
-  message = 'INITIALIZING SIMULATION MATRIX...',
-  subtext = 'Synchronizing deterministic state and neural telemetry',
+  message = 'Loading the city...',
+  subtext = 'Getting the latest city details',
   fullScreen = false,
 }) {
   const content = (

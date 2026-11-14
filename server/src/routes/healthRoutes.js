@@ -34,7 +34,7 @@ router.get('/health', (req, res) => {
       lastError: dbHealth.lastError,
     },
     engine: {
-      phase: 'Phase 1 - Foundational Architecture',
+      phase: 'Phase 16 - Scalability Engine (WebSockets, Caching, Batch Workers)',
       version: '0.1.0',
     },
   };

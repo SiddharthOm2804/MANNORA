@@ -1,11 +1,12 @@
+import api from './api';
+
 /**
  * Helper to generate preview cities when creating a world.
  */
 export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldName = 'World') => {
   const cityCount = Math.max(1, Math.min(20, count));
   const baseName = worldName.split('//')[0].trim() || 'Sector';
-  const prefixes = ['Neo-', 'New ', 'Port ', 'Upper ', 'Lower ', 'Central ', 'Fort ', 'Nova '];
-  const suffixes = ['Prime', 'Core', 'Station', 'Heights', 'Delta', 'Hub', 'District', 'Spire'];
+  const spitiPlaces = ['Spiti Vally', 'Kaza', 'Tabo', 'Dhankar', 'Kibber', 'Langza'];
 
   const cities = [];
   const capitalShare = cityCount === 1 ? 1.0 : 0.45;
@@ -18,9 +19,10 @@ export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldNa
       ? Math.floor(totalPopulation * capitalShare)
       : (i === cityCount - 1 ? totalPopulation - cities.reduce((acc, c) => acc + c.population, 0) : secondaryPopPerCity);
 
-    const prefix = prefixes[i % prefixes.length];
-    const suffix = suffixes[i % suffixes.length];
-    const cityName = isCapital ? `${baseName} Capital Prime` : `${prefix}${baseName} ${suffix}`;
+    const isSpitiCity = baseName.toLowerCase().includes('spiti');
+    const cityName = isSpitiCity
+      ? spitiPlaces[i % spitiPlaces.length]
+      : isCapital ? `${baseName} Town Centre` : `${baseName} Area ${i + 1}`;
 
     const angle = (i / cityCount) * Math.PI * 2;
     const distance = isCapital ? 0 : 25 + (i * 7) % 20;
@@ -32,7 +34,7 @@ export const generateDefaultCities = (count = 1, totalPopulation = 1000, worldNa
       population: Math.max(1, pop),
       isCapital,
       coordinates: { x, y },
-      specialization: isCapital ? 'Government & Financial Hub' : (i % 2 === 0 ? 'Manufacturing & Logistics' : 'Research & Biosphere'),
+      specialization: isCapital ? 'Council and local shops' : (i % 2 === 0 ? 'Farming and transport' : 'Schools and health care'),
     });
   }
 

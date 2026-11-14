@@ -24,14 +24,14 @@ export default function Timeline() {
   const branches = [
     {
       id: 'main_trunk',
-      name: 'Main City // Original Timeline',
+      name: 'Spiti Vally: Current City',
       ticks: 1420,
       status: 'active',
       description: 'The main city simulation running with original settings and policies.',
     },
     {
       id: 'branch_alpha',
-      name: 'Version Alpha // Free Energy Policy',
+      name: 'What if power were free?',
       ticks: 1100,
       forkedFrom: 800,
       status: 'forked',
@@ -39,7 +39,7 @@ export default function Timeline() {
     },
     {
       id: 'branch_beta',
-      name: 'Version Beta // Citizen Cash Support',
+      name: 'What if families got monthly support?',
       ticks: 950,
       forkedFrom: 600,
       status: 'dormant',
@@ -53,7 +53,7 @@ export default function Timeline() {
       title: 'Current City State',
       date: 'Just now',
       type: 'LATEST',
-      metrics: { population: 1482, treasury: '942.8k NC', entropy: '0.14 λ' },
+      metrics: { population: 1482, treasury: '₹9,42,800', entropy: '86%' },
       notes: 'Latest simulation state saved in memory.',
     },
     {
@@ -61,15 +61,15 @@ export default function Timeline() {
       title: 'City Expansion Rule Approved',
       date: '320 days ago',
       type: 'SAVED POINT',
-      metrics: { population: 1320, treasury: '860.2k NC', entropy: '0.16 λ' },
-      notes: 'Sector 04 opened for new residential houses and apartments.',
+      metrics: { population: 1320, treasury: '₹8,60,200', entropy: '82%' },
+      notes: 'Dhankar homes opened for new residential houses and apartments.',
     },
     {
       tick: 720,
       title: 'Solar Power Plant Completed',
       date: '700 days ago',
       type: 'MILESTONE',
-      metrics: { population: 980, treasury: '620.0k NC', entropy: '0.22 λ' },
+      metrics: { population: 980, treasury: '₹6,20,000', entropy: '75%' },
       notes: 'Switched main power generation to clean solar power.',
     },
     {
@@ -77,15 +77,15 @@ export default function Timeline() {
       title: 'City Traders Association Formed',
       date: '1,070 days ago',
       type: 'SAVED POINT',
-      metrics: { population: 640, treasury: '380.5k NC', entropy: '0.28 λ' },
+      metrics: { population: 640, treasury: '₹3,80,500', entropy: '68%' },
       notes: 'Local merchants established a central market for goods.',
     },
     {
       tick: 0,
-      title: 'City Founded',
+      title: 'Spiti Vally Opened',
       date: '1,420 days ago',
       type: 'START',
-      metrics: { population: 500, treasury: '100.0k NC', entropy: '0.35 λ' },
+      metrics: { population: 500, treasury: '₹1,00,000', entropy: '60%' },
       notes: 'Simulation initialized with starter population and seed.',
     },
   ];
@@ -126,8 +126,8 @@ export default function Timeline() {
         <div className="lg:col-span-5 space-y-4">
           <Panel
             tag="SIMULATION.VERSIONS"
-            title="City Simulation Versions"
-            subtitle="Compare different decision branches running in parallel"
+            title="Saved City Versions"
+            subtitle="Compare city versions with different choices"
           >
             <div className="space-y-3">
               {branches.map((b) => {
@@ -177,7 +177,7 @@ export default function Timeline() {
           <div className="lab-panel p-4 rounded-lg space-y-2 text-xs font-mono">
             <div className="flex items-center gap-2 text-amber-400 font-semibold text-[11px]">
               <History className="w-3.5 h-3.5" />
-              <span>HOW TIME MACHINE WORKS</span>
+              <span>HOW TO USE THE TIME MACHINE</span>
             </div>
             <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
               MANNORA saves complete snapshots of the entire city. When you rewind time to any saved point, all citizens, jobs, bank balance, and city buildings return exactly to how they were on that day.
@@ -189,8 +189,8 @@ export default function Timeline() {
         <div className="lg:col-span-7 space-y-4">
           <Panel
             tag="SAVED.POINTS"
-            title="Saved Simulation Points"
-            subtitle="List of saved days in city history you can rewind to"
+            title="Saved City History"
+            subtitle="Choose a saved day to return to."
           >
             <div className="space-y-4">
               {checkpoints.map((cp, idx) => {
@@ -245,13 +245,13 @@ export default function Timeline() {
                     {/* Checkpoint Telemetry Snapshot */}
                     <div className="mt-3 pt-2.5 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-[10px] font-mono text-slate-400">
                       <div>
-                        POPULATION: <span className="text-white font-mono-data">{cp.metrics.population}</span>
+                        PEOPLE: <span className="text-white font-mono-data">{cp.metrics.population}</span>
                       </div>
                       <div>
-                        TREASURY: <span className="text-emerald-400 font-mono-data">{cp.metrics.treasury}</span>
+                        CITY FUNDS: <span className="text-emerald-400 font-mono-data">{cp.metrics.treasury}</span>
                       </div>
                       <div>
-                        STABILITY: <span className="text-cyan-400 font-mono-data">{cp.metrics.entropy}</span>
+                        CITY WELLBEING: <span className="text-cyan-400 font-mono-data">{cp.metrics.entropy}</span>
                       </div>
                     </div>
                   </div>

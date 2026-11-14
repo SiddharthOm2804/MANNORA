@@ -6,7 +6,7 @@ import { WorldConfigurationValidator } from './WorldConfigurationValidator.js';
  * structured, validated WorldConfiguration objects.
  *
  * Example input:
- * "Create a desert civilization with 20,000 citizens, two cities, limited water, agriculture, trade, hospitals and a central government."
+ * "Create a town in Spiti with farms, shops, a hospital, and a local council."
  */
 export class WorldPromptParser {
   /**
@@ -42,9 +42,9 @@ export class WorldPromptParser {
       {
         role: 'system',
         content: `You are the World Configuration Architect for MANNORA (Virtual City Simulation).
-Convert the user's natural language description of a civilization into a strict JSON configuration object.
+Turn the user's city description into a clear city setup in JSON.
 Extract or infer:
-- name: A fitting civilization name (e.g. "Kalahari Solar Republic", "Oasis Syndicate")
+- name: A simple Indian city name (for example, "Spiti Vally" or "Jaisalmer City")
 - description: A short, 1-2 sentence description in simple English
 - population: integer number of citizens (default: 5000)
 - numberOfCities: integer count of cities/urban sectors (default: 2)
@@ -198,12 +198,12 @@ Return ONLY a valid JSON object with these keys. No markdown fences, no conversa
     }
 
     const name = biome === 'Desert'
-      ? 'Neo-Sahara Central Oasis'
-      : `${biome} Autonomous Matrix`;
+      ? 'Jaisalmer City'
+      : biome.toLowerCase().includes('mountain') ? 'Spiti Vally' : 'Pune City';
 
     return {
       name,
-      description: `A ${biome.toLowerCase()} civilization with ${population.toLocaleString()} citizens, ${numberOfCities} cities, and ${governmentType.toLowerCase()}.`,
+      description: `A ${biome.toLowerCase()} city with ${population.toLocaleString()} people, ${numberOfCities} areas, and a local government.`,
       population,
       numberOfCities,
       biome,

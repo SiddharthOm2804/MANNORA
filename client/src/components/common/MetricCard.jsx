@@ -55,9 +55,6 @@ export default function MetricCard({
             {icon && <span className="text-slate-400">{icon}</span>}
             <span className="uppercase tracking-wider text-[11px] font-mono">{label}</span>
           </div>
-          {code && (
-            <div className="text-[10px] font-mono text-slate-400 mt-0.5">{code}</div>
-          )}
         </div>
 
         {/* Mini Technical Sparkline */}

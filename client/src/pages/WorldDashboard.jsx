@@ -39,8 +39,31 @@ export default function WorldDashboard() {
     setIsLoading(true);
     const res = await worldService.getAllWorlds();
     if (res.success && res.data && res.data.length > 0) {
-      setWorlds(res.data);
-      setSelectedWorldId(res.data[0]._id);
+      let savedWorlds = res.data;
+      const spitiCity = savedWorlds.find((world) => world.name === 'Spiti Vally');
+      const hasOldAreaNames = spitiCity?.cities?.some((city) =>
+        /Capital Prime|Spiti Vally Core|Spiti Vally Station/.test(city.name)
+      );
+      const hasOldDescription = /high-altitude|Himalayan city/i.test(spitiCity?.description || '');
+
+      if (spitiCity && (hasOldAreaNames || hasOldDescription)) {
+        const placeNames = ['Kaza', 'Tabo', 'Dhankar', 'Kibber', 'Langza'];
+        const updatedCities = spitiCity.cities.map((city, index) => ({
+          ...city,
+          name: placeNames[index] || `Spiti Area ${index + 1}`,
+          specialization: ['Council and local shops', 'Farming and food', 'Schools and health care'][index % 3],
+        }));
+        const update = await worldService.updateWorld(spitiCity._id, {
+          cities: updatedCities,
+          description: 'A mountain city in Spiti with local jobs, services, and close-knit communities.',
+        });
+        if (update.success && update.data) {
+          savedWorlds = savedWorlds.map((world) => world._id === spitiCity._id ? update.data : world);
+        }
+      }
+
+      setWorlds(savedWorlds);
+      setSelectedWorldId(savedWorlds[0]._id);
     } else {
       setWorlds([]);
     }
@@ -60,17 +83,19 @@ export default function WorldDashboard() {
   const cities = activeWorld?.cities || [];
   const industries = activeWorld?.economyConfiguration?.industries || [];
   const government = activeWorld?.governmentConfiguration?.type || 'Technocracy';
-  const worldName = activeWorld?.name || 'Sector 07 // Neo-Alexandria';
+  const governmentLabel = ({ Technocracy: 'Expert-led council', 'Direct Democracy': 'Direct democracy', 'Autonomous Republic': 'Local republic', 'Corporate Guild': 'Business council', 'Algorithmic Syndicate': 'Data-led council' })[government] || government;
+  const industryLabels = { 'Energy & Clean Fusion': 'Solar power', 'Robotics & Manufacturing': 'Local workshops', 'Advanced Cybernetics': 'Schools and research', 'Synthetic Bio-Agriculture': 'Farming and food', 'Financial Capital Markets': 'Local shops and trade', 'Quantum Logistics & Freight': 'Transport and delivery', 'Orbital Infrastructure': 'Public services' };
+  const worldName = activeWorld?.name || 'Spiti Vally';
   const startingDate = activeWorld?.simulationSettings?.startingDate 
     ? new Date(activeWorld.simulationSettings.startingDate).toLocaleDateString()
     : '2085-01-01';
 
   const recentEvents = [
-    { id: 'ev_01', tick: 1420, type: 'POLICY', message: `${government} passed Energy Subsidy Resolution #14`, time: '12s ago' },
-    { id: 'ev_02', tick: 1416, type: 'MARKET', message: 'Commodity liquidity surge detected in Commercial District', time: '48s ago' },
-    { id: 'ev_03', tick: 1409, type: 'SOCIAL', message: 'Public sentiment across municipal sectors increased by +2.8%', time: '2m ago' },
-    { id: 'ev_04', tick: 1395, type: 'MIGRATION', message: `Autonomous citizen cohort settled in ${cities[0]?.name || 'Capital'}`, time: '4m ago' },
-    { id: 'ev_05', tick: 1380, type: 'CLIMATE', message: 'Micro-climate thermal fluctuation stabilized by heat sinks', time: '7m ago' },
+    { id: 'ev_01', tick: 1420, type: 'RULE', message: 'The council approved help with power bills.', time: '12 seconds ago' },
+    { id: 'ev_02', tick: 1416, type: 'MARKET', message: 'Some shop prices rose because supplies were low.', time: '48 seconds ago' },
+    { id: 'ev_03', tick: 1409, type: 'PEOPLE', message: 'People across the city feel 2.8% happier.', time: '2 minutes ago' },
+    { id: 'ev_04', tick: 1395, type: 'NEW PEOPLE', message: `New residents settled in ${cities[0]?.name || 'Kaza'}.`, time: '4 minutes ago' },
+    { id: 'ev_05', tick: 1380, type: 'WEATHER', message: 'The city cooled down and returned to normal.', time: '7 minutes ago' },
   ];
 
   return (
@@ -84,7 +109,7 @@ export default function WorldDashboard() {
             {activeWorld && (
               <>
                 <span className="text-slate-600">|</span>
-                <span className="text-slate-400">SAVED IN MONGODB</span>
+                <span className="text-slate-400">SAVED</span>
               </>
             )}
           </div>
@@ -110,7 +135,7 @@ export default function WorldDashboard() {
           </div>
 
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            {activeWorld?.description || 'View your city population, money, power levels, and important events.'}
+            {activeWorld?.description || 'See the people, money, power, and recent events in your city.'}
           </p>
         </div>
 
@@ -152,10 +177,10 @@ export default function WorldDashboard() {
           label="City Bank Balance"
           code="CITY.MONEY.02"
           value={startingMoney.toLocaleString()}
-          unit="₹ NC"
+          unit="₹"
           delta={3.2}
           trend="up"
-          subtitle="Government Treasury"
+          subtitle="Money in the city account"
           icon={<Coins className="w-4 h-4 text-emerald-400" />}
           sparkline={[startingMoney * 0.9, startingMoney * 0.94, startingMoney * 0.98, startingMoney]}
         />
@@ -173,13 +198,13 @@ export default function WorldDashboard() {
         />
 
         <MetricCard
-          label="City Stability & Peace"
+          label="City Wellbeing"
           code="CITY.PEACE.04"
           value={activeWorld?.governmentConfiguration?.stabilityIndex || 85}
           unit="%"
           delta={1.5}
           trend="up"
-          subtitle={`Rules Type: ${government}`}
+          subtitle={`Government: ${governmentLabel}`}
           icon={<Heart className="w-4 h-4 text-rose-400" />}
           sparkline={[80, 82, 83, 85]}
         />
@@ -192,8 +217,8 @@ export default function WorldDashboard() {
         <div className="lg:col-span-7 space-y-6">
           <Panel
             tag="AREAS"
-            title={`City Areas & Sectors (${cities.length} Areas)`}
-            subtitle="Local neighborhoods and their population distribution"
+            title={`City Areas (${cities.length})`}
+            subtitle="See the people who live in each area"
             actions={
               <button
                 onClick={() => navigate('/create-world')}
@@ -206,8 +231,8 @@ export default function WorldDashboard() {
           >
             {cities.length === 0 ? (
               <EmptyState
-                title="NO AREAS FOUND"
-                description="This city does not have any residential or commercial areas registered yet."
+                title="No city areas yet"
+                description="This city does not have any areas yet."
                 actionLabel="Create New City"
                 onAction={() => navigate('/create-world')}
               />
@@ -253,19 +278,19 @@ export default function WorldDashboard() {
           {/* Active Industries Badges */}
           <Panel
             tag="BUSINESSES"
-            title="City Businesses & Work Sectors"
-            subtitle="Types of jobs and factories in this city"
+            title="Shops and Workplaces"
+            subtitle="Places where people work"
           >
             <div className="flex flex-wrap gap-2 text-xs font-mono">
               {industries.length === 0 ? (
-                <span className="text-slate-400">Standard Balanced City Economy</span>
+                <span className="text-slate-400">Shops, farms, and public services</span>
               ) : (
                 industries.map((ind) => (
                   <span
                     key={ind}
                     className="px-2.5 py-1 rounded bg-[#080a11] border border-cyan-800/40 text-cyan-300 font-mono text-[11px]"
                   >
-                    {ind}
+                    {industryLabels[ind] || ind}
                   </span>
                 ))
               )}
@@ -278,7 +303,7 @@ export default function WorldDashboard() {
           <Panel
             tag="EVENTS"
             title="Recent City Events"
-            subtitle="Important updates recorded as time moves forward"
+            subtitle="Recent changes in the city"
             actions={
               <button
                 onClick={() => navigate('/timeline')}
@@ -347,7 +372,7 @@ export default function WorldDashboard() {
                 onClick={() => navigate('/analytics')}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-left transition-colors flex items-center justify-between"
               >
-                <span>City Reports</span>
+                <span>City reports</span>
                 <Activity className="w-3.5 h-3.5 text-amber-400" />
               </button>
             </div>

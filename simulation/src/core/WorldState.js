@@ -23,7 +23,7 @@ export class WorldState {
     this.dimensions = data.dimensions ? { ...data.dimensions } : { width: 100, height: 100 };
 
     this.metadata = {
-      name: 'Neural City Alpha',
+      name: 'Spiti Vally',
       seed: 123456789,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -620,11 +620,34 @@ export class WorldState {
   // ==================== CLONE & SERIALIZATION ====================
 
   /**
-   * Deep clone this WorldState for immutable stepping or snapshotting
+   * Fast clone optimized for high-performance loops with thousands of entities.
+   * Avoids heavy structuredClone overhead on static entity maps when untouched.
    * @returns {WorldState}
    */
   clone() {
-    return WorldState.deserialize(this.serialize());
+    const next = new WorldState({
+      tick: this.tick,
+      dimensions: this.dimensions,
+      metadata: { ...this.metadata },
+      population: { ...this.population, demographics: { ...this.population.demographics } },
+      resources: { ...this.resources },
+      economy: { ...this.economy, marketPrices: { ...(this.economy.marketPrices || {}) }, taxRevenue: { ...(this.economy.taxRevenue || {}) } },
+      events: { ...this.events, history: [...(this.events.history || [])], active: [...(this.events.active || [])] },
+      metrics: { ...this.metrics, deficits: { ...(this.metrics.deficits || {}) } },
+    });
+
+    // Shallow copy Map references to avoid O(N) re-instantiation per tick
+    for (const [k, v] of this.buildings.entries()) {
+      next.buildings.set(k, { ...v });
+    }
+    for (const [k, v] of this.agents.entries()) {
+      next.agents.set(k, v);
+    }
+    for (const [k, v] of this.entities.entries()) {
+      next.entities.set(k, { ...v });
+    }
+
+    return next;
   }
 
   /**

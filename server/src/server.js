@@ -1,11 +1,15 @@
+import http from 'http';
 import app from './app.js';
 import { ENV, validateEnv } from './config/env.js';
 import { connectDB, disconnectDB } from './config/db.js';
+import { cacheManager } from './services/cacheManager.js';
+import { persistenceWorker } from './services/persistenceWorker.js';
+import { webSocketGateway } from './services/webSocketGateway.js';
 
 const startServer = async () => {
   console.log('\x1b[35m' + '='.repeat(60) + '\x1b[0m');
   console.log('\x1b[1m\x1b[36m   NEURAL CITY — Civilization Simulation Engine Server\x1b[0m');
-  console.log('\x1b[90m   Phase 1: Foundational Architecture & Environment Setup\x1b[0m');
+  console.log('\x1b[90m   Phase 16: Scalability Engine, WebSockets, Redis & Workers\x1b[0m');
   console.log('\x1b[35m' + '='.repeat(60) + '\x1b[0m\n');
 
   // Validate environment configuration
@@ -17,8 +21,21 @@ const startServer = async () => {
   // Attempt database connection
   await connectDB();
 
-  const server = app.listen(ENV.PORT, () => {
+  // Initialize Cache (Redis / in-memory fallback)
+  await cacheManager.init();
+
+  // Start background persistence batch worker
+  persistenceWorker.start();
+
+  // Create HTTP server wrapping Express app
+  const server = http.createServer(app);
+
+  // Attach WebSocket Gateway for high-speed bi-directional delta streaming
+  webSocketGateway.attach(server);
+
+  server.listen(ENV.PORT, () => {
     console.log(`\x1b[32m[Server Online]\x1b[0m http://localhost:${ENV.PORT}`);
+    console.log(`\x1b[36m[WebSockets]   \x1b[0m ws://localhost:${ENV.PORT}/ws/simulation`);
     console.log(`\x1b[34m[Health Check]\x1b[0m  http://localhost:${ENV.PORT}/api/health`);
     console.log(`\x1b[90m[Environment]   ${ENV.NODE_ENV}\x1b[0m\n`);
   });
@@ -26,6 +43,10 @@ const startServer = async () => {
   // Graceful shutdown handling
   const gracefulShutdown = async (signal) => {
     console.log(`\n\x1b[33m[Shutdown]\x1b[0m Received ${signal}. Closing server gracefully...`);
+    webSocketGateway.close();
+    await persistenceWorker.stop();
+    await cacheManager.disconnect();
+
     server.close(async () => {
       console.log('\x1b[33m[Shutdown]\x1b[0m HTTP server closed.');
       await disconnectDB();

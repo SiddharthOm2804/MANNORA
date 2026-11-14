@@ -176,20 +176,22 @@ export class WorldConfigurationValidator {
         : Math.round(population * secondaryShare);
 
       cities.push({
-        name: isCapital ? `${baseCityName} Prime (Capital)` : `${baseCityName} District 0${i + 1}`,
+        name: baseCityName.toLowerCase().includes('spiti')
+          ? ['Spiti Vally', 'Kaza', 'Tabo', 'Dhankar', 'Kibber'][i % 5]
+          : isCapital ? `${baseCityName} Town Centre` : `${baseCityName} Area ${i + 1}`,
         population: cityPop,
         isCapital,
         coordinates: {
           x: isCapital ? 50 : 30 + (i * 25) % 40,
           y: isCapital ? 50 : 30 + (i * 30) % 40,
         },
-        specialization: isCapital ? 'Central Government & Trade' : 'Agriculture & Water Extraction',
+        specialization: isCapital ? 'Council and local shops' : 'Farming and water supply',
       });
     }
 
     const sanitizedConfig = {
       name,
-      description: rawConfig.description || `A ${biome.toLowerCase()} civilization with ${population.toLocaleString()} citizens, ${numberOfCities} cities, governed under a ${governmentType}.`,
+      description: rawConfig.description || `A ${biome.toLowerCase()} city with ${population.toLocaleString()} people, ${numberOfCities} areas, run by a ${governmentType}.`,
       population,
       numberOfCities,
       biome,

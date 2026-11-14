@@ -26,6 +26,7 @@ import TimelineControl from '../components/common/TimelineControl';
 import EventInjectionUI from '../components/common/EventInjectionUI';
 import { CityScene } from '../components/three';
 import { worldService } from '../services/worldService';
+import { RealTimeSimulationSocket } from '../services/realTimeSimulationSocket';
 
 export default function Simulation() {
   const [worlds, setWorlds] = useState([]);
@@ -75,22 +76,22 @@ export default function Simulation() {
     workers: Math.round(city.population / 25),
     coordinates: city.coordinates || { x: 30 + idx * 20, y: 30 + (idx % 2) * 30 },
   })) || [
-    { id: 'bld_core_1', name: 'Central Matrix Hub', type: 'commercial', level: 3, coordinates: { x: 50, y: 50 }, workers: 45, capacity: 60 },
-    { id: 'bld_ind_2', name: 'Synthesis Foundry 02', type: 'industrial', level: 2, coordinates: { x: 80, y: 50 }, workers: 50, capacity: 70 },
-    { id: 'bld_res_3', name: 'North Terraces Pods', type: 'residential', level: 2, coordinates: { x: 50, y: 20 }, workers: 0, capacity: 120 },
-    { id: 'bld_res_4', name: 'South Hydro Biosphere', type: 'research_lab', level: 2, coordinates: { x: 50, y: 80 }, workers: 30, capacity: 40 },
+    { id: 'bld_core_1', name: 'Kaza Community Centre', type: 'commercial', level: 3, coordinates: { x: 50, y: 50 }, workers: 45, capacity: 60 },
+    { id: 'bld_ind_2', name: 'Kaza Workshop', type: 'industrial', level: 2, coordinates: { x: 80, y: 50 }, workers: 50, capacity: 70 },
+    { id: 'bld_res_3', name: 'Tabo Homes', type: 'residential', level: 2, coordinates: { x: 50, y: 20 }, workers: 0, capacity: 120 },
+    { id: 'bld_res_4', name: 'Dhankar Farm', type: 'research_lab', level: 2, coordinates: { x: 50, y: 80 }, workers: 30, capacity: 40 },
   ];
 
   // Instanced citizens for performant rendering
   const agents = [
-    { id: 'agt_01', name: 'Dr. Evelyn Voss', occupation: 'scientist', location: { x: 48, y: 52 }, wealth: 340, healthState: { currentAction: 'RESEARCH', happiness: 94 } },
-    { id: 'agt_02', name: 'Kaelen Rask', occupation: 'merchant', location: { x: 52, y: 48 }, wealth: 850, healthState: { currentAction: 'COMMERCE', happiness: 88 } },
-    { id: 'agt_03', name: 'Linnea Sol', occupation: 'administrator', location: { x: 50, y: 50 }, wealth: 490, healthState: { currentAction: 'POLICY', happiness: 85 } },
-    { id: 'agt_04', name: 'Dax Mercer', occupation: 'engineer', location: { x: 78, y: 48 }, wealth: 260, healthState: { currentAction: 'MAINTENANCE', happiness: 80 } },
-    { id: 'agt_05', name: 'Aria Thorne', occupation: 'technician', location: { x: 82, y: 52 }, wealth: 210, healthState: { currentAction: 'FABRICATION', happiness: 82 } },
-    { id: 'agt_06', name: 'Soren Corvus', occupation: 'farmer', location: { x: 48, y: 78 }, wealth: 190, healthState: { currentAction: 'HARVESTING', happiness: 86 } },
-    { id: 'agt_07', name: 'Lyra Chen', occupation: 'citizen', location: { x: 52, y: 22 }, wealth: 140, healthState: { currentAction: 'RESTING', happiness: 90 } },
-    { id: 'agt_08', name: 'Zane Nakamura', occupation: 'entrepreneur', location: { x: 54, y: 54 }, wealth: 620, healthState: { currentAction: 'MANAGING', happiness: 92 } },
+    { id: 'agt_01', name: 'Dr. Asha Sharma', occupation: 'scientist', location: { x: 48, y: 52 }, wealth: 340, healthState: { currentAction: 'Reading weather reports', happiness: 94 } },
+    { id: 'agt_02', name: 'Arjun Mehta', occupation: 'merchant', location: { x: 52, y: 48 }, wealth: 850, healthState: { currentAction: 'Selling goods', happiness: 88 } },
+    { id: 'agt_03', name: 'Priya Nair', occupation: 'administrator', location: { x: 50, y: 50 }, wealth: 490, healthState: { currentAction: 'Reviewing city rules', happiness: 85 } },
+    { id: 'agt_04', name: 'Rahul Thakur', occupation: 'engineer', location: { x: 78, y: 48 }, wealth: 260, healthState: { currentAction: 'Fixing equipment', happiness: 80 } },
+    { id: 'agt_05', name: 'Kavita Singh', occupation: 'technician', location: { x: 82, y: 52 }, wealth: 210, healthState: { currentAction: 'Repairing tools', happiness: 82 } },
+    { id: 'agt_06', name: 'Deepak Negi', occupation: 'farmer', location: { x: 48, y: 78 }, wealth: 190, healthState: { currentAction: 'Working in the fields', happiness: 86 } },
+    { id: 'agt_07', name: 'Pooja Rao', occupation: 'citizen', location: { x: 52, y: 22 }, wealth: 140, healthState: { currentAction: 'Resting at home', happiness: 90 } },
+    { id: 'agt_08', name: 'Aman Kapoor', occupation: 'entrepreneur', location: { x: 54, y: 54 }, wealth: 620, healthState: { currentAction: 'Running a shop', happiness: 92 } },
   ];
 
   const handleStep = async () => {
@@ -145,15 +146,67 @@ export default function Simulation() {
     }
   };
 
-  // Automated clock advancement when playing
+  // Phase 16: Real-time WebSocket connection with delta decompression
+  const [streamConnected, setStreamConnected] = useState(false);
+  const [liveResources, setLiveResources] = useState(null);
+  const [liveEconomy, setLiveEconomy] = useState(null);
+  const [liveMetrics, setLiveMetrics] = useState(null);
+  const [liveAgents, setLiveAgents] = useState([]);
+
   useEffect(() => {
-    if (!isRunning) return;
+    if (!selectedWorldId) return;
+
+    const socket = new RealTimeSimulationSocket(selectedWorldId, {
+      onConnected: () => {
+        setStreamConnected(true);
+      },
+      onDisconnected: () => {
+        setStreamConnected(false);
+      },
+      onKeyframe: (cachedState) => {
+        setTick(cachedState.tick);
+        setClockHour(cachedState.tick % 24);
+        setLiveResources({ ...cachedState.resources });
+        setLiveEconomy({ ...cachedState.economy });
+        setLiveMetrics({ ...cachedState.metrics });
+        if (cachedState.agents.size > 0) {
+          setLiveAgents(Array.from(cachedState.agents.values()));
+        }
+      },
+      onDelta: (delta, cachedState) => {
+        setTick(delta.tick);
+        setClockHour(delta.tick % 24);
+        if (delta.changes?.resources) {
+          setLiveResources((prev) => ({ ...prev, ...delta.changes.resources }));
+        }
+        if (delta.changes?.economy) {
+          setLiveEconomy((prev) => ({ ...prev, ...delta.changes.economy }));
+        }
+        if (delta.changes?.metrics) {
+          setLiveMetrics((prev) => ({ ...prev, ...delta.changes.metrics }));
+        }
+        if (delta.changes?.agents) {
+          setLiveAgents(Array.from(cachedState.agents.values()));
+        }
+      },
+    });
+
+    socket.connect();
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [selectedWorldId]);
+
+  // Automated clock advancement when playing locally if backend is paused
+  useEffect(() => {
+    if (!isRunning || streamConnected) return;
     const interval = setInterval(() => {
       setTick((prev) => prev + 1);
       setClockHour((prev) => (prev + 1) % 24);
     }, 1000 / Math.max(1, speed));
     return () => clearInterval(interval);
-  }, [isRunning, speed]);
+  }, [isRunning, speed, streamConnected]);
 
   return (
     <div className="space-y-5">
@@ -162,7 +215,7 @@ export default function Simulation() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
             <Compass className="w-3.5 h-3.5" />
-            <span>MANNORA 3D VIRTUAL CITY // THREE.JS</span>
+            <span>CITY VIEW</span>
             {activeWorld && (
               <>
                 <span className="text-slate-600">|</span>
@@ -174,7 +227,7 @@ export default function Simulation() {
             3D Virtual City View
           </h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Real-time 3D visual view showing moving people, buildings, day-night cycles, and actual simulation data.
+            See people, buildings, and day and night in the city.
           </p>
         </div>
 
@@ -250,7 +303,12 @@ export default function Simulation() {
               </div>
 
               <div className="flex items-center gap-3 text-slate-400 text-[11px]">
-                <span className="text-cyan-400 uppercase tracking-widest font-semibold">R3F SHADOWS ENABLED</span>
+                <span className={`font-semibold uppercase tracking-wider flex items-center gap-1.5 ${streamConnected ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <span className={`w-2 h-2 rounded-full ${streamConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                  {streamConnected ? 'WEBSOCKET DELTAS LIVE' : 'DISCONNECTED / OFFLINE'}
+                </span>
+                <span>•</span>
+                <span className="text-cyan-400 uppercase tracking-widest font-semibold">3D PEOPLE</span>
                 <span>•</span>
                 <span className="text-emerald-400 font-mono-data">60.0 FPS</span>
               </div>
@@ -261,9 +319,9 @@ export default function Simulation() {
               <div className="h-[480px] w-full relative">
                 <CityScene
                   worldState={activeWorld}
-                  agents={agents}
+                  agents={liveAgents.length > 0 ? liveAgents : agents}
                   buildings={buildings}
-                  resources={activeWorld?.resources || {}}
+                  resources={liveResources || activeWorld?.resources || {}}
                   clockHour={clockHour}
                   selectedEntity={selectedEntity}
                   onSelectEntity={setSelectedEntity}
@@ -273,8 +331,8 @@ export default function Simulation() {
             ) : (
               <div className="p-8 bg-[#06080e] lab-grid-bg min-h-[480px] flex items-center justify-center relative">
                 <div className="text-center font-mono space-y-2">
-                  <div className="text-sm font-semibold text-white">2D Matrix Diagnostic Overlay</div>
-                  <div className="text-xs text-slate-400">Switch to 3D Spatial Viewport for full Three.js scene</div>
+                  <div className="text-sm font-semibold text-white">2D City Map</div>
+                  <div className="text-xs text-slate-400">Switch to the 3D city view.</div>
                   <button
                     onClick={() => setViewMode('3d')}
                     className="mt-2 px-3 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono transition-colors"
@@ -306,8 +364,8 @@ export default function Simulation() {
         <div className="lg:col-span-4 space-y-5">
           <Panel
             tag="DETAILS"
-            title="Inspect City Details"
-            subtitle="Click on any area, building, or person in the 3D city"
+            title="City Details"
+            subtitle="Select an area, building, or person to see more."
             actions={
               selectedEntity && (
                 <button
@@ -324,7 +382,7 @@ export default function Simulation() {
                 {/* Active Entity Card */}
                 <div className="p-3.5 rounded-lg bg-[#080a11] border border-cyan-800/40 space-y-1.5">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400 uppercase">Selected Item</span>
+                    <span className="text-slate-400 uppercase">Selected</span>
                     <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 uppercase font-semibold">
                       {selectedEntity.type}
                     </span>
@@ -343,19 +401,19 @@ export default function Simulation() {
                 {selectedEntity.type === 'citizen' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Job Role:</span>
+                      <span className="text-slate-400">Job:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.occupation}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">What they are doing:</span>
+                      <span className="text-slate-400">Current activity:</span>
                       <span className="text-white font-mono-data">{selectedEntity.data.healthState?.currentAction || 'ACTIVE'}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Personal Savings:</span>
-                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.wealth} ₹ NC</span>
+                      <span className="text-slate-400">Savings:</span>
+                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.wealth} ₹</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Map Location:</span>
+                      <span className="text-slate-400">Location:</span>
                       <span className="text-slate-300 font-mono-data">[{selectedEntity.data.location?.x}, {selectedEntity.data.location?.y}]</span>
                     </div>
                   </div>
@@ -364,15 +422,15 @@ export default function Simulation() {
                 {selectedEntity.type === 'building' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Building Type:</span>
+                      <span className="text-slate-400">Building:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Building Level:</span>
+                      <span className="text-slate-400">Building size:</span>
                       <span className="text-white font-mono-data">Level {selectedEntity.data.level || 1}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Staff & Workers:</span>
+                      <span className="text-slate-400">Workers:</span>
                       <span className="text-emerald-400 font-mono-data">{selectedEntity.data.workers} / {selectedEntity.data.capacity} People</span>
                     </div>
                   </div>
@@ -381,11 +439,11 @@ export default function Simulation() {
                 {selectedEntity.type === 'district' && (
                   <div className="space-y-2">
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Area Zone:</span>
+                      <span className="text-slate-400">Area:</span>
                       <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
                     </div>
                     <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Area Dimensions:</span>
+                      <span className="text-slate-400">Area size:</span>
                       <span className="text-white font-mono-data">{selectedEntity.data.bounds?.width}x{selectedEntity.data.bounds?.depth} Units</span>
                     </div>
                   </div>
@@ -396,7 +454,7 @@ export default function Simulation() {
                 <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-cyan-400">
                   <Compass className="w-5 h-5" />
                 </div>
-                <div className="text-white font-semibold">Nothing Selected Yet</div>
+                <div className="text-white font-semibold">Nothing selected</div>
                 <p className="text-slate-400 text-[11px] leading-relaxed">
                   Click on any <strong>District Area</strong>, <strong>Building</strong>, or <strong>Person</strong> in the 3D view to inspect their live details.
                 </p>
@@ -407,7 +465,7 @@ export default function Simulation() {
           {/* Active Events & Crises HUD Card */}
           <Panel
             tag="EVENTS"
-            title="Active City Events & Problems"
+            title="City Events"
             subtitle={`${activeEvents.length > 0 ? `${activeEvents.length} events currently affecting the city` : 'City is running normally without emergencies'}`}
             actions={
               <button
@@ -431,7 +489,7 @@ export default function Simulation() {
                         {evt.title || evt.type}
                       </span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-950 text-red-300 border border-red-800">
-                        {evt.remainingTicks ?? evt.duration} Steps Left
+                        {evt.remainingTicks ?? evt.duration} steps left
                       </span>
                     </div>
                     {evt.cause && (
@@ -441,14 +499,14 @@ export default function Simulation() {
                     )}
                     <div className="text-[10px] text-cyan-400 flex items-center justify-between pt-1 border-t border-red-900/30">
                       <span>How it fixes: {evt.recoveryBehavior || 'GRADUAL_RESTORATION'}</span>
-                      <span className="text-slate-500 font-mono-data">Impact Level: {evt.severity || 3}/5</span>
+                      <span className="text-slate-500 font-mono-data">Impact: {evt.severity || 3}/5</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="p-4 rounded-lg bg-[#070912] border border-slate-800/60 text-center space-y-1 text-xs font-mono">
-                <div className="text-emerald-400 font-semibold">City is Peaceful</div>
+                <div className="text-emerald-400 font-semibold">The city is calm</div>
                 <p className="text-[11px] text-slate-400 font-sans">
                   Click <strong>Trigger Emergency Event</strong> to create a water shortage, power failure, market crash, or sickness outbreak and see how the city reacts.
                 </p>
@@ -456,10 +514,10 @@ export default function Simulation() {
             )}
           </Panel>
 
-          {/* Camera Shortcuts */}
+          {/* Quick Camera Views */}
           <Panel
             tag="CAMERA"
-            title="Camera Shortcuts"
+            title="Quick Camera Views"
             subtitle="Quickly move camera around the 3D city"
           >
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
@@ -467,28 +525,28 @@ export default function Simulation() {
                 onClick={() => setSelectedEntity(null)}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Full City View</span>
+                <span>Show the whole city</span>
                 <Compass className="w-3.5 h-3.5 text-cyan-400" />
               </button>
               <button
-                onClick={() => setSelectedEntity({ type: 'district', data: { name: 'City Center', bounds: { x: 50, z: 50 } } })}
+                onClick={() => setSelectedEntity({ type: 'district', data: { name: 'City centre', bounds: { x: 50, z: 50 } } })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>City Center</span>
+                <span>City centre</span>
                 <Building2 className="w-3.5 h-3.5 text-sky-400" />
               </button>
               <button
                 onClick={() => setSelectedEntity({ type: 'citizen', data: agents[0] })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Follow Person</span>
+                <span>Follow a person</span>
                 <Users className="w-3.5 h-3.5 text-violet-400" />
               </button>
               <button
                 onClick={() => setSelectedEntity({ type: 'building', data: buildings[0] })}
                 className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
               >
-                <span>Main Factory</span>
+                <span>Main workshop</span>
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               </button>
             </div>

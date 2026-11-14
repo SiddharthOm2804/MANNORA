@@ -22,48 +22,48 @@ export function CityEnvironment({
   const districts = useMemo(() => [
     {
       id: 'dist_downtown',
-      name: 'Central Matrix // Core',
+      name: 'Kaza Town Centre',
       type: 'commercial',
       bounds: { x: 50, z: 50, width: 34, depth: 34 },
       color: '#0ea5e9', // cyan
       fillColor: '#0369a1',
-      description: 'High-density commercial markets, executive councils, and quantum data banks.',
+      description: 'Busy shops, the town hall, and public offices.',
     },
     {
       id: 'dist_residential_north',
-      name: 'North Terraces Arcology',
+      name: 'Tabo Homes',
       type: 'residential',
       bounds: { x: 50, z: 20, width: 44, depth: 22 },
       color: '#10b981', // emerald
       fillColor: '#047857',
-      description: 'Multi-tiered residential biospheres, gardens, and communal living pods.',
+      description: 'Homes, gardens, and shared spaces for local families.',
     },
     {
       id: 'dist_industrial_east',
-      name: 'East Synthesis Sector',
+      name: 'Kibber Workshop Area',
       type: 'industrial',
       bounds: { x: 80, z: 50, width: 22, depth: 40 },
       color: '#f59e0b', // amber
       fillColor: '#b45309',
-      description: 'Automated fabrication plants, mineral refineries, and freight nodes.',
+      description: 'Local workshops, repair shops, and storage buildings.',
     },
     {
       id: 'dist_biotech_south',
-      name: 'South Hydro & Bio-Park',
+      name: 'Dhankar Farm',
       type: 'park',
       bounds: { x: 50, z: 80, width: 42, depth: 22 },
       color: '#14b8a6', // teal
       fillColor: '#0f766e',
-      description: 'Regenerative agro-domes, water purification basins, and biosphere reserves.',
+      description: 'Fields, water tanks, and green spaces.',
     },
     {
       id: 'dist_tech_west',
-      name: 'West Cybernetics Corridor',
+      name: 'Spiti Learning Centre',
       type: 'technology',
       bounds: { x: 20, z: 50, width: 22, depth: 40 },
       color: '#8b5cf6', // violet
       fillColor: '#6d28d9',
-      description: 'Fusion generator relays, AI cognitive labs, and satellite telemetry uplinks.',
+      description: 'A school, a health centre, and the local power station.',
     },
   ], []);
 

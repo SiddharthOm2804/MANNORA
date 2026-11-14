@@ -63,8 +63,8 @@ export class WorldStateAdapter {
       status: raw.simulationSettings?.status || 'initialized',
       biome: raw.geography?.biome || 'Cybernetic Basin',
       governmentType: raw.governmentConfiguration?.type || 'Technocracy',
-      currencyName: raw.economyConfiguration?.currencyName || 'Neural Credits',
-      currencySymbol: raw.economyConfiguration?.currencySymbol || 'NC',
+      currencyName: raw.economyConfiguration?.currencyName || 'Indian Rupees',
+      currencySymbol: raw.economyConfiguration?.currencySymbol || '₹',
       createdAt: raw.createdAt ? new Date(raw.createdAt).toISOString() : new Date().toISOString(),
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt).toISOString() : new Date().toISOString(),
     };
