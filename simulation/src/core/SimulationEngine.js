@@ -137,7 +137,7 @@ export class SimulationEngine extends EventEmitter {
    */
   init(worldConfig = {}) {
     const initialState = new WorldState({
-      tick: 0,
+      tick: worldConfig.tick ?? 0,
       metadata: {
         seed: this.random.getSeed(),
         ...(worldConfig.metadata || {}),
@@ -154,12 +154,14 @@ export class SimulationEngine extends EventEmitter {
     });
 
     this.clock.reset();
+    this.clock.currentTick = initialState.tick;
+    this.clock.elapsedSimulatedTime = initialState.tick * this.clock.fixedDelta * this.clock.timeScale;
     this.stateManager.clearHistory();
     this.stateManager.commit(initialState);
     this.isInitialized = true;
 
     this.emit('init', {
-      tick: 0,
+      tick: initialState.tick,
       day: this.clock.simulationDay,
       hour: this.clock.simulationHour,
       state: this.stateManager.getCurrentState().serialize(),
@@ -224,11 +226,15 @@ export class SimulationEngine extends EventEmitter {
       try {
         system.update(nextState, delta, this.random, clockInfo);
       } catch (err) {
-        this.emit('error', {
+        const failure = {
           system: system.name,
           tick,
           error: err,
-        });
+        };
+        // EventEmitter treats an unhandled "error" event as a process crash.
+        // Keep the step loop alive when no monitoring listener is attached.
+        if (this.listenerCount('error') > 0) this.emit('error', failure);
+        else this.emit('systemError', failure);
       }
     }
 

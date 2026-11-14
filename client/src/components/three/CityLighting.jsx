@@ -28,32 +28,32 @@ export function CityLighting({
     const sunY = Math.max(10, Math.sin(sunAngle) * 80);
     const sunZ = 50 + Math.sin(sunAngle) * 40;
 
-    let ambientColor = '#0f172a';
-    let ambientIntensity = 0.45;
-    let sunColor = '#38bdf8';
-    let sunIntensity = 1.2;
+    let ambientColor = '#e7f0dc';
+    let ambientIntensity = 1.1;
+    let sunColor = '#fff2d2';
+    let sunIntensity = 2.1;
 
     if (isNight) {
-      ambientColor = '#080d1a';
-      ambientIntensity = 0.35;
-      sunColor = '#60a5fa'; // Moonlight
-      sunIntensity = 0.35;
+      ambientColor = '#8eaaa7';
+      ambientIntensity = 0.75;
+      sunColor = '#c3d6d0'; // Moonlight
+      sunIntensity = 0.65;
     } else if (isDawn) {
-      ambientColor = '#1e1b4b';
-      ambientIntensity = 0.55;
-      sunColor = '#fb923c'; // Warm dawn
-      sunIntensity = 0.9;
+      ambientColor = '#ecd8bc';
+      ambientIntensity = 0.95;
+      sunColor = '#f4bb77'; // Warm dawn
+      sunIntensity = 1.5;
     } else if (isDusk) {
-      ambientColor = '#1c1917';
-      ambientIntensity = 0.5;
-      sunColor = '#f97316'; // Sunset orange
-      sunIntensity = 0.85;
+      ambientColor = '#e5c8aa';
+      ambientIntensity = 0.9;
+      sunColor = '#e99b69'; // Sunset orange
+      sunIntensity = 1.35;
     } else {
       // Day
-      ambientColor = '#0c1a2e';
-      ambientIntensity = 0.7;
-      sunColor = '#f8fafc';
-      sunIntensity = 1.3;
+      ambientColor = '#e7f0dc';
+      ambientIntensity = 1.1;
+      sunColor = '#fff4dd';
+      sunIntensity = 2.1;
     }
 
     // Environmental event tinting
@@ -96,7 +96,8 @@ export function CityLighting({
       />
 
       {/* Sub-surface grid glow */}
-      <pointLight position={[50, 8, 50]} intensity={0.4} color="#06b6d4" distance={80} />
+      <hemisphereLight args={['#dff2ed', '#93aa78', 0.75]} />
+      <pointLight position={[50, 18, 50]} intensity={0.24} color="#fff0c8" distance={110} />
     </group>
   );
 }

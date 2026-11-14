@@ -137,7 +137,7 @@ describe('Phase 4: WorldState (Comprehensive State Management)', () => {
     const bld = BuildingSystem.createBuilding('bld_1', 'power_plant');
     state.addBuilding(bld);
     assert.equal(state.getBuildingCount(), 1);
-    assert.equal(state.getBuilding('bld_1').name, 'Fusion Grid Station');
+    assert.equal(state.getBuilding('bld_1').name, 'Kaza Solar Station');
 
     // Check Agents CRUD
     const agt = AgentSystem.createAgent('agt_1', { role: 'engineer' });

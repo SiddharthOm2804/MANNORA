@@ -1,17 +1,28 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const env = loadEnv(mode, repoRoot, '');
+  const apiPort = env.PORT || '5000';
+  return {
   plugins: [react()],
   server: {
     port: 5173,
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5005',
+        target: `http://localhost:${apiPort}`,
         changeOrigin: true,
         secure: false,
+      },
+      '/ws': {
+        target: `ws://localhost:${apiPort}`,
+        ws: true,
+        changeOrigin: true,
       },
     },
   },
@@ -28,4 +39,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });

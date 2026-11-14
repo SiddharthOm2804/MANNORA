@@ -1,14 +1,27 @@
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import app from '../src/app.js';
+import { connectDB, disconnectDB } from '../src/config/db.js';
+import { createAuthClient } from './helpers/authClient.js';
+import { AuthSession } from '../src/models/AuthSession.js';
+import { User } from '../src/models/User.js';
+
+let server; let port; let auth;
+before(async () => {
+  await connectDB();
+  server = app.listen(0); port = server.address().port;
+  auth = await createAuthClient(`http://localhost:${port}/api`);
+});
+after(async () => {
+  await AuthSession.deleteMany({ userId: auth?.user.id });
+  await User.findByIdAndDelete(auth?.user.id);
+  await new Promise((resolve) => server.close(resolve));
+  await disconnectDB();
+});
 
 describe('Phase 9: Server AI Assistant Endpoints (/api/ai)', () => {
   it('POST /api/ai/citizen/:id/reflect returns structured reflection via AI layer', async () => {
-    const server = app.listen(0);
-    const port = server.address().port;
-
-    try {
-      const res = await fetch(`http://localhost:${port}/api/ai/citizen/agt_101/reflect`, {
+      const res = await auth.request(`http://localhost:${port}/api/ai/citizen/agt_101/reflect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -25,17 +38,10 @@ describe('Phase 9: Server AI Assistant Endpoints (/api/ai)', () => {
       assert.strictEqual(json.data.citizenId, 'agt_101');
       assert.ok(json.data.reflection, 'Response should contain personal reflection');
       assert.ok(json.data.source, 'Response should indicate AI execution source');
-    } finally {
-      server.close();
-    }
   });
 
   it('POST /api/ai/citizen/:id/memory commits high-impact milestone event', async () => {
-    const server = app.listen(0);
-    const port = server.address().port;
-
-    try {
-      const res = await fetch(`http://localhost:${port}/api/ai/citizen/agt_101/memory`, {
+      const res = await auth.request(`http://localhost:${port}/api/ai/citizen/agt_101/memory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -53,17 +59,10 @@ describe('Phase 9: Server AI Assistant Endpoints (/api/ai)', () => {
       assert.strictEqual(json.success, true);
       assert.strictEqual(json.wasCommitted, true);
       assert.strictEqual(json.data.type, 'job_change');
-    } finally {
-      server.close();
-    }
   });
 
   it('POST /api/ai/government/evaluate returns policy recommendations', async () => {
-    const server = app.listen(0);
-    const port = server.address().port;
-
-    try {
-      const res = await fetch(`http://localhost:${port}/api/ai/government/evaluate`, {
+      const res = await auth.request(`http://localhost:${port}/api/ai/government/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,17 +82,10 @@ describe('Phase 9: Server AI Assistant Endpoints (/api/ai)', () => {
       assert.strictEqual(json.success, true);
       assert.ok(Array.isArray(json.data.recommendations));
       assert.ok(json.data.assessment);
-    } finally {
-      server.close();
-    }
   });
 
   it('POST /api/ai/analyst/diagnostics returns systemic civilization diagnostics', async () => {
-    const server = app.listen(0);
-    const port = server.address().port;
-
-    try {
-      const res = await fetch(`http://localhost:${port}/api/ai/analyst/diagnostics`, {
+      const res = await auth.request(`http://localhost:${port}/api/ai/analyst/diagnostics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,8 +100,5 @@ describe('Phase 9: Server AI Assistant Endpoints (/api/ai)', () => {
       assert.strictEqual(json.success, true);
       assert.ok(json.data.executiveSummary);
       assert.ok(typeof json.data.systemHealthScore === 'number');
-    } finally {
-      server.close();
-    }
   });
 });

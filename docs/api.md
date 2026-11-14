@@ -1,195 +1,83 @@
-# API Reference
+# HTTP and Streaming API
 
-**NEURAL CITY — HTTP API Endpoints**
+Base URL in local development: `http://localhost:5000`. JSON routes use `Content-Type: application/json` and return JSON. The Vite development server proxies `/api` and `/ws` to this port. Production browser builds should set `VITE_API_URL` to the public API base, for example `https://api.example.org/api`.
 
----
+## Health and service
 
-## Base URL
-- Development: `http://localhost:5000`
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/` | Service name and endpoint hints |
+| `GET` | `/api/health` | Liveness and database status; degraded service remains HTTP 200 |
+| `GET` | `/api/health?strict=true` | Returns 503 when MongoDB is unavailable |
 
----
+## Accounts
 
-## 1. System & Health
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/register` | Create an account; requires valid email, display name, and a 12–128 character password |
+| `POST` | `/api/auth/login` | Start a browser session |
+| `GET` | `/api/auth/me` | Return the current account |
+| `POST` | `/api/auth/logout` | Revoke the session and close its live world streams |
 
-### `GET /`
-Returns service identifier, active phase, and root route index.
+Sessions use `mannora_session` (HttpOnly) and `mannora_csrf` cookies. Send the CSRF cookie value in `X-CSRF-Token` on all authenticated mutations. Use credentials for cross-origin requests and configure exact CORS origins. New worlds are private to their creator. World responses include `permissions.role` (`owner`, `editor`, or `viewer`).
 
-**Response:**
-```json
-{
-  "name": "NEURAL CITY API",
-  "description": "AI-Driven Multi-Agent Civilization Simulation Engine",
-  "phase": "Phase 1 - Foundational Architecture",
-  "endpoints": {
-    "health": "/api/health"
-  },
-  "timestamp": "2026-10-03T11:20:00.000Z"
-}
-```
+## Worlds and simulation
 
----
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/worlds` | List owned/shared worlds, newest first, capped at 100 |
+| `POST` | `/api/worlds` | Create a validated world |
+| `GET` | `/api/worlds/:id` | Read a world by 24-character MongoDB ObjectId |
+| `PATCH` | `/api/worlds/:id` | Update supported world fields |
+| `DELETE` | `/api/worlds/:id` | Delete a world |
+| `POST` | `/api/worlds/:id/launch` | Initialize in-memory simulation; optional `{ "autoStart": true }` |
+| `POST` | `/api/worlds/:id/step` | Advance one tick |
+| `POST` | `/api/worlds/:id/stop` | Stop the active simulation loop |
+| `POST` | `/api/worlds/:id/checkpoint` | Save an explicit checkpoint to the world record |
+| `POST` | `/api/worlds/:id/inject-event` | Inject event data into the active simulation |
+| `GET` | `/api/worlds/:id/events` | SSE stream of world events (`/:id/stream` is an alias) |
+| `POST` | `/api/worlds/:id/snapshots` | Capture an in-memory time-machine snapshot |
+| `POST` | `/api/worlds/:id/snapshots/:snapshotId/restore` | Restore a snapshot |
+| `POST` | `/api/worlds/:id/rewind` | Rewind using `{ "targetTick": number }` |
+| `POST` | `/api/worlds/:id/jump-to-day` | Jump using `{ "day": number }` |
+| `POST` | `/api/worlds/:id/branches` | Create an in-memory branch |
+| `POST` | `/api/worlds/:id/compare` | Run a counterfactual comparison |
+| `PATCH` | `/api/worlds/:id/speed` | Set simulation speed from 0.5× to 10× |
+| `GET` | `/api/worlds/:id/problems` | Read current energy, water and agriculture conditions |
+| `POST` | `/api/worlds/:id/actions/facility` | Confirm and build one supported facility (`energy`, `water`, `agriculture`) |
+| `GET` | `/api/worlds/:id/actions` | Read the latest recorded city-management actions |
+| `POST` | `/api/worlds/:id/shares` | Owner grants an account viewer/editor access using its email |
+| `DELETE` | `/api/worlds/:id/shares/:userId` | Owner revokes an account's access and active streams |
 
-### `GET /api/health`
-Monitors server vitality, database connection readiness, uptime, and runtime environment.
+## Experiments
 
-**Query Parameters:**
-- `strict` (optional, boolean): If `true`, returns HTTP 503 instead of 200 when database is disconnected or degraded.
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/worlds/:id/experiments` | Run an experiment for a world |
+| `GET` | `/api/worlds/:id/experiments` | List experiments scoped to this world and user |
+| `GET` | `/api/worlds/:id/experiments/:expId` | Read a scoped in-process experiment result |
+| `POST` | `/api/worlds/:id/experiments/compare` | Compare IDs that all belong to this world and user |
 
-**Response (Healthy):**
-```json
-{
-  "status": "healthy",
-  "message": "NEURAL CITY engine and database are operational.",
-  "timestamp": "2026-10-03T11:20:00.000Z",
-  "server": {
-    "status": "running",
-    "uptimeSeconds": 142,
-    "environment": "development",
-    "nodeVersion": "v20.18.0"
-  },
-  "database": {
-    "status": "connected",
-    "isConnected": true,
-    "readyState": "connected",
-    "host": "127.0.0.1",
-    "database": "neural_city",
-    "lastError": null
-  },
-  "engine": {
-    "phase": "Phase 1 - Foundational Architecture",
-    "version": "0.1.0"
-  }
-}
-```
+## AI routes
 
-**Response (Degraded / Database Offline):**
-```json
-{
-  "status": "degraded",
-  "message": "Server is running, but database connection is unavailable.",
-  "timestamp": "2026-10-03T11:20:00.000Z",
-  "server": {
-    "status": "running",
-    "uptimeSeconds": 14,
-    "environment": "development",
-    "nodeVersion": "v20.18.0"
-  },
-  "database": {
-    "status": "disconnected",
-    "isConnected": false,
-    "readyState": "disconnected",
-    "host": null,
-    "database": null,
-    "lastError": "connect ECONNREFUSED 127.0.0.1:27017"
-  },
-  "engine": {
-    "phase": "Phase 3 - World Creation System",
-    "version": "0.3.0"
-  }
-}
-```
+All are `POST /api/ai/...`; request bodies and responses are JSON.
 
----
+- `/citizen/:id/reflect` — reflection based on citizen/world context.
+- `/citizen/:id/plan` — structured personal plan.
+- `/citizen/:id/memory` — record a milestone with a description.
+- `/government/evaluate` — policy and governance advice.
+- `/analyst/diagnostics` — macro-level diagnostic report.
+- `/world-prompt/parse` — validate a natural-language world prompt.
+- `/causal-inquiry` — answer a question from supplied or active simulation history.
 
-## 2. World Creation & Civilization Management
+## Streaming transports
 
-### `POST /api/worlds`
-Creates and persists a new virtual civilization matrix.
+WebSocket endpoint: `/ws/simulation?worldId=<id>`. The HTTP upgrade requires a valid account cookie and access to the requested world; subsequent subscriptions are rechecked. A client can request a fresh baseline with `REQUEST_KEYFRAME`. Tick events use keyframes and sparse deltas. The gateway applies payload, message-rate, connection-count, origin, and slow-consumer limits. Revoked shares and logout close streams. SSE also requires an authenticated world session and is not a complete state synchronization protocol.
 
-**Request Payload:**
-```json
-{
-  "name": "Sector 07 // Neo-Alexandria",
-  "description": "High-density civilization matrix.",
-  "population": 2500,
-  "numberOfCities": 3,
-  "biome": "Cybernetic Basin",
-  "startingMoney": 650000,
-  "industries": [
-    "Energy & Clean Fusion",
-    "Robotics & Manufacturing",
-    "Advanced Cybernetics"
-  ],
-  "governmentType": "Technocracy",
-  "simulationSpeed": 1,
-  "startingDate": "2085-01-01T00:00:00.000Z",
-  "resources": {
-    "energy": 6500,
-    "minerals": 3200,
-    "water": 5800,
-    "agriculture": 4200,
-    "technology": 1800
-  }
-}
-```
+## Validation, limits, and errors
 
-**Response (201 Created):**
-```json
-{
-  "success": true,
-  "message": "Civilization world created successfully",
-  "data": {
-    "_id": "6ac0f16872b7b9006fc9080a",
-    "name": "Sector 07 // Neo-Alexandria",
-    "population": 2500,
-    "cityCount": 3,
-    "cities": [
-      {
-        "name": "Sector 07 Capital Prime",
-        "population": 1125,
-        "isCapital": true,
-        "coordinates": { "x": 50, "y": 50 },
-        "specialization": "Government & Financial Hub"
-      }
-    ],
-    "economyConfiguration": {
-      "startingMoney": 650000,
-      "currencyName": "Neural Credits",
-      "currencySymbol": "NC",
-      "industries": ["Energy & Clean Fusion", "Robotics & Manufacturing", "Advanced Cybernetics"]
-    },
-    "governmentConfiguration": {
-      "type": "Technocracy",
-      "stabilityIndex": 85,
-      "corruptionIndex": 10
-    },
-    "simulationSettings": {
-      "speed": 1,
-      "tickRate": 10,
-      "seed": 99840071,
-      "status": "initialized"
-    },
-    "createdAt": "2026-10-03T12:13:28.672Z"
-  }
-}
-```
+The server accepts JSON/form request bodies up to 1 MB, strips Mongo operator/path keys from parsed input, applies API rate limits (180 requests per minute per process/IP; AI route requests additionally have a 30 per minute limit; login/register use a tighter per-IP limit), and validates world IDs and selected world fields. Responses may include `401` for missing/expired account sessions, `403` for CSRF/role failures, `429` with `Retry-After`, `400` for invalid input, `404` for missing or inaccessible worlds, `413` for large bodies, and `500` for unexpected failures. Production 500 responses do not expose stack traces or internal messages.
 
----
+## Security status
 
-### `GET /api/worlds`
-Retrieves all persisted civilization worlds sorted by creation date.
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "count": 1,
-  "data": [ ... ]
-}
-```
-
----
-
-### `GET /api/worlds/:id`
-Retrieves full configuration details and city layout for a specific world.
-
----
-
-### `PATCH /api/worlds/:id`
-Partially updates configuration parameters (e.g. population, simulation speed).
-
----
-
-### `DELETE /api/worlds/:id`
-Permanently deletes a civilization world from MongoDB.
-
+CORS uses configured origin allowlists and Helmet supplies security headers. Account auth and CSRF checks protect world and AI APIs. World ownership and sharing are enforced on every world route; unknown ownerless legacy worlds remain inaccessible. Password reset/email verification are not implemented. The in-process limiter, simulations and experiment registry are not shared between replicas. See [the security audit](MULTI_USER_SECURITY_AUDIT.md) and [Architecture security controls](architecture.md#security-controls).

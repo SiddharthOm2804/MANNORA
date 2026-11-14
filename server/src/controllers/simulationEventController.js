@@ -49,28 +49,34 @@ export const streamWorldEvents = async (req, res, next) => {
 
     res.write(`data: ${JSON.stringify(connectedEvent)}\n\n`);
 
-    // Setup periodic keepalive comment to maintain active TCP connection
-    const keepaliveInterval = setInterval(() => {
-      if (!res.writableEnded) {
-        res.write(': keepalive\n\n');
-      }
-    }, 15000);
-
     // Subscribe to EventPublisher for this world
-    const unsubscribe = eventPublisher.subscribe(id, (eventData) => {
+    const userId = String(req.user._id);
+    let closed = false;
+    let keepaliveInterval;
+    let sessionExpiryTimer;
+    let unsubscribe = () => {};
+    const cleanup = () => {
+      if (closed) return;
+      closed = true;
+      clearInterval(keepaliveInterval);
+      clearTimeout(sessionExpiryTimer);
+      unsubscribe();
+      if (!res.writableEnded) res.end();
+    };
+    // Setup periodic keepalive comment to maintain active TCP connection
+    keepaliveInterval = setInterval(() => {
+      if (!res.writableEnded) res.write(': keepalive\n\n');
+    }, 15000);
+    sessionExpiryTimer = setTimeout(cleanup, Math.max(0, new Date(req.authSession.expiresAt).getTime() - Date.now()));
+    unsubscribe = eventPublisher.subscribe(id, (eventData) => {
+      if (eventData.type === 'ACCESS_REVOKED') {
+        if (String(eventData.payload?.userId) === userId) cleanup();
+        return;
+      }
       if (!res.writableEnded) {
         res.write(`data: ${JSON.stringify(eventData)}\n\n`);
       }
     });
-
-    // Cleanup resources upon client disconnect
-    const cleanup = () => {
-      clearInterval(keepaliveInterval);
-      unsubscribe();
-      if (!res.writableEnded) {
-        res.end();
-      }
-    };
 
     req.on('close', cleanup);
     req.on('end', cleanup);

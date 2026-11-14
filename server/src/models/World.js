@@ -213,8 +213,28 @@ const SimulationSettingsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const WorldBuildingSchema = new mongoose.Schema({
+  id: { type: String, required: true }, type: { type: String, enum: ['power_plant', 'water_filter', 'vertical_farm'], required: true },
+  name: { type: String, required: true }, level: { type: Number, default: 1, min: 1 }, health: { type: Number, default: 100, min: 0, max: 100 },
+  efficiency: { type: Number, default: 1, min: 0, max: 1 }, capacity: { type: Number, default: 40, min: 1 }, workers: { type: Number, default: 0, min: 0 },
+  production: { type: mongoose.Schema.Types.Mixed, default: () => ({}) }, consumption: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+  coordinates: { x: { type: Number, required: true, min: 0, max: 100 }, y: { type: Number, required: true, min: 0, max: 100 } },
+}, { _id: false });
+
+const ManagementEntrySchema = new mongoose.Schema({
+  action: { type: String, required: true }, resource: { type: String, required: true }, facilityId: { type: String, required: true },
+  actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, cost: { type: Number, required: true },
+  status: { type: String, enum: ['succeeded', 'failed'], default: 'succeeded' }, errorMessage: { type: String, maxlength: 300 },
+  tick: { type: Number, default: 0 }, before: { type: mongoose.Schema.Types.Mixed, default: () => ({}) }, after: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: true });
+
 const WorldSchema = new mongoose.Schema(
   {
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true, default: null },
+    members: [{ userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, role: { type: String, enum: ['viewer', 'editor'], default: 'viewer' } }],
+    buildings: { type: [WorldBuildingSchema], default: [] },
+    managementHistory: { type: [ManagementEntrySchema], default: [] },
     name: {
       type: String,
       required: [true, 'World designation name is required'],
@@ -274,6 +294,8 @@ WorldSchema.virtual('cityCount').get(function () {
 // Index for fast search and listing
 WorldSchema.index({ name: 1 });
 WorldSchema.index({ createdAt: -1 });
+WorldSchema.index({ ownerId: 1, createdAt: -1 });
+WorldSchema.index({ 'members.userId': 1 });
 
 export const World = mongoose.model('World', WorldSchema);
 export default World;

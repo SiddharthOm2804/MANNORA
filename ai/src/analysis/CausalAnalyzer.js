@@ -104,7 +104,7 @@ ${JSON.stringify(empirical, null, 2)}`,
       evidence: Array.isArray(parsed.evidence) ? parsed.evidence : [String(parsed.evidence)],
       relatedEvents: parsed.relatedEvents || (empirical.events || []).map((e) => e.title),
       possibleCause: parsed.possibleCause,
-      confidence: parsed.confidence || 'Strong evidence',
+      confidence: parsed.confidence || 'Strong Evidence',
       verdict: parsed.verdict || parsed.observation,
       disclaimer: 'SIMULATION RESULT: This analysis explains mathematical relationships inside MANNORA simulation code. It does not reflect real-world economic or demographic certainty.',
       empiricalDeltas: empirical.deltas,
@@ -149,7 +149,7 @@ ${JSON.stringify(empirical, null, 2)}`,
         const waterDelta = d.water ? d.water.delta : 0;
 
         return {
-          observation: `The share of people without work changed by ${unempDelta >= 0 ? '+' : ''}${unempDelta}% to reach a current rate of ${unempEnd}%.`,
+          observation: `The unemployment rate changed by ${unempDelta >= 0 ? '+' : ''}${unempDelta} percentage points and is now ${unempEnd}%.`,
           evidence: [
             `People without work: from ${d.unemployment?.start ?? 0}% to ${d.unemployment?.end ?? 0}%`,
             `Goods made: ${gdpDelta >= 0 ? '+' : ''}${gdpDelta} rupees changed`,
@@ -157,7 +157,7 @@ ${JSON.stringify(empirical, null, 2)}`,
           ],
           relatedEvents: events.filter((e) => e.type.includes('economic') || e.type.includes('shortage') || e.type.includes('failure')).map((e) => e.title),
           possibleCause: 'When the city has less water or power, it may cost more for shops to work. Some shops may stop hiring.',
-          confidence: 'Strong evidence',
+          confidence: 'Strong Evidence',
           verdict: `There were fewer jobs as shop costs went up.`,
         };
       }
@@ -175,7 +175,7 @@ ${JSON.stringify(empirical, null, 2)}`,
           ],
           relatedEvents: events.map((e) => e.title),
           possibleCause: 'The city may make fewer goods when supplies run low or buildings are damaged.',
-          confidence: 'Strong evidence',
+          confidence: 'Strong Evidence',
           verdict: 'The city made fewer goods and spent more on repairs.',
         };
       }
@@ -197,13 +197,13 @@ ${JSON.stringify(empirical, null, 2)}`,
           observation: `The biggest event was "${evt.title}" (Severity: ${evt.severity}/5) at Day/Tick #${evt.tick}.`,
           evidence: [
             `Event: ${evt.title} (${evt.type})`,
-            `Level: ${evt.severity} out of 5`,
+            `Severity Level: ${evt.severity} out of 5`,
             `Cause: ${evt.cause}`,
             `Change in happiness: ${d.happiness?.delta ?? 0} points`,
           ],
           relatedEvents: [evt.title],
           possibleCause: `This event affected buildings, people, and city spending.`,
-          confidence: 'Strong evidence',
+          confidence: 'Strong Evidence',
           verdict: `"${evt.title}" caused the biggest change in the city.`,
         };
       }

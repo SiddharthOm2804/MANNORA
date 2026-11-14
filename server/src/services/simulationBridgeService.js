@@ -16,6 +16,7 @@ export class SimulationBridgeService {
     /** @type {Map<string, { engine: SimulationEngine, worldId: string, unbind: Function, worldDoc: Object }>} */
     this.activeSimulations = new Map();
     this.experimentLab = new ExperimentLab();
+    this.experimentAccess = new Map();
   }
 
   /**
@@ -74,8 +75,14 @@ export class SimulationBridgeService {
 
     // 5. Initialize engine with the adapted state
     engine.init({
+      tick: initialWorldState.tick,
       metadata: initialWorldState.metadata,
       dimensions: initialWorldState.dimensions,
+      population: initialWorldState.population,
+      resources: initialWorldState.resources,
+      economy: initialWorldState.economy,
+      buildings: initialWorldState.getBuildings(),
+      entities: Object.fromEntries(initialWorldState.entities),
       metrics: initialWorldState.metrics,
     });
 
@@ -171,6 +178,14 @@ export class SimulationBridgeService {
       worldState: nextState.serialize(),
       status: sim.engine.getStatus(),
     };
+  }
+
+  async setSimulationSpeed(worldId, speed) {
+    if (!Number.isFinite(speed) || speed < 0.5 || speed > 10) { const error = new Error('Simulation speed must be between 0.5 and 10.'); error.status = 400; throw error; }
+    const updated = await World.findByIdAndUpdate(worldId, { 'simulationSettings.speed': speed }, { new: true });
+    if (!updated) { const error = new Error('World not found.'); error.status = 404; throw error; }
+    this.activeSimulations.get(worldId)?.engine.setSpeed(speed);
+    return { speed, status: updated.simulationSettings.status };
   }
 
   /**
@@ -392,7 +407,7 @@ export class SimulationBridgeService {
    * @param {Object} experimentSpec - Specification for experiment
    * @returns {Promise<Object>} Completed experiment with statistical aggregation
    */
-  async runExperiment(worldId, experimentSpec = {}) {
+  async runExperiment(worldId, experimentSpec = {}, userId = null) {
     let startingConditions = experimentSpec.startingConditions || {};
 
     // If anchor world provided, merge its current state
@@ -414,6 +429,7 @@ export class SimulationBridgeService {
     };
 
     const experiment = await this.experimentLab.runExperiment(payload);
+    if (worldId && userId) this.experimentAccess.set(String(experiment.id), { worldId: String(worldId), userId: String(userId) });
     return experiment;
   }
 
@@ -422,6 +438,13 @@ export class SimulationBridgeService {
    */
   listExperiments() {
     return this.experimentLab.listExperiments();
+  }
+
+  listWorldExperiments(worldId, userId) {
+    return this.experimentLab.listExperiments().filter((item) => {
+      const access = this.experimentAccess.get(String(item.id));
+      return access?.worldId === String(worldId) && access?.userId === String(userId);
+    });
   }
 
   /**
@@ -439,12 +462,30 @@ export class SimulationBridgeService {
     return exp;
   }
 
+  getWorldExperiment(experimentId, worldId, userId) {
+    const access = this.experimentAccess.get(String(experimentId));
+    if (access?.worldId !== String(worldId) || access?.userId !== String(userId)) {
+      const error = new Error('Experiment not found'); error.name = 'NotFoundError'; error.status = 404; throw error;
+    }
+    return this.getExperiment(experimentId);
+  }
+
   /**
    * Compare multiple completed experiments
    * @param {string[]} experimentIds
    */
   compareExperiments(experimentIds) {
     return this.experimentLab.compareExperiments(experimentIds);
+  }
+
+  compareWorldExperiments(experimentIds, worldId, userId) {
+    if (!Array.isArray(experimentIds) || experimentIds.some((id) => {
+      const access = this.experimentAccess.get(String(id));
+      return access?.worldId !== String(worldId) || access?.userId !== String(userId);
+    })) {
+      const error = new Error('One or more experiments are not available in this world.'); error.status = 403; throw error;
+    }
+    return this.compareExperiments(experimentIds);
   }
 
   /**

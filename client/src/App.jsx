@@ -11,6 +11,7 @@ import Timeline from './pages/Timeline';
 import Settings from './pages/Settings';
 import GovernmentDashboard from './pages/GovernmentDashboard';
 import ExperimentLab from './pages/ExperimentLab';
+import AuthGate from './components/auth/AuthGate';
 
 export default function App() {
   return (
@@ -20,7 +21,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
 
         {/* Laboratory Product Interface Shell */}
-        <Route element={<AppLayout />}>
+        <Route element={<AuthGate><AppLayout /></AuthGate>}>
           <Route path="/dashboard" element={<WorldDashboard />} />
           <Route path="/create-world" element={<CreateWorld />} />
           <Route path="/simulation" element={<Simulation />} />

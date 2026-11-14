@@ -93,6 +93,9 @@ export class WorldStateAdapter {
       tick: initialTick,
       dimensions,
       metrics,
+      resources: Object.fromEntries(Object.entries(raw.resources || {}).map(([key, value]) => [key, { current: Number(value), max: Math.max(Number(value), 10000) }])),
+      economy: { treasury: Number(raw.economyConfiguration?.startingMoney ?? 500000), taxRate: Number(raw.economyConfiguration?.taxRate ?? 0.15) },
+      buildings: Object.fromEntries((raw.buildings || []).map((building) => [building.id, building])),
       metadata,
       entities,
     });
@@ -127,6 +130,7 @@ export class WorldStateAdapter {
       'economyConfiguration.businessCount': metrics.businessCount,
       'governmentConfiguration.stabilityIndex': metrics.stability,
       'governmentConfiguration.corruptionIndex': metrics.corruption,
+      buildings: worldState.getBuildings(),
       updatedAt: new Date(),
     };
   }

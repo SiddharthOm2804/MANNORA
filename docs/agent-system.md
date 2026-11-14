@@ -1,86 +1,23 @@
-# Multi-Agent Civilization Framework
+# Multi-Agent System
 
-**NEURAL CITY — Agent System Design (Phase 5)**
+Citizens are simulation entities whose local needs, resources, goals, jobs, relationships, health, and memory contribute to aggregate world behavior. Core implementation is in `simulation/src/agents/` and `simulation/src/society/`.
 
----
+## Per-tick flow
 
-## 1. Overview & Architecture
+The engine's agent subsystem runs after events and before economy/government/resource/population systems. Agent engines evaluate internal needs and current world context, choose actions with rule-based utility and seeded randomness, and update agent state. Social/community systems update relationships and group behavior. Later subsystems process economic and civic consequences, then metrics summarize the resulting state.
 
-Phase 5 implements the **Multi-Agent Citizen System**, establishing autonomous, homeostatic, and goal-directed citizens within NEURAL CITY.
-The core decision loop operates **strictly on deterministic rules and utility evaluations without LLM calls in the per-tick hot path**.
+This rule-based hot path keeps the simulation bounded and avoids network latency in each citizen's decision cycle. AI cognitive classes in `ai/` support reflection, planning, and memory tasks through explicit API operations; they are not a substitute for the simulation agent rules.
 
-```
-World Observation
-       ↓
-Needs Evaluation (NeedsSystem: hunger, rest, social, safety, fulfillment, health)
-       ↓
-Goal Evaluation (GoalSystem: survival, economic, social, growth)
-       ↓
-Action Selection (DecisionEngine: rule-based, purposeful travel, no random wandering)
-       ↓
-World State Mutation (Action execution affects agent, buildings, municipal treasury)
-       ↓
-Memory Encoding (MemorySystem: short-term working memory + episodic consolidation)
-```
+## State and persistence
 
----
+The engine owns the live in-memory agent state. The bridge queues selected fields for batched MongoDB upserts. Queue writes are coalesced by world and agent ID; transient database failures retain a bounded/latest state for a later retry while the process remains alive. There is no durable journal for queued data, and persisted agent fields are not currently sufficient to rebuild every engine subsystem exactly.
 
-## 2. Core Components
+## Scale and visualization
 
-### `Agent`
-Encapsulates complete individual state:
-- **Identity**: Unique ID (`id`), name, age
-- **Economic Profile**: Occupation, income, liquid wealth, savings, skills matrix (`farming`, `engineering`, `commerce`, `science`, `administration`, `craftsmanship`)
-- **Homeostasis**: `NeedsSystem` (hunger, rest, social, safety, fulfillment, health)
-- **Cognition**: `GoalSystem`, `DecisionEngine`, `MemorySystem`
-- **Physical & Spatial Presence**: Location coordinates `(x, y)`, sector, residence ID, workplace/employer ID
-- **Social Graph**: Relationships map (`Map<agentId, RelationshipRecord>`) tracking affinity, trust, interaction counts, and last contact
-- **Personality Traits**: Five-factor inspired traits [0.0, 1.0] (`rationality`, `ambition`, `riskTolerance`, `socialAffinity`, `productivity`, `frugality`, `adaptability`)
-- **Health State**: Vitality index, energy, happiness, stress, sick status, active status
+Cost grows with the active population and relationship/market work. Use bounded populations, benchmark tick latency and memory, and inspect subsystem timings before increasing scale. The frontend draws citizen markers as an instanced mesh with a 1,500-instance display cap; rendering the markers does not mean every simulated agent is individually represented on screen.
 
-### `AgentEngine`
-Coordinates the citizen population within `SimulationEngine`:
-- Deterministic iteration order sorted by agent ID
-- Population generation (`populateWorld`) and hydration
-- Spatial proximity indexing (`getNearbyAgents(x, y, radius)`)
-- Aggregation of socioeconomic telemetry (unemployment rate, average health, average happiness, wealth velocity) back into `WorldState` metrics
+## Evaluation cautions
 
-### `NeedsSystem`
-Models homeostatic biological and psychological drives:
-- Differentiated decay during wakefulness vs sleep
-- Critical urgency thresholds (starvation >= 75, exhaustion <= 20)
-- Need satisfaction dynamics and health penalties
+Agent rules encode assumptions and should be calibrated before making empirical claims. Assess outcomes across multiple seeds, inspect subgroup differences, and record model version and parameters. Aggregate satisfaction or wellbeing indices are model outputs, not validated measures of real people.
 
-### `GoalSystem`
-Maintains hierarchical priorities:
-- **Survival Override**: Emergency food acquisition or rest when drives enter critical zones
-- **Economic Goals**: Work shifts, job seeking, saving capital, starting businesses
-- **Social Goals**: Interacting with companions, community engagement
-- **Growth Goals**: Skill improvement, leisure, quality-of-life enhancements
-
-### `DecisionEngine`
-Rule-based action selector evaluating state, goals, environment, and traits:
-- **`work`**: Earns wage, pays municipal taxes to treasury, expends energy/rest
-- **`eat`**: Consumes inventory food or visits commercial market
-- **`sleep`**: Recovers rest and energy at domicile
-- **`travel`**: Purposeful vector-based traversal towards target venues (strictly prevents random movement)
-- **`shop`**: Purchases supplies from markets, injecting economic velocity
-- **`search_job`**: Interviews with commercial/industrial buildings having worker vacancies
-- **`start_business`**: Founds a new commercial exchange building on available municipal lots
-- **`interact`**: Deepens bidirectional affinity and trust with nearby citizens
-- **`save_money`**: Allocates liquid wealth into security reserves based on frugality
-- **`spend_money`**: Reinvestment in cultural/recreational fulfillment
-- **`rest`**: Domicile relaxation
-
-### `MemorySystem`
-Tiered cognitive store:
-- **Working Memory**: Fixed-capacity ring buffer of recent sensory observations and actions
-- **Episodic Memory**: Long-term consolidation of high-importance experiences (threshold >= 0.60, milestones, trauma)
-- Querying by related agent ID, event type, and temporal recency
-
----
-
-## 3. Subsystem Integration
-
-`AgentSystem` registers at **Priority 20** in the deterministic `SimulationEngine` pipeline:
-`CLOCK (0) → EVENTS (10) → AGENTS (20) → ECONOMY (30) → RESOURCES (40) → WORLD STATE (50, 55) → METRICS (60)`.
+Related documentation: [Simulation engine](simulation-engine.md), [AI system](ai-system.md), [Architecture](architecture.md).

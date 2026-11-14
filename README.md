@@ -1,177 +1,147 @@
-# MANNORA — Virtual City Simulation
+# MANNORA (formerly NEURAL CITY)
 
-> **Virtual City Simulation with Computer-Controlled People, Dynamic Economy, and 3D Visual Display**  
-> *(Formerly Neural City)*
+MANNORA is an experimental, full-stack civilization simulator. It combines a deterministic JavaScript simulation engine, autonomous rule-driven agents, economic and civic systems, optional language-model analysis, private persistent worlds, and a React 3D command center.
 
----
+The project exists to make interactions between individual behavior and city-scale outcomes inspectable. A change to resources, policy, or an external event can be followed through agents, markets, government, and aggregate metrics. It is a research and education prototype, not a validated forecasting tool for real-world policy.
 
-## 1. What is MANNORA?
+## Contents
 
-**MANNORA** is a full-stack virtual city simulation project. In this virtual city:
-- **Computer-controlled people (Agents)** live, work, earn salaries, buy food, make friends, and follow daily routines.
-- A **Dynamic Market Economy** calculates the real price of food, water, electricity, and materials based on supply and demand.
-- A **City Government** collects taxes, provides public services (hospitals, schools, buses), and passes rules.
-- An **Interactive 3D View** renders actual buildings, roads, and people moving around in real time using Three.js.
-- An **AI City Assistant** explains what is happening in the city in plain English and gives policy suggestions.
-- A **Time Machine** lets you pause, rewind to past days, or create "what if" test versions of the city.
+1. [Architecture](#architecture)
+2. [Simulation engine](#simulation-engine)
+3. [Multi-agent system](#multi-agent-system)
+4. [AI layer](#ai-layer)
+5. [3D visualization](#3d-visualization)
+6. [Counterfactual engine](#counterfactual-engine)
+7. [Experiment system](#experiment-system)
+8. [Deployment](#deployment)
+9. [Screenshots and demo](#screenshots-and-demo)
+10. [Future research directions](#future-research-directions)
+11. [Security and city management](#security-and-city-management)
 
-This project was built so that any college student or software engineer can easily understand, demonstrate, and explain the principles of:
-1. Object-Oriented Simulation Engines
-2. Deterministic Execution & Repeatability
-3. Microeconomic & Macroeconomic loops
-4. Full-stack Web Development with React, Node.js, and MongoDB
+## Architecture
 
----
-
-## 2. Why We Are Building It
-
-Modern city systems (like electricity grids, food delivery, job markets, and tax policies) are deeply connected. When one thing changes—like water getting scarce—everything else is affected:
-1. Water prices go up.
-2. People spend more on daily needs and less on leisure.
-3. Businesses face higher costs.
-4. Public satisfaction drops.
-
-Instead of writing simple calculators, **MANNORA simulates every single person and business step by step**, allowing students and researchers to see how high-level city statistics emerge naturally from individual choices.
-
----
-
-## 3. How the Virtual City Works
+The repository is an npm-workspaces monorepo. `client/` is a React/Vite application, `server/` is an Express API and WebSocket gateway, `simulation/` contains the domain engine, `ai/` contains provider and analyst abstractions, and `shared/` holds common constants and event types. MongoDB stores worlds, agents, and periodic summary snapshots. Redis is optional; the server falls back to a bounded in-process cache.
 
 ```mermaid
-flowchart TD
-    A["Simulation Clock (Day by Day)"] --> B["City Simulation Engine"]
-    B --> C["Computer-Controlled People (Agents)"]
-    B --> D["Market & Businesses"]
-    B --> E["City Government & Rules"]
-    B --> F["Event Engine (Emergencies)"]
-    C --> G["Actual City Condition (WorldState)"]
-    D --> G
-    E --> G
-    F --> G
-    G --> H["MongoDB (Permanent Storage)"]
-    G --> I["3D City View (Three.js)"]
-    G --> J["City Reports (Analytics)"]
+flowchart LR
+  UI[React command center] -->|REST| API[Express API]
+  UI <-->|WebSocket deltas / SSE events| API
+  API --> BRIDGE[Simulation bridge]
+  BRIDGE --> ENGINE[Simulation engine]
+  ENGINE --> SYSTEMS[Agents · economy · resources · government · events]
+  API --> DB[(MongoDB)]
+  BRIDGE --> CACHE[(Optional Redis / memory cache)]
+  BRIDGE --> WORKER[In-process persistence queue]
+  API --> AI[AI provider and analysts]
 ```
 
-1. **Simulation Clock**: Advances the city tick by tick (representing days or hours). Every step uses a deterministic random seed so that the simulation gives the exact same result if replayed.
-2. **People (Agents)**: Each person has health, energy, happiness, money, a job, and personal memories. Every day they decide whether to work, rest, buy groceries, or spend time with friends.
-3. **Economy & Markets**: Prices are not hardcoded. When grain is abundant, bread is cheap; during a drought, bread prices rise automatically.
-4. **Government**: Collects taxes and funds public utilities like clean water, healthcare, and schools.
-5. **Time Machine**: Takes snapshots of the entire city. You can rewind to an earlier day or branch into a test version to ask: *"What if we made water free from Day 50 onwards?"*
+See [docs/architecture.md](docs/architecture.md) for component boundaries and operational limits.
 
----
+## Simulation engine
 
-## 4. Key Features & Simple Names
+`SimulationEngine` advances a `WorldState` in discrete ticks using a seeded `RandomEngine`. Default systems run in priority order: events, agents, economy, government, resources, population, buildings, then metrics. Each tick clones current state, applies system updates, commits to bounded in-memory history, and publishes a serialized state event. The engine can run synchronously one step at a time or use its clock loop.
 
-| Feature in Project | User-Friendly Name | What It Does |
-|---|---|---|
-| **City Overview** | World Dashboard | Shows main city metrics: population, bank balance, power, and recent events |
-| **3D City View** | 3D Spatial Canvas | Real-time 3D display showing buildings, districts, roads, and moving citizens |
-| **Manage People** | Citizen Inspector | View any citizen's job, health, happiness, money, goals, and recent memories |
-| **City Economy** | Economy & Market Lab | Reports on total production (GDP), unemployment, item prices, and business profit |
-| **Government Rules** | Civic Governance | Adjust income tax, manage hospitals and schools, and apply city rules |
-| **Time Machine** | Temporal Timeline | Rewind simulation time, restore saved snapshots, and test different decisions |
-| **Event Engine** | Emergency Events | Inject events like water shortages or power cuts and watch the city respond |
-| **AI City Assistant** | AI World Analyst | Explains city statistics and citizen thoughts in simple English |
+Simulation state and API orchestration currently live in one Node process. Periodic database snapshots are summaries rather than complete engine checkpoints; restarting the server does not guarantee exact restoration of an active run. See [docs/simulation-engine.md](docs/simulation-engine.md).
 
----
+## Multi-agent system
 
-## 5. Technology Stack
+Citizens maintain needs, goals, health, social relations, economic state, and memory. Rule-based decision systems are used on the per-tick path so runs remain bounded and repeatable. Agent updates share the seeded random stream. The Three.js client renders a capped subset of agents; it is a visualization, not a persistence or simulation authority. Details: [docs/agent-system.md](docs/agent-system.md).
 
-- **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons, Framer Motion
-- **3D Graphics**: Three.js, React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`)
-- **Backend API**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Simulation Engine**: Custom JavaScript ES Modules (`simulation/`) with deterministic Mulberry32 PRNG
-- **AI Integration**: Modular provider architecture with rule-based fallback and Gemini / OpenAI LLM support
+## AI layer
 
----
+The `ai/` workspace provides provider contracts, a deterministic fallback, citizen/government/analyst helpers, prompt parsing, and causal analysis. External model calls are optional, configured on the server, bounded by a request timeout, and fall back to deterministic rules on provider failure. API keys must never use a `VITE_` prefix or be placed in client code. LLM output is advisory and does not run inside the simulation tick loop. Details: [docs/ai-system.md](docs/ai-system.md).
 
-## 6. Project Folder Structure
+## 3D visualization
 
-```
-MANNORA/
-├── client/              # React 18 frontend with 3D viewer, dashboard, and reports
-│   └── src/
-│       ├── components/  # Reusable UI widgets, panels, 3D canvas, event modals
-│       ├── pages/       # Dashboard, Simulation 3D, People, Reports, Government, Time Machine
-│       └── services/    # REST API callers connecting frontend to backend
-├── server/              # Express API server connecting to MongoDB
-│   ├── controllers/     # Handlers for world, citizen, and simulation routes
-│   ├── models/          # Mongoose database models (World, Agent, Snapshot)
-│   └── routes/          # Express route definitions (/api/worlds, /api/agents)
-├── simulation/          # Pure simulation engine code (no UI, fast execution)
-│   ├── engine/          # SimulationEngine, SimulationClock, StateManager
-│   ├── agents/          # Agent logic: needs, jobs, daily decisions, memory
-│   ├── economy/         # Market prices, businesses, employment, taxes
-│   └── events/          # EventEngine, event queue, propagation cascade
-├── ai/                  # AI assistant, memory retrieval, and simple English responses
-├── shared/              # Common constants, data structures, and types
-└── docs/                # Detailed guides, architecture, and Simple English Glossary
-```
+The client uses React Three Fiber, Three.js, and Drei for terrain, saved city districts, persisted facilities, road context, resource producers, and instanced citizen markers. Saved cities and buildings are sourced from the world record. Exact road/parcel/citizen distribution is not persisted yet, so roads and vegetation remain representative scenery. Agent instance rendering is capped at 1,500 to bound draw work. Browser/WebGL memory still depends on the device and scene size.
 
----
+## Counterfactual engine
 
-## 7. How to Install and Run
+The time-machine modules support bounded in-memory snapshots, rollback, named branches, and counterfactual comparisons. These are useful for controlled experiments within a running process. They are not durable distributed branches, and the current database summary snapshots are insufficient for exact restart recovery. Review [docs/simulation-engine.md](docs/simulation-engine.md) before treating results as reproducible archival records.
 
-### Step 1: Clone and Install Dependencies
+## Experiment system
+
+`ExperimentRunner` and `ExperimentLab` execute named simulation scenarios and produce comparative summaries/statistics. Configure the seed, baseline, policy/event changes, and run length explicitly. Experiment history is currently held by the bridge process; export or persist results externally before restarting a deployment. This prototype does not establish scientific validity for a model without calibration and sensitivity analysis.
+
+## Deployment
+
+### Requirements
+
+- Node.js 20 or later (ES modules and built-in `fetch` are used)
+- npm 10 or compatible npm workspaces support
+- MongoDB for world storage and production operation
+- Redis is optional
+
+### Local development
+
 ```bash
-git clone https://github.com/SiddharthOm2804/MANNORA.git
-cd MANNORA
 npm install
-```
-
-### Step 2: Set Up Environment Variables
-Create a `.env` file in the root directory (or copy `.env.example`):
-```bash
 cp .env.example .env
-```
-Ensure your MongoDB is running locally at `mongodb://localhost:27017/neural_city` or set your cloud MongoDB connection string.
-
-### Step 3: Start the Backend Server
-```bash
+# Set MONGO_URI to a local or managed MongoDB instance.
 npm run dev:server
-```
-The Express server starts on `http://localhost:5000`.  
-Check server health: `http://localhost:5000/api/health`
-
-### Step 4: Start the Frontend Application
-In a new terminal window:
-```bash
+# In another terminal:
 npm run dev:client
 ```
-Open your browser and visit: `http://localhost:5173`
 
----
+The API defaults to `http://localhost:5000`; Vite serves the UI on `http://localhost:5173` and proxies `/api` and `/ws` to the API. The server can start without MongoDB in development, but database-backed endpoints will fail. Use the root scripts `npm run build:client`, `npm test`, and `npm run test:server` as appropriate.
 
-## 8. Running Automated Tests
+### Environment
 
-MANNORA includes unit and integration tests for the simulation engine and AI modules:
-```bash
-# Test the core city simulation mechanics
-npm run test:simulation
+| Variable | Required | Purpose |
+|---|---:|---|
+| `NODE_ENV` | production | Set to `production` for deployment safeguards |
+| `PORT` | no | HTTP port (default `5000`) |
+| `MONGO_URI` | production | MongoDB connection string; production startup fails without it |
+| `CLIENT_URL` | no | Single allowed browser origin (default local Vite origin) |
+| `CORS_ORIGINS` | no | Comma-separated allowed origins; takes precedence over `CLIENT_URL` |
+| `COOKIE_SAME_SITE` | no | Session cookie policy: `lax` (default), `strict`, or `none`; `none` requires HTTPS in production |
+| `TRUST_PROXY` | deployment-specific | Set `true` only behind one trusted reverse proxy |
+| `REDIS_URL` | no | Redis connection string; do not log or expose it |
+| `AI_PROVIDER` | no | `fallback`, `openai`, `anthropic`, or compatible HTTP provider |
+| `AI_API_KEY` / `OPENAI_API_KEY` | no | Server-only provider credential |
+| `AI_BASE_URL` | no | Provider endpoint; only set to a trusted endpoint |
+| `AI_MODEL` | no | Provider model identifier |
+| `VITE_API_URL` | hosted client | Public API base URL compiled into the browser bundle; never put secrets here |
 
-# Test AI providers and memory retrieval
-npm run test:ai
+Production requires MongoDB. Account sessions use HttpOnly cookies and CSRF-protected mutations. New worlds are private to their creator; owners can grant viewer/editor access. Existing ownerless worlds remain inaccessible until an operator maps each one to the correct account. Account recovery/email verification are not implemented. The included rate limiter, simulation bridge, experiment registry and persistence queue are single-process; use shared infrastructure for multi-replica/high-availability deployment.
 
-# Build the frontend production bundle
-npm --workspace=@neural-city/client run build
-```
+### Production checklist
 
----
+1. Use TLS at the reverse proxy and set `CLIENT_URL` or `CORS_ORIGINS` to exact HTTPS origins.
+2. Keep `.env` out of version control; use the platform secret store and rotate credentials.
+3. Restrict MongoDB network access and credentials; configure backups and restore drills.
+4. Set `TRUST_PROXY=true` only when one known proxy terminates traffic.
+5. Configure a trusted AI provider URL and server-side key; otherwise use the deterministic fallback.
+6. Complete an operator-reviewed owner mapping for every legacy world before account migration; never assign all legacy worlds to the first account.
+7. Add account recovery/email verification before public account self-service; monitor health, persistence queue failures, and process restarts.
+8. Build the client with `npm run build:client` and serve `client/dist` from a static host or configured web server.
 
-## 9. Viva and College Presentation Guide
+## Screenshots and demo
 
-When presenting MANNORA to examiners or interviewers, highlight these 4 core design strengths:
+No checked-in screenshot assets are currently provided. Start the app using the local steps above, create or select an authorized world, orbit/zoom the city, toggle a visualization layer, inspect a saved city/facility, review current supply pressure, and confirm a supported facility action. Play/pause/step/speed controls call the backend; timeline jumps require time-machine history. Add reviewed captures under `docs/screenshots/` when a release demo is recorded; avoid including credentials or private world data.
 
-1. **"The UI does not fake numbers."**  
-   Every statistic on the screen (unemployment, bread prices, city bank balance) is computed by the simulation engine in code, not randomly generated by a UI timer.
-2. **"The simulation is deterministic."**  
-   If you run the simulation with seed `83917492` for 100 days twice, you will get the exact same population and economy down to the last decimal.
-3. **"Events cascade through actual systems."**  
-   When a "Water Shortage" is injected, the engine reduces actual water reserves, which triggers price hikes in the market, forces poorer citizens to cut back, lowers public health, and reduces government approval.
-4. **"The Time Machine allows scientific testing."**  
-   You can take a snapshot of the city on Day 50, create Branch A (high tax) and Branch B (low tax), run both for 50 more days, and scientifically compare which policy produced happier citizens.
+## Future research directions
 
-For full word explanations and definitions, please read:  
-[`docs/SIMPLE_ENGLISH_GLOSSARY.md`](file:///Users/siddharthom/Documents/MANNORA/docs/SIMPLE_ENGLISH_GLOSSARY.md)
+- Calibrate agent decisions and city dynamics against documented empirical datasets.
+- Measure sensitivity to seeds, assumptions, policy parameters, and population scale.
+- Add durable, versioned full-state checkpoints and deterministic replay across releases.
+- Study heterogeneous agents, network effects, and fairness outcomes with explicit metrics.
+- Evaluate model-assisted analysis for factual grounding, uncertainty, and reproducibility.
+- Benchmark simulation throughput, browser rendering, and long-run memory under published workloads.
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Simulation engine and time machine](docs/simulation-engine.md)
+- [Agent system](docs/agent-system.md)
+- [AI system](docs/ai-system.md)
+- [HTTP and streaming API](docs/api.md)
+- [World map and city management audit](docs/WORLD_MAP_AND_CITY_MANAGEMENT_AUDIT.md)
+- [Multi-user security audit](docs/MULTI_USER_SECURITY_AUDIT.md)
+- [Manual city management guide](docs/MANUAL_CITY_MANAGEMENT_GUIDE.md)
+
+## Security and city management
+
+Registration requires a valid email, display name and 12-character password. The API hashes passwords with scrypt, stores opaque hashed sessions, and checks a CSRF token on every authenticated mutation. `GET /api/worlds` only returns owned or shared worlds. Every `/api/worlds/:id` route, AI world-context operation, SSE stream and WebSocket handshake checks access on the server. Owners manage shares; viewers cannot mutate; editors can change world/simulation state. See [docs/api.md](docs/api.md) and the security audit for routes and migration limits.
+
+The Command Center shows data available in the simulation and database. The only new manual management actions are three validated facility builds (energy, water, agriculture); they require confirmation, treasury/mineral checks, placement validation and an auditable history entry. Resource distribution by district, affected population, trading and other policy actions are not yet modeled, so they are not shown as available controls.

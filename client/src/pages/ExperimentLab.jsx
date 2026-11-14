@@ -113,7 +113,7 @@ export default function ExperimentLabPage() {
   const handleCompareExperiments = async () => {
     if (comparisonSelection.length < 2) return;
     try {
-      const compRes = await worldService.compareExperiments(comparisonSelection);
+      const compRes = await worldService.compareExperiments(selectedWorldId, comparisonSelection);
       if (compRes.success && compRes.data) {
         setComparisonResult(compRes.data);
         setActiveTab('comparison');

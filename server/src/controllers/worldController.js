@@ -54,7 +54,7 @@ const handleControllerError = (error, res, next) => {
  */
 export const createWorld = async (req, res, next) => {
   try {
-    const world = await worldService.createWorld(req.body);
+    const world = await worldService.createWorld(req.body, req.user._id);
     res.status(201).json({
       success: true,
       message: 'Civilization world created successfully',
@@ -67,11 +67,16 @@ export const createWorld = async (req, res, next) => {
 
 export const getAllWorlds = async (req, res, next) => {
   try {
-    const worlds = await worldService.getAllWorlds();
+    const worlds = await worldService.getAllWorlds(req.user._id);
+    const accessible = worlds.map((world) => {
+      const owner = String(world.ownerId) === String(req.user._id);
+      const member = world.members?.find((item) => String(item.userId) === String(req.user._id));
+      return { ...world, permissions: { role: owner ? 'owner' : member?.role || 'viewer' } };
+    });
     res.status(200).json({
       success: true,
-      count: worlds.length,
-      data: worlds,
+      count: accessible.length,
+      data: accessible,
     });
   } catch (error) {
     next(error);
@@ -90,9 +95,10 @@ export const getWorldById = async (req, res, next) => {
       });
     }
 
+    const worldData = typeof world.toObject === 'function' ? world.toObject() : world;
     res.status(200).json({
       success: true,
-      data: world,
+      data: { ...worldData, permissions: { role: req.worldRole } },
     });
   } catch (error) {
     handleControllerError(error, res, next);

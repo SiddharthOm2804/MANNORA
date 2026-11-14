@@ -54,21 +54,37 @@ export class WorldService {
    * @param {Object} worldData
    * @returns {Promise<World>}
    */
-  async createWorld(worldData) {
+  async createWorld(worldData, ownerId) {
+    if (!worldData || typeof worldData !== 'object' || Array.isArray(worldData)) {
+      const error = new Error('World payload must be a JSON object'); error.status = 400; throw error;
+    }
     if (!worldData.name || typeof worldData.name !== 'string') {
       const error = new Error('World name is required and must be a string');
       error.name = 'ValidationError';
       error.status = 400;
       throw error;
     }
+    if (worldData.name.trim().length < 3 || worldData.name.trim().length > 100) {
+      const error = new Error('World name must be between 3 and 100 characters'); error.status = 400; throw error;
+    }
+    if (worldData.description != null && (typeof worldData.description !== 'string' || worldData.description.length > 1000)) {
+      const error = new Error('World description must be a string of at most 1000 characters'); error.status = 400; throw error;
+    }
+    const requestedPopulation = worldData.population == null ? 1000 : Number(worldData.population);
+    if (!Number.isFinite(requestedPopulation) || requestedPopulation < 1 || requestedPopulation > 10_000_000) {
+      const error = new Error('Population must be a number between 1 and 10000000'); error.status = 400; throw error;
+    }
 
-    const population = Number(worldData.population) || 1000;
+    const population = requestedPopulation;
 
     // Handle cities: array or numerical count
     let cities = [];
     if (Array.isArray(worldData.cities) && worldData.cities.length > 0) {
+      if (worldData.cities.length > 20 || worldData.cities.some((city) => !city || typeof city !== 'object' || Array.isArray(city))) {
+        const error = new Error('Cities must be an array of at most 20 city objects'); error.status = 400; throw error;
+      }
       cities = worldData.cities.map((city, idx) => ({
-        name: city.name || `City-${idx + 1}`,
+        name: typeof city.name === 'string' && city.name.trim() ? city.name.trim().slice(0, 100) : `City-${idx + 1}`,
         population: Number(city.population) || Math.floor(population / worldData.cities.length),
         isCapital: city.isCapital || idx === 0,
         coordinates: city.coordinates || { x: 50, y: 50 },
@@ -79,8 +95,23 @@ export class WorldService {
       cities = generateDefaultCities(cityCount, population, worldData.name);
     }
 
+    // Keep user-provided city records in the finite map with distinct centre points.
+    const occupied = [];
+    const fallbackLots = [8, 24, 40, 60, 76, 92].flatMap((x) => [8, 24, 40, 60, 76, 92].map((y) => ({ x, y })));
+    cities = cities.map((city) => {
+      let point = city.coordinates;
+      const valid = point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)) && Number(point.x) >= 4 && Number(point.x) <= 96 && Number(point.y) >= 4 && Number(point.y) <= 96;
+      if (!valid || occupied.some((other) => Math.hypot(other.x - Number(point.x), other.y - Number(point.y)) < 14)) {
+        point = fallbackLots.find((lot) => !occupied.some((other) => Math.hypot(other.x - lot.x, other.y - lot.y) < 14)) || { x: 50, y: 50 };
+      }
+      const normalized = { x: Number(point.x), y: Number(point.y) };
+      occupied.push(normalized);
+      return { ...city, coordinates: normalized };
+    });
+
     // Build payload conforming to World schema
     const payload = {
+      ownerId,
       name: worldData.name.trim(),
       description: worldData.description ? worldData.description.trim() : '',
       population,
@@ -139,8 +170,8 @@ export class WorldService {
    * @param {Object} [filter={}]
    * @returns {Promise<World[]>}
    */
-  async getAllWorlds(filter = {}) {
-    return await World.find(filter).sort({ createdAt: -1 });
+  async getAllWorlds(ownerId) {
+    return await World.find({ $or: [{ ownerId }, { 'members.userId': ownerId }] }).sort({ createdAt: -1 }).limit(100).lean();
   }
 
   /**
@@ -184,6 +215,20 @@ export class WorldService {
       throw error;
     }
 
+    if (!updateData || typeof updateData !== 'object' || Array.isArray(updateData)) {
+      const error = new Error('World update must be a JSON object'); error.status = 400; throw error;
+    }
+    const allowed = new Set(['name', 'description', 'population', 'geography', 'resources', 'cities', 'economyConfiguration', 'governmentConfiguration', 'simulationSettings']);
+    const keys = Object.keys(updateData);
+    if (!keys.length || keys.some((key) => !allowed.has(key))) {
+      const error = new Error('World update contains unsupported fields'); error.status = 400; throw error;
+    }
+    if (updateData.name !== undefined && (typeof updateData.name !== 'string' || updateData.name.trim().length < 3 || updateData.name.trim().length > 100)) {
+      const error = new Error('World name must be between 3 and 100 characters'); error.status = 400; throw error;
+    }
+    if (updateData.population !== undefined && (!Number.isFinite(Number(updateData.population)) || Number(updateData.population) < 1 || Number(updateData.population) > 10_000_000)) {
+      const error = new Error('Population must be a number between 1 and 10000000'); error.status = 400; throw error;
+    }
     const updated = await World.findByIdAndUpdate(
       id,
       { $set: updateData },
@@ -221,6 +266,8 @@ export class WorldService {
       error.status = 404;
       throw error;
     }
+
+    await cacheManager.del(`world:${id}`);
 
     return true;
   }

@@ -145,6 +145,41 @@ export const worldService = {
     }
   },
 
+  async getCityProblems(worldId) {
+    try { const response = await api.get(`/worlds/${worldId}/problems`); return { success: true, data: response.data?.data || [] }; }
+    catch (error) { return { success: false, data: [], message: error.response?.data?.message || error.message || 'City problems could not be loaded.' }; }
+  },
+
+  async getCityActionHistory(worldId) {
+    try { const response = await api.get(`/worlds/${worldId}/actions`); return { success: true, data: response.data?.data || [] }; }
+    catch (error) { return { success: false, data: [], message: error.response?.data?.message || error.message || 'City action history could not be loaded.' }; }
+  },
+
+  async buildProductionFacility(worldId, resource) {
+    try { const response = await api.post(`/worlds/${worldId}/actions/facility`, { resource }); return { success: true, data: response.data?.data, message: response.data?.message }; }
+    catch (error) { return { success: false, message: error.response?.data?.message || error.message || 'The city action could not be applied.' }; }
+  },
+
+  async launchSimulation(worldId, autoStart = true) {
+    try { const response = await api.post(`/worlds/${worldId}/launch`, { autoStart }); return { success: true, data: response.data?.data }; }
+    catch (error) { return { success: false, message: error.response?.data?.message || error.message || 'Simulation could not be started.' }; }
+  },
+
+  async stopSimulation(worldId) {
+    try { const response = await api.post(`/worlds/${worldId}/stop`); return { success: true, data: response.data?.data }; }
+    catch (error) { return { success: false, message: error.response?.data?.message || error.message || 'Simulation could not be paused.' }; }
+  },
+
+  async stepSimulation(worldId) {
+    try { const response = await api.post(`/worlds/${worldId}/step`); return { success: true, data: response.data?.data }; }
+    catch (error) { return { success: false, message: error.response?.data?.message || error.message || 'Simulation could not advance.' }; }
+  },
+
+  async setSimulationSpeed(worldId, speed) {
+    try { const response = await api.patch(`/worlds/${worldId}/speed`, { speed }); return { success: true, data: response.data?.data }; }
+    catch (error) { return { success: false, message: error.response?.data?.message || error.message || 'Simulation speed could not be changed.' }; }
+  },
+
   /**
    * Time Machine API Methods (Phase 12)
    */
@@ -213,27 +248,27 @@ export const worldService = {
     }
   },
 
-  async listExperiments() {
+  async listExperiments(worldId) {
     try {
-      const response = await api.get('/worlds/experiments/all');
+      const response = await api.get(`/worlds/${worldId}/experiments`);
       return { success: true, data: response.data?.data || [] };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || error.message, data: [] };
     }
   },
 
-  async getExperiment(expId) {
+  async getExperiment(worldId, expId) {
     try {
-      const response = await api.get(`/worlds/experiments/${expId}`);
+      const response = await api.get(`/worlds/${worldId}/experiments/${expId}`);
       return { success: true, data: response.data?.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || error.message };
     }
   },
 
-  async compareExperiments(experimentIds) {
+  async compareExperiments(worldId, experimentIds) {
     try {
-      const response = await api.post('/worlds/experiments/compare', { experimentIds });
+      const response = await api.post(`/worlds/${worldId}/experiments/compare`, { experimentIds });
       return { success: true, data: response.data?.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || error.message };

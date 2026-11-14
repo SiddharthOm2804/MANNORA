@@ -24,6 +24,8 @@ export class PersistenceWorker {
     this.flushIntervalMs = options.flushIntervalMs || 2000;
     this.maxBatchSize = options.maxBatchSize || 200;
     this.snapshotTickFrequency = options.snapshotTickFrequency || 100;
+    this.maxPendingAgentUpdates = options.maxPendingAgentUpdates || 100_000;
+    this.maxPendingWorldUpdates = options.maxPendingWorldUpdates || 10_000;
 
     /** @type {Map<string, Object>} Queued world updates */
     this.pendingWorldUpdates = new Map();
@@ -37,6 +39,7 @@ export class PersistenceWorker {
     /** @type {NodeJS.Timeout|null} */
     this.flushTimer = null;
     this.isFlushing = false;
+    this.flushWaiters = [];
   }
 
   /**
@@ -73,6 +76,10 @@ export class PersistenceWorker {
   queueWorldUpdate(worldId, updateFields) {
     const key = String(worldId);
     const existing = this.pendingWorldUpdates.get(key) || {};
+    if (!this.pendingWorldUpdates.has(key) && this.pendingWorldUpdates.size >= this.maxPendingWorldUpdates) {
+      this.pendingWorldUpdates.delete(this.pendingWorldUpdates.keys().next().value);
+    }
+    this.pendingWorldUpdates.delete(key);
     this.pendingWorldUpdates.set(key, { ...existing, ...updateFields });
 
     // Update fast cache
@@ -87,7 +94,12 @@ export class PersistenceWorker {
   queueAgentBatch(worldId, agents = []) {
     for (const agt of agents) {
       if (!agt.id) continue;
-      this.pendingAgentUpdates.set(`${worldId}:${agt.id}`, {
+      const key = `${worldId}:${agt.id}`;
+      this.pendingAgentUpdates.delete(key);
+      if (this.pendingAgentUpdates.size >= this.maxPendingAgentUpdates) {
+        this.pendingAgentUpdates.delete(this.pendingAgentUpdates.keys().next().value);
+      }
+      this.pendingAgentUpdates.set(key, {
         worldId,
         agent: agt,
       });
@@ -99,6 +111,7 @@ export class PersistenceWorker {
    * @param {Object} snapshotData
    */
   queueSnapshot(snapshotData) {
+    if (this.pendingSnapshots.length >= 1000) this.pendingSnapshots.shift();
     this.pendingSnapshots.push(snapshotData);
   }
 
@@ -106,7 +119,11 @@ export class PersistenceWorker {
    * Flush all pending writes to MongoDB in atomic bulk batches
    */
   async flush() {
-    if (this.isFlushing) return;
+    if (this.isFlushing) {
+      return new Promise((resolve, reject) => {
+        this.flushWaiters.push(() => this.flush().then(resolve, reject));
+      });
+    }
     this.isFlushing = true;
 
     try {
@@ -120,6 +137,7 @@ export class PersistenceWorker {
             await World.findByIdAndUpdate(worldId, { $set: updateDoc }, { timestamps: true });
           } catch (err) {
             console.error(`[PersistenceWorker] Failed to update world ${worldId}:`, err.message);
+            this.pendingWorldUpdates.set(worldId, { ...updateDoc, ...(this.pendingWorldUpdates.get(worldId) || {}) });
           }
         }
       }
@@ -156,6 +174,10 @@ export class PersistenceWorker {
             await Agent.bulkWrite(bulkOps, { ordered: false });
           } catch (err) {
             console.error('[PersistenceWorker] Error in agent bulkWrite batch:', err.message);
+            for (const entry of chunk) {
+              const key = `${entry.worldId}:${entry.agent.id}`;
+              if (!this.pendingAgentUpdates.has(key)) this.pendingAgentUpdates.set(key, entry);
+            }
           }
         }
       }
@@ -169,10 +191,13 @@ export class PersistenceWorker {
           await SimulationSnapshot.insertMany(snapshots, { ordered: false });
         } catch (err) {
           console.error('[PersistenceWorker] Error saving simulation snapshots:', err.message);
+          this.pendingSnapshots = [...snapshots, ...this.pendingSnapshots].slice(-1000);
         }
       }
     } finally {
       this.isFlushing = false;
+      const waiters = this.flushWaiters.splice(0);
+      waiters.forEach((retry) => retry());
     }
   }
 }

@@ -34,7 +34,7 @@ export class SimulationStream {
     const streamUrl = `${baseUrl}/worlds/${this.worldId}/events`;
 
     try {
-      this.eventSource = new EventSource(streamUrl);
+      this.eventSource = new EventSource(streamUrl, { withCredentials: true });
 
       this.eventSource.onopen = () => {
         this.isConnected = true;

@@ -22,6 +22,7 @@ export class CacheManager extends EventEmitter {
     this.redisClient = null;
     this.memoryCache = new Map();
     this.expiryMap = new Map();
+    this.maxMemoryEntries = options.maxMemoryEntries || 5000;
   }
 
   /**
@@ -49,7 +50,7 @@ export class CacheManager extends EventEmitter {
 
         await this.redisClient.connect();
         this.isRedisConnected = true;
-        console.log('\x1b[32m[CacheManager]\x1b[0m Connected to Redis at', this.redisUrl);
+        console.log('\x1b[32m[CacheManager]\x1b[0m Connected to Redis');
       } catch (err) {
         this.isRedisConnected = false;
         console.log('\x1b[33m[CacheManager]\x1b[0m Redis offline or unavailable. Running with zero-dependency high-speed in-memory cache.');
@@ -78,6 +79,13 @@ export class CacheManager extends EventEmitter {
     }
 
     // In-memory fallback
+    this.purgeExpired();
+    if (!this.memoryCache.has(key) && this.memoryCache.size >= this.maxMemoryEntries) {
+      const oldest = this.memoryCache.keys().next().value;
+      this.memoryCache.delete(oldest);
+      this.expiryMap.delete(oldest);
+    }
+    this.memoryCache.delete(key);
     this.memoryCache.set(key, serialized);
     const expiresAt = Date.now() + ttlSec * 1000;
     this.expiryMap.set(key, expiresAt);
@@ -163,9 +171,10 @@ export class CacheManager extends EventEmitter {
    * Close connections and clean memory
    */
   async disconnect() {
-    if (this.redisClient && this.isRedisConnected) {
+    if (this.redisClient) {
       try {
-        await this.redisClient.quit();
+        if (this.isRedisConnected) await this.redisClient.quit();
+        else this.redisClient.disconnect();
       } catch (_) {}
     }
     this.memoryCache.clear();

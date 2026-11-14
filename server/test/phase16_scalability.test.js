@@ -9,10 +9,16 @@ import { deltaCompressor } from '../src/services/deltaCompressor.js';
 import { cacheManager } from '../src/services/cacheManager.js';
 import { persistenceWorker } from '../src/services/persistenceWorker.js';
 import { eventPublisher } from '../src/services/eventPublisher.js';
+import { World } from '../src/models/World.js';
+import { User } from '../src/models/User.js';
+import { AuthSession } from '../src/models/AuthSession.js';
+import { createAuthClient } from './helpers/authClient.js';
 
 describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, Batch Workers)', () => {
   let server;
   let serverPort;
+  let auth;
+  let testWorld;
 
   before(async () => {
     await connectDB();
@@ -24,12 +30,17 @@ describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, 
         resolve();
       });
     });
+    auth = await createAuthClient(`http://localhost:${serverPort}/api`);
+    testWorld = await World.create({ ownerId: auth.user.id, name: 'Realtime Access Test World', population: 900 });
   });
 
   after(async () => {
     webSocketGateway.close();
     await persistenceWorker.stop();
     await cacheManager.disconnect();
+    if (testWorld?._id) await World.findByIdAndDelete(testWorld._id);
+    await AuthSession.deleteMany({ userId: auth?.user.id });
+    await User.findByIdAndDelete(auth?.user.id);
     await new Promise((resolve) => server.close(resolve));
     await disconnectDB();
   });
@@ -82,7 +93,8 @@ describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, 
   });
 
   test('WebSocketGateway establishes connection, subscribes to world, and receives deltas', async () => {
-    const ws = new WebSocket(`ws://localhost:${serverPort}/ws/simulation`);
+    const worldId = String(testWorld._id);
+    const ws = new WebSocket(`ws://localhost:${serverPort}/ws/simulation?worldId=${worldId}&deltasOnly=true`, { headers: { Cookie: auth.cookie, Origin: 'http://localhost:5173' } });
 
     const messages = [];
     ws.on('message', (raw) => {
@@ -95,8 +107,7 @@ describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, 
     await new Promise((r) => setTimeout(r, 50));
     assert.ok(messages.some((m) => m.type === 'CONNECTED'));
 
-    // Subscribe to test world
-    const worldId = '6af2caeb05d2e723931e38ec';
+    // Subscription is checked again after the authenticated handshake.
     ws.send(JSON.stringify({
       type: 'SUBSCRIBE_WORLD',
       worldId,
@@ -132,6 +143,13 @@ describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, 
     ws.close();
   });
 
+  test('WebSocket rejects a connection without a session', async () => {
+    const ws = new WebSocket(`ws://localhost:${serverPort}/ws/simulation?worldId=${testWorld._id}`, { headers: { Origin: 'http://localhost:5173' } });
+    ws.on('error', () => {});
+    const code = await new Promise((resolve) => ws.once('close', (closeCode) => resolve(closeCode)));
+    assert.equal(code, 1006);
+  });
+
   test('CacheManager sets, retrieves, and handles expiry gracefully', async () => {
     await cacheManager.init();
 
@@ -145,8 +163,9 @@ describe('Phase 16: Scalability Engine (WebSockets, Delta Compression, Caching, 
   });
 
   test('PersistenceWorker queues writes and flushes atomically', async () => {
-    persistenceWorker.queueWorldUpdate('dummyWorldId', { 'metrics.population': 1500 });
-    persistenceWorker.queueAgentBatch('dummyWorldId', [
+    const worldId = testWorld._id.toString();
+    persistenceWorker.queueWorldUpdate(worldId, { 'metrics.population': 1500 });
+    persistenceWorker.queueAgentBatch(worldId, [
       { id: 'agt_99', name: 'Tester', wealth: 500, location: { x: 10, y: 20 } },
     ]);
     persistenceWorker.queueSnapshot({

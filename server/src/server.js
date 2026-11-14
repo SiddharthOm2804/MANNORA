@@ -15,11 +15,18 @@ const startServer = async () => {
   // Validate environment configuration
   const validation = validateEnv();
   if (!validation.isValid) {
-    console.warn(`\x1b[33m[Config Warning]\x1b[0m Missing env variables: ${validation.missing.join(', ')}`);
+    console.error(`\x1b[31m[Config Error]\x1b[0m Invalid production configuration: ${validation.missing.join(', ')}`);
+    process.exitCode = 1;
+    return null;
   }
 
   // Attempt database connection
-  await connectDB();
+  const dbConnection = await connectDB();
+  if (ENV.IS_PRODUCTION && !dbConnection) {
+    console.error('\x1b[31m[Startup Aborted]\x1b[0m MongoDB is required in production.');
+    process.exitCode = 1;
+    return null;
+  }
 
   // Initialize Cache (Redis / in-memory fallback)
   await cacheManager.init();

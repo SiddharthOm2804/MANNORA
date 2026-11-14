@@ -16,13 +16,13 @@ export function SimulationCamera({
 }) {
   const { camera } = useThree();
   const targetLookAt = useRef(new THREE.Vector3(50, 0, 50));
-  const targetCamPos = useRef(new THREE.Vector3(50, 75, 115));
+  const targetCamPos = useRef(new THREE.Vector3(148, 144, 148));
 
   useEffect(() => {
     if (!focusTarget) {
       // Default City Overview
       targetLookAt.current.set(50, 0, 50);
-      targetCamPos.current.set(50, 75, 115);
+      targetCamPos.current.set(148, 144, 148);
       return;
     }
 

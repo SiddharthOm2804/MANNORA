@@ -6,20 +6,26 @@ import { World } from '../src/models/World.js';
 import { WorldStateAdapter } from '../src/services/worldStateAdapter.js';
 import { simulationBridgeService } from '../src/services/simulationBridgeService.js';
 import { WorldState } from '@neural-city/simulation';
+import { createAuthClient } from './helpers/authClient.js';
+import { AuthSession } from '../src/models/AuthSession.js';
+import { User } from '../src/models/User.js';
 
 describe('Simulation Engine → MongoDB Database Bridge', () => {
   let server;
   let baseUrl;
   let testWorld;
   let testWorldId;
+  let auth;
 
   before(async () => {
     await connectDB();
     server = app.listen(0);
     const port = server.address().port;
     baseUrl = `http://localhost:${port}/api/worlds`;
+    auth = await createAuthClient(`http://localhost:${port}/api`);
 
     testWorld = await World.create({
+      ownerId: auth.user.id,
       name: 'Bridge Validation Citadel',
       description: 'World created for testing DB to WorldState simulation bridge',
       population: 4000,
@@ -62,6 +68,8 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
     if (testWorldId) {
       await World.findByIdAndDelete(testWorldId);
     }
+    await AuthSession.deleteMany({ userId: auth?.user.id });
+    await User.findByIdAndDelete(auth?.user.id);
     server.close();
     await disconnectDB();
   });
@@ -84,7 +92,7 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
   });
 
   test('POST /api/worlds/:id/launch initializes in-memory SimulationEngine from MongoDB World', async () => {
-    const res = await fetch(`${baseUrl}/${testWorldId}/launch`, {
+    const res = await auth.request(`${baseUrl}/${testWorldId}/launch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ autoStart: false }),
@@ -101,7 +109,7 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
   });
 
   test('POST /api/worlds/:id/step deterministically steps simulation without DB write on every tick', async () => {
-    const res = await fetch(`${baseUrl}/${testWorldId}/step`, {
+    const res = await auth.request(`${baseUrl}/${testWorldId}/step`, {
       method: 'POST',
     });
 
@@ -118,9 +126,9 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
 
   test('POST /api/worlds/:id/checkpoint commits current simulation state to MongoDB', async () => {
     // Step another tick
-    await fetch(`${baseUrl}/${testWorldId}/step`, { method: 'POST' });
+    await auth.request(`${baseUrl}/${testWorldId}/step`, { method: 'POST' });
 
-    const res = await fetch(`${baseUrl}/${testWorldId}/checkpoint`, {
+    const res = await auth.request(`${baseUrl}/${testWorldId}/checkpoint`, {
       method: 'POST',
     });
 
@@ -135,7 +143,7 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
   });
 
   test('POST /api/worlds/:id/launch returns 404 for nonexistent world', async () => {
-    const res = await fetch(`${baseUrl}/507f1f77bcf86cd799439011/launch`, {
+    const res = await auth.request(`${baseUrl}/507f1f77bcf86cd799439011/launch`, {
       method: 'POST',
     });
 
@@ -145,7 +153,7 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
   });
 
   test('POST /api/worlds/:id/launch returns 400 for malformed world ID', async () => {
-    const res = await fetch(`${baseUrl}/malformed-id/launch`, {
+    const res = await auth.request(`${baseUrl}/malformed-id/launch`, {
       method: 'POST',
     });
 
@@ -155,7 +163,7 @@ describe('Simulation Engine → MongoDB Database Bridge', () => {
   });
 
   test('POST /api/worlds/:id/stop stops active simulation cleanly', async () => {
-    const res = await fetch(`${baseUrl}/${testWorldId}/stop`, {
+    const res = await auth.request(`${baseUrl}/${testWorldId}/stop`, {
       method: 'POST',
     });
 

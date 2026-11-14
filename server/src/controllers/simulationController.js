@@ -54,6 +54,16 @@ export const stepSimulation = async (req, res, next) => {
   }
 };
 
+export const setSimulationSpeed = async (req, res, next) => {
+  try {
+    const result = await simulationBridgeService.setSimulationSpeed(req.params.id, Number(req.body?.speed));
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ success: false, message: error.message });
+    return next(error);
+  }
+};
+
 export const saveCheckpoint = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -233,7 +243,7 @@ export const runComparison = async (req, res, next) => {
 export const runExperiment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const experiment = await simulationBridgeService.runExperiment(id, req.body || {});
+    const experiment = await simulationBridgeService.runExperiment(id, req.body || {}, req.user._id);
 
     res.status(200).json({
       success: true,
@@ -290,6 +300,16 @@ export const compareExperiments = async (req, res, next) => {
       message: error.message,
     });
   }
+};
+
+export const listWorldExperiments = (req, res) => res.json({ success: true, data: simulationBridgeService.listWorldExperiments(req.params.id, req.user._id) });
+export const getWorldExperiment = (req, res, next) => {
+  try { return res.json({ success: true, data: simulationBridgeService.getWorldExperiment(req.params.expId, req.params.id, req.user._id) }); }
+  catch (error) { if (error.status === 404) return res.status(404).json({ success: false, message: error.message }); return next(error); }
+};
+export const compareWorldExperiments = (req, res) => {
+  try { return res.json({ success: true, data: simulationBridgeService.compareWorldExperiments(req.body?.experimentIds, req.params.id, req.user._id) }); }
+  catch (error) { return res.status(error.status || 400).json({ success: false, message: error.message }); }
 };
 export default {
   launchSimulation,

@@ -28,9 +28,9 @@ export function WorldEffects({
       <fog
         attach="fog"
         args={[
-          economicCrisis ? '#0a0f18' : activeEvent ? '#1e1022' : '#080a11',
-          70,
-          240,
+          economicCrisis ? '#ddc1a9' : activeEvent ? '#d5d9bf' : '#95d4d3',
+          145,
+          300,
         ]}
       />
 
@@ -40,9 +40,9 @@ export function WorldEffects({
           <mesh ref={stormRingRef} rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[45, 48, 64]} />
             <meshBasicMaterial
-              color="#f43f5e"
+              color="#e97958"
               transparent
-              opacity={0.35}
+              opacity={0.24}
             />
           </mesh>
         </group>
@@ -54,9 +54,9 @@ export function WorldEffects({
           <mesh ref={alertAuraRef}>
             <cylinderGeometry args={[58, 58, 2, 32, 1, true]} />
             <meshBasicMaterial
-              color="#fbbf24"
+              color="#d5ad55"
               transparent
-              opacity={0.15}
+              opacity={0.1}
               wireframe
             />
           </mesh>

@@ -1,8 +1,11 @@
 import express from 'express';
 import { CitizenAI, GovernmentAI, AnalystAI, AIProviderFactory, WorldPromptParser, CausalAnalyzer } from '@neural-city/ai';
 import { simulationBridgeService } from '../services/simulationBridgeService.js';
+import { authenticate, requireCsrf, requireWorldAccessForBody } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+router.use(authenticate);
+router.use((req, res, next) => ['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method) ? requireCsrf(req, res, next) : next());
 const providerFactory = new AIProviderFactory();
 const activeProvider = providerFactory.getProvider();
 
@@ -14,10 +17,12 @@ const causalAnalyzer = new CausalAnalyzer({ aiProvider: activeProvider });
 // Cache of CitizenAI cognitive instances: Map<citizenId, CitizenAI>
 const citizenAICache = new Map();
 
-const getCitizenAI = (id, name, role) => {
-  if (!citizenAICache.has(id)) {
+const getCitizenAI = (id, name, role, userId) => {
+  const cacheKey = `${userId}:${id}`;
+  if (!citizenAICache.has(cacheKey)) {
+    if (citizenAICache.size >= 1000) citizenAICache.delete(citizenAICache.keys().next().value);
     citizenAICache.set(
-      id,
+      cacheKey,
       new CitizenAI({
         id,
         name: name || `Citizen ${id.slice(-4)}`,
@@ -26,7 +31,10 @@ const getCitizenAI = (id, name, role) => {
       })
     );
   }
-  return citizenAICache.get(id);
+  const instance = citizenAICache.get(cacheKey);
+  citizenAICache.delete(cacheKey);
+  citizenAICache.set(cacheKey, instance);
+  return instance;
 };
 
 /**
@@ -38,7 +46,7 @@ router.post('/citizen/:id/reflect', async (req, res, next) => {
     const { id } = req.params;
     const { name, role, citizenState, worldContext } = req.body;
 
-    const citizenAI = getCitizenAI(id, name, role);
+    const citizenAI = getCitizenAI(id, name, role, req.user._id);
 
     // If milestone provided in request, commit it first
     if (req.body.milestone) {
@@ -68,7 +76,7 @@ router.post('/citizen/:id/plan', async (req, res, next) => {
     const { id } = req.params;
     const { name, role, citizenState, economicContext } = req.body;
 
-    const citizenAI = getCitizenAI(id, name, role);
+    const citizenAI = getCitizenAI(id, name, role, req.user._id);
     const plan = await citizenAI.generatePersonalPlan(
       citizenState || { occupation: role, wealth: 100 },
       economicContext || {}
@@ -99,7 +107,7 @@ router.post('/citizen/:id/memory', async (req, res, next) => {
       });
     }
 
-    const citizenAI = getCitizenAI(id, name, role);
+    const citizenAI = getCitizenAI(id, name, role, req.user._id);
     const committed = await citizenAI.recordMilestone(milestone);
 
     res.json({
@@ -188,7 +196,7 @@ router.post('/world-prompt/parse', async (req, res, next) => {
  * Answers user questions ("Why did unemployment increase?", "What caused the economic decline?")
  * Grounded in empirical snapshots and simulation events.
  */
-router.post('/causal-inquiry', async (req, res, next) => {
+router.post('/causal-inquiry', (req, res, next) => req.body?.worldId ? requireWorldAccessForBody(req, res, next) : next(), async (req, res, next) => {
   try {
     const { question, worldId, history } = req.body || {};
     if (!question || typeof question !== 'string' || !question.trim()) {

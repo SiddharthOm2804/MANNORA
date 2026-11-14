@@ -29,12 +29,14 @@ router.get('/health', (req, res) => {
       status: dbHealth.status,
       isConnected: dbHealth.isConnected,
       readyState: dbHealth.readyStateText,
-      host: dbHealth.host,
-      database: dbHealth.database,
-      lastError: dbHealth.lastError,
+      ...(ENV.IS_DEVELOPMENT && {
+        host: dbHealth.host,
+        database: dbHealth.database,
+        lastError: dbHealth.lastError,
+      }),
     },
     engine: {
-      phase: 'Phase 16 - Scalability Engine (WebSockets, Caching, Batch Workers)',
+      phase: 'Phase 18 - Production Readiness',
       version: '0.1.0',
     },
   };

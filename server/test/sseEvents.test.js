@@ -6,20 +6,26 @@ import { connectDB, disconnectDB } from '../src/config/db.js';
 import { World } from '../src/models/World.js';
 import { eventPublisher } from '../src/services/eventPublisher.js';
 import { SimulationEngine } from '@neural-city/simulation';
+import { createAuthClient } from './helpers/authClient.js';
+import { User } from '../src/models/User.js';
+import { AuthSession } from '../src/models/AuthSession.js';
 
 describe('Real-Time SSE Event Channel', () => {
   let server;
   let port;
   let testWorld;
   let testWorldId;
+  let auth;
 
   before(async () => {
     await connectDB();
     server = app.listen(0);
     port = server.address().port;
+    auth = await createAuthClient(`http://localhost:${port}/api`);
 
     testWorld = await World.create({
       name: 'Realtime Telemetry Test Basin',
+      ownerId: auth.user.id,
       description: 'World for SSE telemetry verification',
       population: 5000,
     });
@@ -31,6 +37,8 @@ describe('Real-Time SSE Event Channel', () => {
     if (testWorldId) {
       await World.findByIdAndDelete(testWorldId);
     }
+    await AuthSession.deleteMany({ userId: auth?.user.id });
+    await User.findByIdAndDelete(auth?.user.id);
     server.close();
     await disconnectDB();
   });
@@ -41,6 +49,7 @@ describe('Real-Time SSE Event Channel', () => {
     await new Promise((resolve, reject) => {
       const req = http.get(
         `http://localhost:${port}/api/worlds/${testWorldId}/events`,
+        { headers: { Cookie: auth.cookie } },
         (res) => {
           assert.equal(res.statusCode, 200);
           assert.match(res.headers['content-type'], /text\/event-stream/);
@@ -78,6 +87,7 @@ describe('Real-Time SSE Event Channel', () => {
     await new Promise((resolve, reject) => {
       const req = http.get(
         `http://localhost:${port}/api/worlds/${testWorldId}/events`,
+        { headers: { Cookie: auth.cookie } },
         (res) => {
           res.on('data', (chunk) => {
             const text = chunk.toString();
@@ -140,10 +150,10 @@ describe('Real-Time SSE Event Channel', () => {
   });
 
   test('Rejects SSE connection on invalid World ID (400) and missing World (404)', async () => {
-    const resInvalid = await fetch(`http://localhost:${port}/api/worlds/invalid-id/events`);
+    const resInvalid = await auth.request(`http://localhost:${port}/api/worlds/invalid-id/events`);
     assert.equal(resInvalid.status, 400);
 
-    const resMissing = await fetch(`http://localhost:${port}/api/worlds/507f1f77bcf86cd799439011/events`);
+    const resMissing = await auth.request(`http://localhost:${port}/api/worlds/507f1f77bcf86cd799439011/events`);
     assert.equal(resMissing.status, 404);
   });
 });

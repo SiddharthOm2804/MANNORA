@@ -1,6 +1,32 @@
 import { ILLMProvider } from './ILLMProvider.js';
 import { DeterministicRuleFallbackProvider } from './DeterministicRuleFallbackProvider.js';
 
+const readJsonLimited = async (response, maxBytes = 1_000_000) => {
+  const contentLength = Number(response.headers.get('content-length') || 0);
+  if (contentLength > maxBytes) throw new Error('Provider response exceeded size limit');
+  if (!response.body?.getReader) return response.json();
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let total = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('Provider response exceeded size limit');
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+    return JSON.parse(text);
+  } finally {
+    reader.releaseLock();
+  }
+};
+
 /**
  * AIProviderFactory selects and manages LLM provider instances.
  * Implements provider abstraction (OpenAI-compatible, Anthropic-compatible, Local/Ollama, or Rule Fallback).
@@ -99,14 +125,12 @@ export class GenericHttpLLMProvider extends ILLMProvider {
         signal: controller.signal,
       });
 
-      clearTimeout(timeout);
-
       if (!response.ok) {
-        console.warn(`[AI Provider Warning] HTTP ${response.status} from ${this.config.baseUrl}. Falling back to rule engine.`);
+        console.warn(`[AI Provider Warning] HTTP ${response.status}. Falling back to rule engine.`);
         return this.fallbackProvider.complete(prompt, options);
       }
 
-      const data = await response.json();
+      const data = await readJsonLimited(response);
       const content = data.choices?.[0]?.message?.content || '';
       return {
         text: content,
@@ -115,9 +139,10 @@ export class GenericHttpLLMProvider extends ILLMProvider {
         fallback: false,
       };
     } catch (err) {
-      clearTimeout(timeout);
-      console.warn(`[AI Provider Fallback] Invocation failed: ${err.message}. Resilient rule fallback activated.`);
+      console.warn(`[AI Provider Fallback] Invocation failed (${err.name || 'Error'}). Resilient rule fallback activated.`);
       return this.fallbackProvider.complete(prompt, options);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

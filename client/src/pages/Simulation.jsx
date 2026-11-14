@@ -1,568 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Play, 
-  Layers, 
-  Eye, 
-  Maximize2, 
-  Sliders, 
-  Compass, 
-  Cpu, 
-  Crosshair, 
-  Zap, 
-  Users, 
-  Coins, 
-  ShieldAlert,
-  ChevronRight,
-  Info,
-  Building2,
-  Clock,
-  Sparkles,
-  RefreshCw,
-  Box
-} from 'lucide-react';
-import Panel from '../components/common/Panel';
-import StatusIndicator from '../components/common/StatusIndicator';
-import TimelineControl from '../components/common/TimelineControl';
-import EventInjectionUI from '../components/common/EventInjectionUI';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Activity, AlertTriangle, Building2, ChevronDown, CircleDot, Clock3, Coins, Droplets, Layers3, Map, Maximize2, Pause, Play, Radio, RotateCcw, SkipForward, Sparkles, Users, Zap } from 'lucide-react';
 import { CityScene } from '../components/three';
 import { worldService } from '../services/worldService';
 import { RealTimeSimulationSocket } from '../services/realTimeSimulationSocket';
 
+const layerOptions = [
+  { key: 'population', label: 'Population', color: '#82d6b1' },
+  { key: 'economy', label: 'Economy', color: '#f4c77a' },
+  { key: 'resources', label: 'Resources', color: '#74cce0' },
+  { key: 'infrastructure', label: 'Infrastructure', color: '#a9a0ef' },
+  { key: 'social', label: 'Social', color: '#e9a8bd' },
+  { key: 'events', label: 'Events', color: '#f18f78' },
+];
+
 export default function Simulation() {
+  const navigate = useNavigate();
   const [worlds, setWorlds] = useState([]);
   const [selectedWorldId, setSelectedWorldId] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [tick, setTick] = useState(1420);
-  const [clockHour, setClockHour] = useState(14); // 0-23 diurnal cycle
+  const [tick, setTick] = useState(0);
   const [speed, setSpeed] = useState(1);
-  const [viewMode, setViewMode] = useState('3d'); // '3d' | 'matrix'
-  const [activeLayer, setActiveLayer] = useState('density');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [activeEvents, setActiveEvents] = useState([]);
-  const [isInjectingEvent, setIsInjectingEvent] = useState(false);
-
-  // Selected Entity state: { type: 'district' | 'building' | 'citizen', data: Object }
   const [selectedEntity, setSelectedEntity] = useState(null);
-
-  // Load world data from backend
-  const loadWorlds = async () => {
-    setIsLoading(true);
-    const res = await worldService.getAllWorlds();
-    if (res.success && res.data && res.data.length > 0) {
-      setWorlds(res.data);
-      if (!selectedWorldId) {
-        setSelectedWorldId(res.data[0]._id);
-      }
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    loadWorlds();
-  }, []);
-
-  const activeWorld = worlds.find((w) => w._id === selectedWorldId) || worlds[0];
-
-  // Default synthetic buildings & citizens from active world or generator
-  const buildings = activeWorld?.cities?.map((city, idx) => ({
-    id: `bld_city_${idx + 1}`,
-    name: city.name,
-    type: city.isCapital ? 'commercial' : (idx % 2 === 0 ? 'industrial' : 'residential'),
-    level: city.isCapital ? 3 : 2,
-    health: 95,
-    efficiency: 1.0,
-    capacity: 60,
-    workers: Math.round(city.population / 25),
-    coordinates: city.coordinates || { x: 30 + idx * 20, y: 30 + (idx % 2) * 30 },
-  })) || [
-    { id: 'bld_core_1', name: 'Kaza Community Centre', type: 'commercial', level: 3, coordinates: { x: 50, y: 50 }, workers: 45, capacity: 60 },
-    { id: 'bld_ind_2', name: 'Kaza Workshop', type: 'industrial', level: 2, coordinates: { x: 80, y: 50 }, workers: 50, capacity: 70 },
-    { id: 'bld_res_3', name: 'Tabo Homes', type: 'residential', level: 2, coordinates: { x: 50, y: 20 }, workers: 0, capacity: 120 },
-    { id: 'bld_res_4', name: 'Dhankar Farm', type: 'research_lab', level: 2, coordinates: { x: 50, y: 80 }, workers: 30, capacity: 40 },
-  ];
-
-  // Instanced citizens for performant rendering
-  const agents = [
-    { id: 'agt_01', name: 'Dr. Asha Sharma', occupation: 'scientist', location: { x: 48, y: 52 }, wealth: 340, healthState: { currentAction: 'Reading weather reports', happiness: 94 } },
-    { id: 'agt_02', name: 'Arjun Mehta', occupation: 'merchant', location: { x: 52, y: 48 }, wealth: 850, healthState: { currentAction: 'Selling goods', happiness: 88 } },
-    { id: 'agt_03', name: 'Priya Nair', occupation: 'administrator', location: { x: 50, y: 50 }, wealth: 490, healthState: { currentAction: 'Reviewing city rules', happiness: 85 } },
-    { id: 'agt_04', name: 'Rahul Thakur', occupation: 'engineer', location: { x: 78, y: 48 }, wealth: 260, healthState: { currentAction: 'Fixing equipment', happiness: 80 } },
-    { id: 'agt_05', name: 'Kavita Singh', occupation: 'technician', location: { x: 82, y: 52 }, wealth: 210, healthState: { currentAction: 'Repairing tools', happiness: 82 } },
-    { id: 'agt_06', name: 'Deepak Negi', occupation: 'farmer', location: { x: 48, y: 78 }, wealth: 190, healthState: { currentAction: 'Working in the fields', happiness: 86 } },
-    { id: 'agt_07', name: 'Pooja Rao', occupation: 'citizen', location: { x: 52, y: 22 }, wealth: 140, healthState: { currentAction: 'Resting at home', happiness: 90 } },
-    { id: 'agt_08', name: 'Aman Kapoor', occupation: 'entrepreneur', location: { x: 54, y: 54 }, wealth: 620, healthState: { currentAction: 'Running a shop', happiness: 92 } },
-  ];
-
-  const handleStep = async () => {
-    setTick((prev) => prev + 1);
-    setClockHour((prev) => (prev + 1) % 24);
-
-    if (activeWorld?._id) {
-      await worldService.stepSimulation(activeWorld._id);
-    }
-  };
-
-  const handleTogglePlay = () => {
-    setIsRunning((prev) => !prev);
-  };
-
-  const handleReset = () => {
-    setIsRunning(false);
-    setTick(0);
-    setClockHour(8);
-  };
-
-  const handleInjectEvent = async (eventData) => {
-    setIsInjectingEvent(true);
-    try {
-      if (activeWorld?._id) {
-        const res = await worldService.injectEvent(activeWorld._id, eventData);
-        if (res.success && res.data) {
-          setActiveEvents(res.data.activeEvents || [res.data.event]);
-          // Refresh world state
-          const updatedWorld = await worldService.getWorldById(activeWorld._id);
-          if (updatedWorld.success && updatedWorld.data) {
-            setWorlds((prev) =>
-              prev.map((w) => (w._id === activeWorld._id ? updatedWorld.data : w))
-            );
-          }
-        }
-        return res;
-      } else {
-        // Local simulation fallback
-        const mockEvt = {
-          id: `evt_local_${Date.now()}`,
-          ...eventData,
-          remainingTicks: eventData.duration || 10,
-          startedAtTick: tick,
-          status: 'ACTIVE',
-        };
-        setActiveEvents((prev) => [mockEvt, ...prev]);
-        return { success: true, data: { event: mockEvt } };
-      }
-    } finally {
-      setIsInjectingEvent(false);
-    }
-  };
-
-  // Phase 16: Real-time WebSocket connection with delta decompression
-  const [streamConnected, setStreamConnected] = useState(false);
+  const [layers, setLayers] = useState(['population', 'economy', 'resources', 'infrastructure', 'social', 'events']);
   const [liveResources, setLiveResources] = useState(null);
   const [liveEconomy, setLiveEconomy] = useState(null);
   const [liveMetrics, setLiveMetrics] = useState(null);
   const [liveAgents, setLiveAgents] = useState([]);
+  const [streamConnected, setStreamConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [problems, setProblems] = useState([]);
+  const [actionHistory, setActionHistory] = useState([]);
+  const [problemsError, setProblemsError] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [cityEvents, setCityEvents] = useState([]);
+  const [simulationError, setSimulationError] = useState('');
+  const [simulationBusy, setSimulationBusy] = useState(false);
 
+  const loadWorlds = () => {
+    setIsLoading(true);
+    setLoadError('');
+    let mounted = true;
+    worldService.getAllWorlds().then((res) => {
+      if (!mounted) return;
+      if (!res.success) {
+        setLoadError(res.message || 'World data could not be loaded. Check the server connection and retry.');
+        setIsLoading(false);
+        return;
+      }
+      const data = res.success && Array.isArray(res.data) ? res.data : [];
+      setWorlds(data);
+      if (data.length) { setSelectedWorldId(data[0]._id); setTick(data[0].simulationSettings?.currentTick || 0); setSpeed(data[0].simulationSettings?.speed || 1); setIsRunning(data[0].simulationSettings?.status === 'running'); }
+      setIsLoading(false);
+    }).catch(() => { if (mounted) { setLoadError('The server could not be reached. Check your connection and retry.'); setIsLoading(false); } });
+    return () => { mounted = false; };
+  };
+
+  useEffect(() => loadWorlds(), []);
+
+  const activeWorld = worlds.find((world) => world._id === selectedWorldId) || worlds[0];
   useEffect(() => {
-    if (!selectedWorldId) return;
-
+    if (!activeWorld) return;
+    setTick(activeWorld.simulationSettings?.currentTick || 0);
+    setSpeed(activeWorld.simulationSettings?.speed || 1);
+    setIsRunning(activeWorld.simulationSettings?.status === 'running');
+    setLiveResources(null); setLiveEconomy(null); setLiveMetrics(null); setLiveAgents([]); setCityEvents([]);
+  }, [selectedWorldId]);
+  useEffect(() => {
+    if (!selectedWorldId) return undefined;
     const socket = new RealTimeSimulationSocket(selectedWorldId, {
-      onConnected: () => {
-        setStreamConnected(true);
+      onConnected: () => setStreamConnected(true),
+      onDisconnected: () => setStreamConnected(false),
+      onEvent: (event) => setCityEvents((items) => [{ ...event, receivedAt: new Date().toLocaleTimeString() }, ...items].slice(0, 12)),
+      onStatus: (status) => setIsRunning(status?.status === 'running'),
+      onKeyframe: (state) => {
+        setTick(state.tick);
+        setLiveResources({ ...state.resources });
+        setLiveEconomy({ ...state.economy });
+        setLiveMetrics({ ...state.metrics });
+        if (state.agents.size) setLiveAgents(Array.from(state.agents.values()));
       },
-      onDisconnected: () => {
-        setStreamConnected(false);
-      },
-      onKeyframe: (cachedState) => {
-        setTick(cachedState.tick);
-        setClockHour(cachedState.tick % 24);
-        setLiveResources({ ...cachedState.resources });
-        setLiveEconomy({ ...cachedState.economy });
-        setLiveMetrics({ ...cachedState.metrics });
-        if (cachedState.agents.size > 0) {
-          setLiveAgents(Array.from(cachedState.agents.values()));
-        }
-      },
-      onDelta: (delta, cachedState) => {
+      onDelta: (delta, state) => {
         setTick(delta.tick);
-        setClockHour(delta.tick % 24);
-        if (delta.changes?.resources) {
-          setLiveResources((prev) => ({ ...prev, ...delta.changes.resources }));
-        }
-        if (delta.changes?.economy) {
-          setLiveEconomy((prev) => ({ ...prev, ...delta.changes.economy }));
-        }
-        if (delta.changes?.metrics) {
-          setLiveMetrics((prev) => ({ ...prev, ...delta.changes.metrics }));
-        }
-        if (delta.changes?.agents) {
-          setLiveAgents(Array.from(cachedState.agents.values()));
-        }
+        if (delta.changes?.resources) setLiveResources((old) => ({ ...old, ...delta.changes.resources }));
+        if (delta.changes?.economy) setLiveEconomy((old) => ({ ...old, ...delta.changes.economy }));
+        if (delta.changes?.metrics) setLiveMetrics((old) => ({ ...old, ...delta.changes.metrics }));
+        if (delta.changes?.agents) setLiveAgents(Array.from(state.agents.values()));
       },
     });
-
     socket.connect();
-
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, [selectedWorldId]);
 
-  // Automated clock advancement when playing locally if backend is paused
+  const population = liveMetrics?.population ?? activeWorld?.population ?? 0;
+  const economy = liveEconomy?.treasury ?? activeWorld?.economyConfiguration?.startingMoney ?? 0;
+  const resourceData = liveResources || activeWorld?.resources || {};
+  const energy = resourceData.energy?.current ?? resourceData.energy ?? 0;
+  const water = resourceData.water?.current ?? resourceData.water ?? 0;
+  const agents = liveAgents;
+  const buildings = useMemo(() => {
+    return activeWorld?.buildings || [];
+  }, [activeWorld]);
+
   useEffect(() => {
-    if (!isRunning || streamConnected) return;
-    const interval = setInterval(() => {
-      setTick((prev) => prev + 1);
-      setClockHour((prev) => (prev + 1) % 24);
-    }, 1000 / Math.max(1, speed));
-    return () => clearInterval(interval);
-  }, [isRunning, speed, streamConnected]);
+    if (!selectedWorldId) { setProblems([]); return undefined; }
+    let alive = true;
+    const refresh = () => {
+      worldService.getCityProblems(selectedWorldId).then((result) => { if (alive) { setProblems(result.data); setProblemsError(result.success ? '' : result.message); } });
+      worldService.getCityActionHistory(selectedWorldId).then((result) => { if (alive && result.success) setActionHistory(result.data); });
+    };
+    refresh();
+    const interval = setInterval(refresh, 15000);
+    return () => { alive = false; clearInterval(interval); };
+  }, [selectedWorldId]);
+
+  const confirmFacility = async (problem) => {
+    const labels = { agriculture: 'food', water: 'water', energy: 'electricity' };
+    const facility = problem.supportedAction;
+    if (!facility || !window.confirm(`Build ${facility.name} for ${labels[problem.resource]}?\nCost: ₹${facility.cost.toLocaleString()} and ${facility.minerals} minerals.\nExpected production: about +${facility.production} units per simulation tick.`)) return;
+    setActionBusy(true); setActionMessage('');
+    const result = await worldService.buildProductionFacility(selectedWorldId, problem.resource);
+    setActionBusy(false);
+    if (!result.success) {
+      setActionMessage(result.message);
+      const history = await worldService.getCityActionHistory(selectedWorldId);
+      if (history.success) setActionHistory(history.data);
+      return;
+    }
+    setActionMessage(`${result.message} Treasury now ₹${result.data.availableTreasury.toLocaleString()}.`);
+    const refreshed = await worldService.getCityProblems(selectedWorldId);
+    if (refreshed.success) setProblems(refreshed.data);
+    const history = await worldService.getCityActionHistory(selectedWorldId);
+    if (history.success) setActionHistory(history.data);
+    const worldsResult = await worldService.getAllWorlds();
+    if (worldsResult.success) setWorlds(worldsResult.data);
+  };
+
+  const toggleSimulation = async () => {
+    setSimulationBusy(true); setSimulationError('');
+    const result = isRunning ? await worldService.stopSimulation(activeWorld._id) : await worldService.launchSimulation(activeWorld._id, true);
+    setSimulationBusy(false);
+    if (!result.success) { setSimulationError(result.message); return; }
+    setIsRunning(!isRunning);
+  };
+  const advanceSimulation = async () => {
+    setSimulationBusy(true); setSimulationError('');
+    let result;
+    if (!activeWorld.simulationSettings?.status || activeWorld.simulationSettings.status === 'initialized' || activeWorld.simulationSettings.status === 'paused') {
+      result = await worldService.launchSimulation(activeWorld._id, false);
+      if (!result.success) { setSimulationBusy(false); setSimulationError(result.message); return; }
+    }
+    result = await worldService.stepSimulation(activeWorld._id);
+    setSimulationBusy(false);
+    if (!result.success) { setSimulationError(result.message); return; }
+    setTick(result.data.tick);
+    setLiveResources(result.data.worldState?.resources || null);
+    setLiveEconomy(result.data.worldState?.economy || null);
+    setLiveMetrics(result.data.worldState?.metrics || null);
+  };
+  const changeSpeed = async (value) => {
+    setSpeed(value);
+    const result = await worldService.setSimulationSpeed(activeWorld._id, value);
+    if (!result.success) setSimulationError(result.message);
+  };
+
+  const toggleLayer = (key) => setLayers((current) => current.includes(key) ? current.filter((layer) => layer !== key) : [...current, key]);
+  const day = Math.floor(tick / 24) + 1;
+  const hour = tick % 24;
+  const selectedTitle = selectedEntity?.data?.name || selectedEntity?.data?.title || selectedEntity?.data?.id;
+
+  if (isLoading) return <div className="command-center command-state"><div className="command-state-mark"><Activity size={22} /></div><h1>Connecting to the city network</h1><p>Loading world state and simulation telemetry…</p><div className="command-state-progress"><i /></div></div>;
+  if (loadError) return <div className="command-center command-state"><div className="command-state-mark error"><AlertTriangle size={22} /></div><h1>World data unavailable</h1><p>{loadError}</p><button onClick={() => loadWorlds()}>Retry connection</button></div>;
+  if (!activeWorld) return <div className="command-center command-state"><div className="command-state-mark"><Map size={22} /></div><h1>No simulation worlds yet</h1><p>Create a world to open its command center and inspect its simulation.</p><button onClick={() => navigate('/create-world')}>Create a world</button></div>;
 
   return (
-    <div className="space-y-5">
-      {/* Top Telemetry & Spatial HUD Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1a2233] pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
-            <Compass className="w-3.5 h-3.5" />
-            <span>CITY VIEW</span>
-            {activeWorld && (
-              <>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400 uppercase font-mono">{activeWorld.name}</span>
-              </>
-            )}
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">
-            3D Virtual City View
-          </h1>
-          <p className="text-xs text-slate-400 font-mono mt-0.5">
-            See people, buildings, and day and night in the city.
-          </p>
+    <section className="command-center">
+      <header className="command-header">
+        <div className="command-title-block">
+          <div className="command-eyebrow"><span className="eyebrow-pulse" /> MANNORA <span className="eyebrow-divider">/</span> COMMAND CENTER <span className="phase-chip">PHASE 18</span></div>
+          <h1>{activeWorld?.name || 'Spiti Valley'} <span>World overview</span></h1>
         </div>
-
-        {/* View Controls & World Switcher & Event Injector Button */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsEventModalOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-950/80 to-amber-950/80 hover:from-red-900/90 hover:to-amber-900/90 text-amber-300 border border-amber-600/50 hover:border-amber-500 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-            <span>Trigger Emergency Event</span>
-          </button>
-
-          {worlds.length > 1 && (
-            <select
-              value={selectedWorldId || ''}
-              onChange={(e) => setSelectedWorldId(e.target.value)}
-              className="bg-[#0e121d] border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-mono text-cyan-300 focus:outline-none"
-            >
-              {worlds.map((w) => (
-                <option key={w._id} value={w._id}>
-                  {w.name}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {/* Perspective Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-[#0d101a] border border-[#1a2233] text-xs font-mono">
-            <button
-              onClick={() => setViewMode('3d')}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-                viewMode === '3d'
-                  ? 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-800/60 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Box className="w-3 h-3 text-cyan-400" />
-              <span>3D View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('matrix')}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-                viewMode === 'matrix'
-                  ? 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-800/60 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Layers className="w-3 h-3 text-cyan-400" />
-              <span>2D Grid View</span>
-            </button>
-          </div>
+        <div className="command-header-actions">
+          <label className="world-select-wrap"><Map size={15} /><select aria-label="Select city" value={selectedWorldId || ''} onChange={(event) => setSelectedWorldId(event.target.value)}>{worlds.map((world) => <option key={world._id} value={world._id}>{world.name}</option>)}</select><ChevronDown size={14} /></label>
+          <div className="connection-chip"><span className={streamConnected ? 'connection-dot live' : 'connection-dot'} />{streamConnected ? 'LIVE SYNC' : 'SIMULATION READY'}</div>
+          <button className="command-icon-button" title="Expand city view" onClick={() => document.querySelector('.city-viewport')?.requestFullscreen?.()}><Maximize2 size={16} /></button>
         </div>
+      </header>
+
+      <div className="overview-strip">
+        <article className="overview-metric"><span className="metric-symbol mint"><Users size={16} /></span><div><small>POPULATION</small><strong>{Number(population).toLocaleString()}</strong><em className="metric-neutral">World record</em></div></article>
+        <article className="overview-metric"><span className="metric-symbol gold"><Coins size={16} /></span><div><small>TREASURY</small><strong>₹{Number(economy).toLocaleString()}</strong><em className="metric-neutral">Current recorded balance</em></div></article>
+        <article className="overview-metric"><span className="metric-symbol blue"><Zap size={16} /></span><div><small>ENERGY RESERVE</small><strong>{Number(energy).toLocaleString()} <span className="metric-unit">units</span></strong><em className="metric-neutral">Current stock</em></div></article>
+        <article className="overview-metric"><span className="metric-symbol aqua"><Droplets size={16} /></span><div><small>WATER RESERVE</small><strong>{Number(water).toLocaleString()} <span className="metric-unit">units</span></strong><em className="metric-neutral">Current stock</em></div></article>
+        <article className="overview-metric activity-metric"><span className="metric-symbol lilac"><Activity size={16} /></span><div><small>AGENT ACTIVITY</small><strong>{agents.length.toLocaleString()} <span className="metric-unit">loaded</span></strong><em className="metric-neutral">Live simulation agents</em></div></article>
       </div>
 
-      {/* Main Viewport + Inspector Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Spatial 3D Viewport (8 Cols) */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="lab-panel rounded-xl overflow-hidden relative shadow-2xl">
-            {/* Viewport Top Bar */}
-            <div className="px-4 py-2 bg-[#090b12] border-b border-[#1a2233] flex items-center justify-between text-xs font-mono">
-              <div className="flex items-center gap-3 text-slate-300">
-                <div className="flex items-center gap-1.5 text-cyan-400 font-semibold">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{String(clockHour).padStart(2, '0')}:00 {clockHour >= 12 ? 'PM' : 'AM'}</span>
-                </div>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400 text-[11px]">
-                  DAY TIME: {clockHour >= 21 || clockHour < 5 ? 'NIGHT' : clockHour < 8 ? 'EARLY MORNING' : clockHour >= 18 ? 'EVENING' : 'AFTERNOON'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3 text-slate-400 text-[11px]">
-                <span className={`font-semibold uppercase tracking-wider flex items-center gap-1.5 ${streamConnected ? 'text-emerald-400' : 'text-slate-400'}`}>
-                  <span className={`w-2 h-2 rounded-full ${streamConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                  {streamConnected ? 'WEBSOCKET DELTAS LIVE' : 'DISCONNECTED / OFFLINE'}
-                </span>
-                <span>•</span>
-                <span className="text-cyan-400 uppercase tracking-widest font-semibold">3D PEOPLE</span>
-                <span>•</span>
-                <span className="text-emerald-400 font-mono-data">60.0 FPS</span>
-              </div>
-            </div>
-
-            {/* 3D Canvas Scene or Matrix Mode */}
-            {viewMode === '3d' ? (
-              <div className="h-[480px] w-full relative">
-                <CityScene
-                  worldState={activeWorld}
-                  agents={liveAgents.length > 0 ? liveAgents : agents}
-                  buildings={buildings}
-                  resources={liveResources || activeWorld?.resources || {}}
-                  clockHour={clockHour}
-                  selectedEntity={selectedEntity}
-                  onSelectEntity={setSelectedEntity}
-                  isLoading={isLoading}
-                />
-              </div>
-            ) : (
-              <div className="p-8 bg-[#06080e] lab-grid-bg min-h-[480px] flex items-center justify-center relative">
-                <div className="text-center font-mono space-y-2">
-                  <div className="text-sm font-semibold text-white">2D City Map</div>
-                  <div className="text-xs text-slate-400">Switch to the 3D city view.</div>
-                  <button
-                    onClick={() => setViewMode('3d')}
-                    className="mt-2 px-3 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono transition-colors"
-                  >
-                    Return to 3D City
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Bottom Floating Timeline Control Bar */}
-            <div className="p-3 bg-[#090b12] border-t border-[#1a2233]">
-              <TimelineControl
-                isRunning={isRunning}
-                onTogglePlay={handleTogglePlay}
-                onStep={handleStep}
-                onReset={handleReset}
-                tick={tick}
-                maxTick={5000}
-                speed={speed}
-                onSpeedChange={(s) => setSpeed(s)}
-                epoch={`HOUR ${String(clockHour).padStart(2, '0')}:00`}
-              />
-            </div>
+      <div className="command-grid">
+        <main className="city-column">
+          <div className="city-viewport">
+            <div className="viewport-topline"><div className="viewport-location"><span className="location-icon"><Map size={14} /></span><span><b>WORLD MAP</b><small>{activeWorld?.geography?.biome || activeWorld?.geography?.terrain || 'World terrain'}</small></span></div><div className="viewport-clock"><Clock3 size={14} /><b>{String(hour).padStart(2, '0')}:00</b><span>DAY {String(day).padStart(3, '0')}</span></div><div className="viewport-live"><span className={`connection-dot ${streamConnected ? 'live' : ''}`} /> {streamConnected ? 'LIVE TELEMETRY' : 'STREAM DISCONNECTED'}</div></div>
+            <div className="scene-wrap"><CityScene worldState={activeWorld} agents={agents} buildings={buildings} events={cityEvents} resources={resourceData} deficits={liveMetrics?.deficits || {}} clockHour={hour} selectedEntity={selectedEntity} onSelectEntity={setSelectedEntity} isLoading={isLoading} visibleLayers={layers} /></div>
+            <div className="map-label map-label-north"><span>N</span><i /></div><div className="map-scale"><i /><span>WORLD GRID</span></div>
+            <div className="viewport-footer"><div className="map-hint"><span className="hint-mouse">⌖</span> DRAG TO ORBIT <span>·</span> SCROLL TO ZOOM <span>·</span> SELECT ANY ENTITY</div><div className="viewport-coords">{buildings.length} mapped entities</div></div>
           </div>
-        </div>
 
-        {/* Spatial Hierarchical Inspector Drawer (Right 4 Cols) */}
-        <div className="lg:col-span-4 space-y-5">
-          <Panel
-            tag="DETAILS"
-            title="City Details"
-            subtitle="Select an area, building, or person to see more."
-            actions={
-              selectedEntity && (
-                <button
-                  onClick={() => setSelectedEntity(null)}
-                  className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300"
-                >
-                  Clear Selection
-                </button>
-              )
-            }
-          >
-            {selectedEntity ? (
-              <div className="space-y-4 text-xs font-mono">
-                {/* Active Entity Card */}
-                <div className="p-3.5 rounded-lg bg-[#080a11] border border-cyan-800/40 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400 uppercase">Selected</span>
-                    <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 uppercase font-semibold">
-                      {selectedEntity.type}
-                    </span>
-                  </div>
-                  <div className="font-bold text-white text-sm">
-                    {selectedEntity.data.name || selectedEntity.data.title || selectedEntity.data.id}
-                  </div>
-                  {selectedEntity.data.description && (
-                    <p className="text-[11px] text-slate-300 font-sans leading-tight">
-                      {selectedEntity.data.description}
-                    </p>
-                  )}
-                </div>
+          <div className="timeline-panel">
+            <div className="timeline-heading"><div><span className="timeline-label">SIMULATION TIMELINE</span><b>Day {day} <small>·</small> {String(hour).padStart(2, '0')}:00</b></div><div className="timeline-range">CYCLE 01 <span>—</span> CYCLE 30</div></div>
+            <div className="timeline-track-wrap"><span className="timeline-date">DAY 01</span><div className="timeline-track"><div className="timeline-fill" style={{ width: `${Math.min((tick % 720) / 720 * 100, 100)}%` }} /><div className="timeline-thumb" style={{ left: `${Math.min((tick % 720) / 720 * 100, 100)}%` }} /><div className="timeline-ticks">{Array.from({ length: 13 }, (_, i) => <i key={i} />)}</div><input aria-label="Simulation timeline" type="range" min="0" max="720" value={tick % 720} onChange={(event) => setTick(Number(event.target.value))} onPointerUp={async (event) => { const result = await worldService.jumpToDay(activeWorld._id, Math.max(1, Math.floor(Number(event.currentTarget.value) / 24) + 1)); if (result.success) setTick(result.data.tick); else setSimulationError(result.message); }} /></div><span className="timeline-date">DAY 30</span></div>
+            <div className="timeline-controls"><div className="playback-controls"><button className="transport-button" title="Reset unavailable without a saved initial snapshot" disabled><RotateCcw size={14} /></button><button className={`play-button ${isRunning ? 'is-playing' : ''}`} title={isRunning ? 'Pause simulation' : 'Start simulation'} disabled={simulationBusy} onClick={toggleSimulation}>{simulationBusy ? '…' : isRunning ? <Pause size={15} /> : <Play size={15} fill="currentColor" />}</button><button className="transport-button" title="Advance one tick" disabled={simulationBusy} onClick={advanceSimulation}><SkipForward size={15} /></button><span className="run-state"><i />{isRunning ? 'RUNNING' : 'PAUSED'}</span></div><div className="speed-control"><span>SPEED</span>{[0.5, 1, 2, 5, 10].map((value) => <button className={speed === value ? 'selected' : ''} key={value} onClick={() => changeSpeed(value)}>{value}×</button>)}</div><span className="tick-count">TICK <b>{tick.toLocaleString()}</b></span></div>
+            {simulationError && <p className="management-error" role="alert">{simulationError}</p>}
+          </div>
+        </main>
 
-                {/* Specific Attribute Telemetry */}
-                {selectedEntity.type === 'citizen' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Job:</span>
-                      <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.occupation}</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Current activity:</span>
-                      <span className="text-white font-mono-data">{selectedEntity.data.healthState?.currentAction || 'ACTIVE'}</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Savings:</span>
-                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.wealth} ₹</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Location:</span>
-                      <span className="text-slate-300 font-mono-data">[{selectedEntity.data.location?.x}, {selectedEntity.data.location?.y}]</span>
-                    </div>
-                  </div>
-                )}
+        <aside className="intel-column">
+          <section className="intel-card layers-card"><div className="section-heading"><div><span className="section-kicker">VISUALIZATION</span><h2>Intelligence layers</h2></div><Layers3 size={16} /></div><div className="layer-list">{layerOptions.map((layer, index) => <button key={layer.key} className={`layer-row ${layers.includes(layer.key) ? 'is-active' : ''}`} onClick={() => toggleLayer(layer.key)}><span className="layer-swatch" style={{ '--layer-color': layer.color }}><i /></span><span>{layer.label}</span><kbd>{String(index + 1)}</kbd><span className="layer-toggle"><i /></span></button>)}</div><div className="layer-footnote"><Sparkles size={13} /> Layer rendering optimized for performance</div></section>
 
-                {selectedEntity.type === 'building' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Building:</span>
-                      <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Building size:</span>
-                      <span className="text-white font-mono-data">Level {selectedEntity.data.level || 1}</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Workers:</span>
-                      <span className="text-emerald-400 font-mono-data">{selectedEntity.data.workers} / {selectedEntity.data.capacity} People</span>
-                    </div>
-                  </div>
-                )}
+          <section className="intel-card selection-card"><div className="section-heading"><div><span className="section-kicker">ENTITY INSPECTOR</span><h2>{selectedEntity ? 'Selected entity' : 'World overview'}</h2></div><CircleDot size={16} /></div>{selectedEntity ? <div className="entity-selection"><div className="entity-icon"><Building2 size={18} /></div><div className="entity-copy"><b>{selectedTitle || 'City entity'}</b><span>{selectedEntity.type?.replace('_', ' ').toUpperCase()}</span></div><button onClick={() => setSelectedEntity(null)}>Clear</button><div className="entity-detail"><span>LOCATION</span><b>{selectedEntity.data?.coordinates ? `${selectedEntity.data.coordinates.x}, ${selectedEntity.data.coordinates.y}` : selectedEntity.data?.location ? `${selectedEntity.data.location.x}, ${selectedEntity.data.location.y}` : selectedEntity.data?.payload?.location ? `${selectedEntity.data.payload.location.x}, ${selectedEntity.data.payload.location.y}` : 'Not provided'}</b></div><div className="entity-detail"><span>STATUS</span><b className="status-operational">{selectedEntity.data?.health ? `${selectedEntity.data.health}% condition` : 'Recorded'}</b></div></div> : <div className="glance-content"><div className="glance-stats"><div><span>City records</span><b>{activeWorld?.cities?.length || 0}</b></div><div><span>Buildings</span><b>{activeWorld?.buildings?.length || 0}</b></div><div><span>Active events</span><b>{cityEvents.length}</b></div></div></div>}</section>
 
-                {selectedEntity.type === 'district' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Area:</span>
-                      <span className="text-cyan-300 font-semibold uppercase">{selectedEntity.data.type}</span>
-                    </div>
-                    <div className="flex justify-between p-2 rounded bg-[#080a11] border border-slate-800/60">
-                      <span className="text-slate-400">Area size:</span>
-                      <span className="text-white font-mono-data">{selectedEntity.data.bounds?.width}x{selectedEntity.data.bounds?.depth} Units</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-6 text-center space-y-3 font-mono text-xs">
-                <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-cyan-400">
-                  <Compass className="w-5 h-5" />
-                </div>
-                <div className="text-white font-semibold">Nothing selected</div>
-                <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Click on any <strong>District Area</strong>, <strong>Building</strong>, or <strong>Person</strong> in the 3D view to inspect their live details.
-                </p>
-              </div>
-            )}
-          </Panel>
+          <section className="intel-card problems-card"><div className="section-heading"><div><span className="section-kicker">MANUAL MANAGEMENT</span><h2>City problems</h2></div><AlertTriangle size={16} /></div><p className="management-note">Problems use current simulation supply and demand. Actions apply only after your confirmation.</p>{problemsError && <div className="management-error">{problemsError}</div>}{actionMessage && <div className="management-result" role="status">{actionMessage}</div>}{problems.map((problem) => <article className="problem-row" key={problem.resource}><div><b>{problem.title}</b><small>Stock {Number(problem.available).toLocaleString()} · production {Number(problem.production).toFixed(1)} · demand {Number(problem.consumption).toFixed(1)} / tick</small><span className={`problem-state ${problem.severity}`}>{problem.active ? `${problem.severity} shortage` : problem.severity === 'pressure' ? 'Supply pressure' : 'Supply stable'}</span></div>{problem.supportedAction && (activeWorld?.permissions?.role === 'viewer' ? <span className="management-note">View only</span> : <button disabled={actionBusy || !activeWorld} onClick={() => confirmFacility(problem)}>{actionBusy ? 'Applying…' : `Build ${problem.supportedAction.name}`}</button>)}</article>)}{!problems.length && !problemsError && <p className="management-note">Loading current resource status…</p>}<div className="management-history"><b>Recent decisions</b>{actionHistory.slice(0, 5).map((entry) => <small className={entry.status === 'failed' ? 'history-failed' : ''} key={entry._id}>{entry.action === 'facility_built' ? `${entry.resource} facility built · ₹${Number(entry.cost).toLocaleString()}` : `${entry.action}: ${entry.errorMessage || 'action not applied'}`} · tick {entry.tick} · by {String(entry.actorId || '').slice(-6)}</small>)}{!actionHistory.length && <small>No management actions recorded.</small>}</div></section>
 
-          {/* Active Events & Crises HUD Card */}
-          <Panel
-            tag="EVENTS"
-            title="City Events"
-            subtitle={`${activeEvents.length > 0 ? `${activeEvents.length} events currently affecting the city` : 'City is running normally without emergencies'}`}
-            actions={
-              <button
-                onClick={() => setIsEventModalOpen(true)}
-                className="text-[11px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold"
-              >
-                <span>+ Trigger Event</span>
-              </button>
-            }
-          >
-            {activeEvents.length > 0 ? (
-              <div className="space-y-2.5 text-xs font-mono">
-                {activeEvents.map((evt) => (
-                  <div
-                    key={evt.id}
-                    className="p-3 rounded-lg bg-red-950/20 border border-red-800/40 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
-                        {evt.title || evt.type}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-950 text-red-300 border border-red-800">
-                        {evt.remainingTicks ?? evt.duration} steps left
-                      </span>
-                    </div>
-                    {evt.cause && (
-                      <p className="text-[11px] text-slate-400 font-sans leading-tight">
-                        <strong className="text-slate-300">Reason:</strong> {evt.cause}
-                      </p>
-                    )}
-                    <div className="text-[10px] text-cyan-400 flex items-center justify-between pt-1 border-t border-red-900/30">
-                      <span>How it fixes: {evt.recoveryBehavior || 'GRADUAL_RESTORATION'}</span>
-                      <span className="text-slate-500 font-mono-data">Impact: {evt.severity || 3}/5</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 rounded-lg bg-[#070912] border border-slate-800/60 text-center space-y-1 text-xs font-mono">
-                <div className="text-emerald-400 font-semibold">The city is calm</div>
-                <p className="text-[11px] text-slate-400 font-sans">
-                  Click <strong>Trigger Emergency Event</strong> to create a water shortage, power failure, market crash, or sickness outbreak and see how the city reacts.
-                </p>
-              </div>
-            )}
-          </Panel>
-
-          {/* Quick Camera Views */}
-          <Panel
-            tag="CAMERA"
-            title="Quick Camera Views"
-            subtitle="Quickly move camera around the 3D city"
-          >
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <button
-                onClick={() => setSelectedEntity(null)}
-                className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
-              >
-                <span>Show the whole city</span>
-                <Compass className="w-3.5 h-3.5 text-cyan-400" />
-              </button>
-              <button
-                onClick={() => setSelectedEntity({ type: 'district', data: { name: 'City centre', bounds: { x: 50, z: 50 } } })}
-                className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
-              >
-                <span>City centre</span>
-                <Building2 className="w-3.5 h-3.5 text-sky-400" />
-              </button>
-              <button
-                onClick={() => setSelectedEntity({ type: 'citizen', data: agents[0] })}
-                className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
-              >
-                <span>Follow a person</span>
-                <Users className="w-3.5 h-3.5 text-violet-400" />
-              </button>
-              <button
-                onClick={() => setSelectedEntity({ type: 'building', data: buildings[0] })}
-                className="p-2.5 rounded bg-[#080a11] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors text-left flex items-center justify-between"
-              >
-                <span>Main workshop</span>
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              </button>
-            </div>
-          </Panel>
-        </div>
-
+          <section className="intel-card events-card"><div className="section-heading"><div><span className="section-kicker">CITY FEED <span className={`feed-live-dot ${streamConnected ? 'is-connected' : ''}`} /></span><h2>City signals</h2></div></div><div className="event-list">{cityEvents.map((event, index) => <article className="event-row" key={`${event.type}-${event.tick}-${index}`}><span className="event-icon blue"><Activity size={14} /></span><div><small><b>{String(event.type || 'EVENT').replaceAll('_', ' ')}</b><span>{event.receivedAt}</span></small><p>{event.payload?.facility || event.payload?.message || 'Simulation event recorded.'}</p></div></article>)}</div>{!cityEvents.length && <p className="management-note">No live events received for this world yet.</p>}</section>
+        </aside>
       </div>
-
-      {/* Phase 11 Event Injection UI Modal */}
-      <EventInjectionUI
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
-        onInjectEvent={handleInjectEvent}
-        isInjecting={isInjectingEvent}
-        activeEvents={activeEvents}
-      />
-    </div>
+      <footer className="command-footer"><span><Radio size={13} /> MANNORA CITY SIMULATION NETWORK</span><span>SIMULATION DAY {day} <i /> {streamConnected ? 'STREAM CONNECTED' : 'STREAM DISCONNECTED'} <i /> {activeWorld?.simulationSettings?.status || 'initialized'}</span></footer>
+    </section>
   );
 }

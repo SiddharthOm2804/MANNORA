@@ -6,9 +6,12 @@ import { ENV } from './config/env.js';
 import healthRoutes from './routes/healthRoutes.js';
 import worldRoutes from './routes/worldRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
+import { createRateLimiter, sanitizeRequestBody } from './middleware/securityMiddleware.js';
 
 const app = express();
+if (ENV.TRUST_PROXY) app.set('trust proxy', 1);
 
 // Security HTTP headers
 app.use(
@@ -21,19 +24,8 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman)
-      if (!origin) return callback(null, true);
-
-      // In development, allow localhost origins
-      if (ENV.IS_DEVELOPMENT) {
-        return callback(null, true);
-      }
-
-      if (origin === ENV.CLIENT_URL) {
-        return callback(null, true);
-      }
-
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      if (!origin || ENV.CORS_ORIGINS.includes(origin)) return callback(null, true);
+      callback(null, false);
     },
     credentials: true,
   })
@@ -43,15 +35,18 @@ app.use(
 app.use(morgan(ENV.IS_PRODUCTION ? 'combined' : 'dev'));
 
 // Parse JSON request body
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb', strict: true }));
+app.use(express.urlencoded({ extended: false, limit: '1mb', parameterLimit: 100 }));
+app.use(sanitizeRequestBody);
+app.use('/api', createRateLimiter({ windowMs: 60_000, max: 180 }));
+app.use('/api/ai', createRateLimiter({ windowMs: 60_000, max: 30 }));
 
 // API Root check
 app.get('/', (req, res) => {
   res.json({
     name: 'NEURAL CITY API',
     description: 'AI-Driven Multi-Agent Civilization Simulation Engine',
-    phase: 'Phase 3 - World Creation System',
+    phase: 'Phase 18 - Production Readiness',
     endpoints: {
       health: '/api/health',
       worlds: '/api/worlds',
@@ -62,6 +57,9 @@ app.get('/', (req, res) => {
 
 // Mount Routes
 app.use('/api', healthRoutes);
+app.use('/api/auth/register', createRateLimiter({ windowMs: 15 * 60_000, max: 10 }));
+app.use('/api/auth/login', createRateLimiter({ windowMs: 15 * 60_000, max: 10 }));
+app.use('/api/auth', authRoutes);
 app.use('/api/worlds', worldRoutes);
 app.use('/api/ai', aiRoutes);
 

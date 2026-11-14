@@ -28,6 +28,7 @@ export class RealTimeSimulationSocket {
     this.maxReconnectAttempts = 10;
     this.reconnectDelay = 1500;
     this.shouldReconnect = true;
+    this.reconnectTimer = null;
 
     // Local cached accumulator of state
     this.cachedState = {
@@ -44,15 +45,15 @@ export class RealTimeSimulationSocket {
    * Connect to WebSocket gateway
    */
   connect() {
-    this.shouldReconnect = true;
     if (this.socket) {
       this.disconnect();
     }
+    this.shouldReconnect = true;
 
     const loc = window.location;
     const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Use configured backend port in dev if on Vite dev server
-    const host = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' ? `${loc.hostname}:5005` : loc.host;
+    // In development the Vite /ws proxy forwards this same-origin socket to the API.
+    const host = loc.host;
     const wsUrl = `${protocol}//${host}/ws/simulation?worldId=${this.worldId}&deltasOnly=true`;
 
     try {
@@ -155,6 +156,8 @@ export class RealTimeSimulationSocket {
       if (this.options.onStatus) {
         this.options.onStatus(msg.payload, msg.tick);
       }
+    } else if (msg.type && !['CONNECTED', 'SUBSCRIBED', 'PONG', 'ACK'].includes(msg.type)) {
+      this.options.onEvent?.(msg);
     }
   }
 
@@ -174,7 +177,8 @@ export class RealTimeSimulationSocket {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = Math.min(10000, this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1));
-      setTimeout(() => {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = setTimeout(() => {
         if (!this.isConnected && this.shouldReconnect) {
           this.connect();
         }
@@ -184,6 +188,8 @@ export class RealTimeSimulationSocket {
 
   disconnect() {
     this.shouldReconnect = false;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
     if (this.socket) {
       this.socket.close();
       this.socket = null;

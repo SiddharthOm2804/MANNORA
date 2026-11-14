@@ -1,65 +1,61 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import * as THREE from 'three';
 
-/**
- * Roads renders the primary arterial network and intra-district transit grid
- * in NEURAL CITY connecting residential, commercial, industrial, and resource zones.
- */
+/** Light neighborhood streets batched as instanced planes to keep draw calls low. */
 export function Roads() {
-  // Road segments: { x, z, length, width, rotation }
-  const roadNetwork = useMemo(() => {
-    const roads = [];
+  const sidewalks = useRef();
+  const asphalt = useRef();
+  const centerLines = useRef();
+  const roads = useMemo(() => [
+    { x: 50, z: 50, width: 5.2, length: 126, rotation: 0, arterial: true },
+    { x: 50, z: 50, width: 5.2, length: 126, rotation: Math.PI / 2, arterial: true },
+    { x: 33, z: 50, width: 3, length: 118, rotation: 0 },
+    { x: 67, z: 50, width: 3, length: 118, rotation: 0 },
+    { x: 50, z: 33, width: 3, length: 118, rotation: Math.PI / 2 },
+    { x: 50, z: 67, width: 3, length: 118, rotation: Math.PI / 2 },
+    { x: 18, z: 50, width: 2.1, length: 90, rotation: 0 },
+    { x: 82, z: 50, width: 2.1, length: 90, rotation: 0 },
+    { x: 50, z: 18, width: 2.1, length: 90, rotation: Math.PI / 2 },
+    { x: 50, z: 82, width: 2.1, length: 90, rotation: Math.PI / 2 },
+  ], []);
+  const arterialRoads = useMemo(() => roads.filter((road) => road.arterial), [roads]);
 
-    // Main North-South Arterial
-    roads.push({ x: 50, z: 50, width: 3.2, length: 110, rotation: 0 });
-    // Main East-West Arterial
-    roads.push({ x: 50, z: 50, width: 3.2, length: 110, rotation: Math.PI / 2 });
+  useEffect(() => {
+    const dummy = new THREE.Object3D();
+    roads.forEach((road, index) => {
+      dummy.position.set(road.x, 0.11, road.z);
+      dummy.rotation.set(-Math.PI / 2, 0, road.rotation);
+      dummy.scale.set(road.width + 1.25, road.length, 1);
+      dummy.updateMatrix();
+      sidewalks.current?.setMatrixAt(index, dummy.matrix);
+      dummy.position.y = 0.125;
+      dummy.scale.set(road.width, road.length, 1);
+      dummy.updateMatrix();
+      asphalt.current?.setMatrixAt(index, dummy.matrix);
+    });
+    arterialRoads.forEach((road, index) => {
+      dummy.position.set(road.x, 0.14, road.z);
+      dummy.rotation.set(-Math.PI / 2, 0, road.rotation);
+      dummy.scale.set(0.12, road.length * 0.94, 1);
+      dummy.updateMatrix();
+      centerLines.current?.setMatrixAt(index, dummy.matrix);
+    });
+    [sidewalks.current, asphalt.current, centerLines.current].forEach((mesh) => {
+      if (mesh) mesh.instanceMatrix.needsUpdate = true;
+    });
+  }, [roads, arterialRoads]);
 
-    // Inner Ring Boulevard (around Central Matrix)
-    roads.push({ x: 50, z: 33, width: 2.2, length: 36, rotation: Math.PI / 2 });
-    roads.push({ x: 50, z: 67, width: 2.2, length: 36, rotation: Math.PI / 2 });
-    roads.push({ x: 33, z: 50, width: 2.2, length: 36, rotation: 0 });
-    roads.push({ x: 67, z: 50, width: 2.2, length: 36, rotation: 0 });
-
-    // Outer Sector Connectors
-    roads.push({ x: 20, z: 30, width: 1.8, length: 24, rotation: Math.PI / 2 });
-    roads.push({ x: 80, z: 30, width: 1.8, length: 24, rotation: Math.PI / 2 });
-    roads.push({ x: 20, z: 70, width: 1.8, length: 24, rotation: Math.PI / 2 });
-    roads.push({ x: 80, z: 70, width: 1.8, length: 24, rotation: Math.PI / 2 });
-
-    return roads;
-  }, []);
-
-  return (
-    <group position={[0, 0.03, 0]}>
-      {roadNetwork.map((road, idx) => (
-        <group
-          key={idx}
-          position={[road.x, 0, road.z]}
-          rotation={[-Math.PI / 2, 0, road.rotation]}
-        >
-          {/* Asphalt surface */}
-          <mesh receiveShadow>
-            <planeGeometry args={[road.width, road.length]} />
-            <meshStandardMaterial
-              color="#0f172a"
-              roughness={0.7}
-              metalness={0.2}
-            />
-          </mesh>
-
-          {/* Luminous Centerline lane markings */}
-          <mesh position={[0, 0, 0.005]}>
-            <planeGeometry args={[0.2, road.length * 0.95]} />
-            <meshBasicMaterial
-              color="#0284c7"
-              transparent
-              opacity={0.65}
-            />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
+  return <group>
+    <instancedMesh ref={sidewalks} args={[null, null, roads.length]} receiveShadow>
+      <planeGeometry args={[1, 1]} /><meshStandardMaterial color="#d9d3bd" roughness={1} />
+    </instancedMesh>
+    <instancedMesh ref={asphalt} args={[null, null, roads.length]} receiveShadow>
+      <planeGeometry args={[1, 1]} /><meshStandardMaterial color="#596062" roughness={0.93} />
+    </instancedMesh>
+    <instancedMesh ref={centerLines} args={[null, null, arterialRoads.length]}>
+      <planeGeometry args={[1, 1]} /><meshBasicMaterial color="#eee7cf" transparent opacity={0.82} />
+    </instancedMesh>
+  </group>;
 }
 
 export default Roads;

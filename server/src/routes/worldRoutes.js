@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticate, requireCsrf, authorizeWorld } from '../middleware/authMiddleware.js';
 import {
   createWorld,
   getAllWorlds,
@@ -7,6 +8,8 @@ import {
   deleteWorld,
 } from '../controllers/worldController.js';
 import { streamWorldEvents } from '../controllers/simulationEventController.js';
+import { listCityProblems, getCityActionHistory, applyCityAction } from '../controllers/cityManagementController.js';
+import { shareWorld, revokeWorldShare } from '../controllers/worldShareController.js';
 import {
   launchSimulation,
   stepSimulation,
@@ -20,12 +23,17 @@ import {
   createBranch,
   runComparison,
   runExperiment,
-  listExperiments,
-  getExperiment,
-  compareExperiments,
+  listWorldExperiments,
+  getWorldExperiment,
+  compareWorldExperiments,
+  setSimulationSpeed,
 } from '../controllers/simulationController.js';
 
 const router = Router();
+
+router.use(authenticate);
+router.use((req, res, next) => ['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method) ? requireCsrf(req, res, next) : next());
+router.param('id', authorizeWorld);
 
 // POST /api/worlds - Create new world
 router.post('/', createWorld);
@@ -36,6 +44,11 @@ router.get('/', getAllWorlds);
 // GET /api/worlds/:id/events - Real-time SSE simulation event stream
 router.get('/:id/events', streamWorldEvents);
 router.get('/:id/stream', streamWorldEvents);
+router.get('/:id/problems', listCityProblems);
+router.get('/:id/actions', getCityActionHistory);
+router.post('/:id/actions/facility', applyCityAction);
+router.post('/:id/shares', shareWorld);
+router.delete('/:id/shares/:userId', revokeWorldShare);
 
 // Simulation Lifecycle & Database Bridge routes
 // POST /api/worlds/:id/launch - Launch simulation from MongoDB World record
@@ -43,6 +56,7 @@ router.post('/:id/launch', launchSimulation);
 
 // POST /api/worlds/:id/step - Step in-memory simulation by 1 tick
 router.post('/:id/step', stepSimulation);
+router.patch('/:id/speed', setSimulationSpeed);
 
 // POST /api/worlds/:id/checkpoint - Persist simulation snapshot back to MongoDB
 router.post('/:id/checkpoint', saveCheckpoint);
@@ -63,10 +77,11 @@ router.post('/:id/compare', runComparison);
 
 // Experiment Lab Routes (Phase 13)
 router.post('/:id/experiments', runExperiment);
-router.post('/experiments/run', runExperiment);
-router.get('/experiments/all', listExperiments);
-router.get('/experiments/:expId', getExperiment);
-router.post('/experiments/compare', compareExperiments);
+router.get('/:id/experiments', listWorldExperiments);
+router.get('/:id/experiments/:expId', getWorldExperiment);
+router.post('/:id/experiments/compare', compareWorldExperiments);
+// Process-global experiment lookup/listing is intentionally not exposed: experiment IDs
+// are not a durable authorization boundary. Use the world-scoped experiment endpoints.
 
 // GET /api/worlds/:id - Get single world details
 router.get('/:id', getWorldById);

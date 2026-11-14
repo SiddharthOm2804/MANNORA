@@ -10,6 +10,7 @@ import SimulationCamera from './SimulationCamera';
 import CityLighting from './CityLighting';
 import WorldEffects from './WorldEffects';
 import LoadingWorld from './LoadingWorld';
+import { Html } from '@react-three/drei';
 
 /**
  * CityScene is the primary 3D WebGL orchestration layer for NEURAL CITY.
@@ -24,6 +25,7 @@ export const CityScene = React.memo(function CityScene({
   worldState,
   agents = [],
   buildings = [],
+  events = [],
   resources = {},
   clockHour = 12,
   deficits = {},
@@ -32,6 +34,7 @@ export const CityScene = React.memo(function CityScene({
   selectedEntity,
   onSelectEntity,
   isLoading = false,
+  visibleLayers = ['population', 'economy', 'resources', 'infrastructure', 'social', 'events'],
 }) {
   const controlsRef = useRef();
   const [hoveredEntity, setHoveredEntity] = useState(null);
@@ -48,10 +51,11 @@ export const CityScene = React.memo(function CityScene({
       };
     }
 
-    if (selectedEntity.type === 'building' && selectedEntity.data?.coordinates) {
+    if (['building', 'resource_node', 'event', 'city'].includes(selectedEntity.type) && (selectedEntity.data?.coordinates || selectedEntity.data?.payload?.location)) {
+      const coords = selectedEntity.data?.coordinates || selectedEntity.data?.payload?.location;
       return {
         type: 'building',
-        position: [selectedEntity.data.coordinates.x ?? 50, 0, selectedEntity.data.coordinates.y ?? 50],
+        position: [coords.x ?? 50, 0, coords.y ?? 50],
         distance: 26,
       };
     }
@@ -68,7 +72,7 @@ export const CityScene = React.memo(function CityScene({
   }, [selectedEntity]);
 
   return (
-    <div className="w-full h-full min-h-[460px] relative bg-[#080a11] overflow-hidden select-none">
+    <div className="w-full h-full min-h-[460px] relative overflow-hidden select-none" style={{ background: '#b9dfd2' }}>
       {isLoading && <LoadingWorld />}
 
       {/* Lightweight Hover HUD tooltip */}
@@ -118,10 +122,12 @@ export const CityScene = React.memo(function CityScene({
       {/* 3D Canvas */}
       <Canvas
         shadows
-        camera={{ position: [50, 75, 115], fov: 45 }}
+        dpr={[1, 1.5]}
+        camera={{ position: [148, 144, 148], fov: 42 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         onPointerMissed={() => onSelectEntity(null)}
       >
+        <color attach="background" args={['#95d4d3']} />
         {/* Dynamic Diurnal Lighting based on SimulationClock */}
         <CityLighting
           hour={clockHour}
@@ -145,52 +151,71 @@ export const CityScene = React.memo(function CityScene({
 
         {/* 1. Base Terrain & Districts */}
         <CityEnvironment
-          selectedDistrict={selectedEntity?.type === 'district' ? selectedEntity.data : null}
+          selectedDistrict={['district', 'city'].includes(selectedEntity?.type) ? selectedEntity.data : null}
           onSelectDistrict={(district) =>
-            onSelectEntity(district ? { type: 'district', data: district } : null)
+            onSelectEntity(district ? { type: district.isCity ? 'city' : 'district', data: district } : null)
           }
           onHover={setHoveredEntity}
           deficits={deficits}
           economicCrisis={economicCrisis}
           activeEvent={activeEvent}
+          showResources={visibleLayers.includes('resources')}
+          showInfrastructure={visibleLayers.includes('infrastructure')}
+          cities={worldState?.cities || []}
+          buildings={buildings}
         />
 
         {/* 2. Arterial Road Network */}
-        <Roads />
+        {visibleLayers.includes('infrastructure') && <Roads />}
 
         {/* 3. Resource Wells & Towers */}
-        <ResourceNodes
+        {visibleLayers.includes('resources') && <ResourceNodes
+          buildings={buildings}
           resources={resources}
           deficits={deficits}
           onHover={setHoveredEntity}
-        />
+          onSelect={(building) => onSelectEntity({ type: 'resource_node', data: building })}
+        />}
 
         {/* 4. Infrastructure & Buildings */}
-        <Buildings
+        {(visibleLayers.includes('infrastructure') || visibleLayers.includes('economy')) && <Buildings
           buildings={buildings}
-          selectedBuilding={selectedEntity?.type === 'building' ? selectedEntity.data : null}
+          selectedBuilding={['building', 'resource_node'].includes(selectedEntity?.type) ? selectedEntity.data : null}
           onSelectBuilding={(building) =>
             onSelectEntity({ type: 'building', data: building })
           }
           onHover={setHoveredEntity}
           deficits={deficits}
           economicCrisis={economicCrisis}
-        />
+          showEconomy={visibleLayers.includes('economy')}
+          showInfrastructure={visibleLayers.includes('infrastructure')}
+        />}
 
         {/* 5. Instanced Population Citizens */}
-        <Citizens
+        {(visibleLayers.includes('population') || visibleLayers.includes('social')) && <Citizens
           agents={agents}
           selectedCitizen={selectedEntity?.type === 'citizen' ? selectedEntity.data : null}
           onSelectCitizen={(citizen) =>
             onSelectEntity({ type: 'citizen', data: citizen })
           }
           onHover={setHoveredEntity}
-        />
+          showSocial={visibleLayers.includes('social')}
+          showPopulation={visibleLayers.includes('population')}
+        />}
 
         {/* 6. Active Agent Marker */}
         {selectedEntity?.type === 'citizen' && (
           <AgentMarker citizen={selectedEntity.data} />
         )}
+
+        {visibleLayers.includes('events') && events.filter((event) => Number.isFinite(event.payload?.location?.x) && Number.isFinite(event.payload?.location?.y)).slice(0, 8).map((event, index) => (
+          <group key={`${event.type}-${event.tick}-${index}`} position={[event.payload.location.x, 1.2 + index * 0.15, event.payload.location.y]}>
+            <mesh onClick={(click) => { click.stopPropagation(); onSelectEntity({ type: 'event', data: event }); }}>
+              <sphereGeometry args={[0.8, 12, 10]} /><meshBasicMaterial color="#eb805e" />
+            </mesh>
+            <Html center distanceFactor={105} style={{ pointerEvents: 'none' }}><span className="scene-event-label">{event.payload.facility || event.type.replaceAll('_', ' ')}</span></Html>
+          </group>
+        ))}
       </Canvas>
     </div>
   );

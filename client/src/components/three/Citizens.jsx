@@ -12,6 +12,8 @@ export const Citizens = React.memo(function Citizens({
   selectedCitizen,
   onSelectCitizen,
   onHover,
+  showSocial = false,
+  showPopulation = true,
 }) {
   const meshRef = useRef();
 
@@ -30,16 +32,37 @@ export const Citizens = React.memo(function Citizens({
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   // Cap visible instances to maintain 60 FPS even with thousands of agents
-  const displayLimit = Math.min(agents.length, 1500);
+  const placedAgents = useMemo(() => agents.filter((agent) => Number.isFinite(Number(agent.location?.x ?? agent.x)) && Number.isFinite(Number(agent.location?.y ?? agent.y))).slice(0, 1500), [agents]);
+  const displayLimit = placedAgents.length;
+
+  const socialGeometry = useMemo(() => {
+    if (!showSocial) return null;
+    const located = new Map(placedAgents.map((agent) => [String(agent.id), [Number(agent.location?.x ?? agent.x), 0.8, Number(agent.location?.y ?? agent.y)]]));
+    const vertices = [];
+    for (const agent of placedAgents) {
+      const from = located.get(String(agent.id));
+      for (const [targetId, relation] of Object.entries(agent.relationships || {})) {
+        const to = located.get(String(targetId));
+        if (!to || String(agent.id) >= String(targetId) || Number(relation?.strength ?? relation?.bond ?? 0) < 0.55) continue;
+        vertices.push(new THREE.Vector3(...from), new THREE.Vector3(...to));
+        if (vertices.length >= 600) break;
+      }
+      if (vertices.length >= 600) break;
+    }
+    if (!vertices.length) return null;
+    const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
+    return geometry;
+  }, [placedAgents, showSocial]);
+  useEffect(() => () => socialGeometry?.dispose(), [socialGeometry]);
 
   // Update instance matrices and colors whenever agents change
   useEffect(() => {
-    if (!meshRef.current || agents.length === 0) return;
+    if (!meshRef.current || displayLimit === 0) return;
 
     for (let i = 0; i < displayLimit; i++) {
-      const agent = agents[i];
-      const x = agent.location?.x ?? agent.x ?? (50 + (i % 20) * 1.5);
-      const z = agent.location?.y ?? agent.y ?? (50 + Math.floor(i / 20) * 1.5);
+      const agent = placedAgents[i];
+      const x = Number(agent.location?.x ?? agent.x);
+      const z = Number(agent.location?.y ?? agent.y);
 
       dummy.position.set(x, 0.45, z);
       dummy.scale.set(1, 1, 1);
@@ -56,20 +79,20 @@ export const Citizens = React.memo(function Citizens({
     if (meshRef.current.instanceColor) {
       meshRef.current.instanceColor.needsUpdate = true;
     }
-  }, [agents, displayLimit, dummy, occupationColors]);
+  }, [placedAgents, displayLimit, dummy, occupationColors]);
 
   // Click Raycaster Handler for InstancedMesh
   const handleClick = (e) => {
     e.stopPropagation();
-    if (e.instanceId !== undefined && agents[e.instanceId]) {
-      onSelectCitizen(agents[e.instanceId]);
+    if (e.instanceId !== undefined && placedAgents[e.instanceId]) {
+      onSelectCitizen(placedAgents[e.instanceId]);
     }
   };
 
   const handlePointerOver = (e) => {
     e.stopPropagation();
-    if (e.instanceId !== undefined && agents[e.instanceId]) {
-      const agt = agents[e.instanceId];
+    if (e.instanceId !== undefined && placedAgents[e.instanceId]) {
+      const agt = placedAgents[e.instanceId];
       onHover({
         type: 'citizen',
         id: agt.id,
@@ -83,10 +106,12 @@ export const Citizens = React.memo(function Citizens({
     }
   };
 
-  if (agents.length === 0) return null;
+  if (displayLimit === 0 && !socialGeometry) return null;
 
   return (
-    <instancedMesh
+    <group>
+    {socialGeometry && <lineSegments geometry={socialGeometry}><lineBasicMaterial color="#e1a9bf" transparent opacity={0.45} /></lineSegments>}
+    {showPopulation && displayLimit > 0 && <instancedMesh
       ref={meshRef}
       args={[null, null, displayLimit]}
       onClick={handleClick}
@@ -100,7 +125,8 @@ export const Citizens = React.memo(function Citizens({
       {/* Sleek cybernetic citizen capsule */}
       <cylinderGeometry args={[0.3, 0.35, 0.9, 8]} />
       <meshStandardMaterial roughness={0.3} metalness={0.7} />
-    </instancedMesh>
+    </instancedMesh>}
+    </group>
   );
 });
 

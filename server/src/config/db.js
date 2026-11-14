@@ -71,8 +71,8 @@ export const connectDB = async (options = {}) => {
 
       mongoose.connection.on('error', (err) => {
         dbStatus.status = 'error';
-        dbStatus.lastError = err.message;
-        console.error(`\x1b[31m[MongoDB Runtime Error]\x1b[0m ${err.message}`);
+        dbStatus.lastError = err.name || 'DatabaseError';
+        console.error(`\x1b[31m[MongoDB Runtime Error]\x1b[0m ${err.name || 'DatabaseError'}`);
       });
 
       mongoose.connection.on('disconnected', () => {
@@ -101,12 +101,11 @@ export const connectDB = async (options = {}) => {
     return conn.connection;
   } catch (error) {
     dbStatus.status = 'error';
-    dbStatus.lastError = error.message;
+    dbStatus.lastError = error.name || 'DatabaseConnectionError';
 
     console.error('\n======================================================');
     console.error('\x1b[31m[MongoDB Connection Failure]\x1b[0m Unable to connect to MongoDB!');
-    console.error(`Message: ${error.message}`);
-    console.error('Target URI: ' + (uri ? uri.replace(/:([^:@]+)@/, ':****@') : 'undefined'));
+    console.error(`Error type: ${error.name || 'DatabaseConnectionError'}`);
     console.error('\x1b[33mWARNING: Server is operating with database UNAVAILABLE.\x1b[0m');
     console.error('Check your MongoDB instance or update MONGO_URI in .env.');
     console.error('======================================================\n');
